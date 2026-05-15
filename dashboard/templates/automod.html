@@ -1,0 +1,26 @@
+<div class="panel">
+  <div class="panel-header">
+    <h2>🤖 Auto-Modération</h2>
+  </div>
+  <div class="panel-body">
+    <div class="toggle-row">
+      <div><strong>Anti Spam</strong><p>Bloque les messages spam</p></div>
+      <div class="toggle" id="toggle-antispam"></div>
+    </div>
+    <div class="toggle-row">
+      <div><strong>Anti Liens</strong><p>Supprime les liens</p></div>
+      <div class="toggle" id="toggle-links"></div>
+    </div>
+    <div class="toggle-row">
+      <div><strong>Anti Caps</strong><p>Détecte les majuscules abusives</p></div>
+      <div class="toggle" id="toggle-caps"></div>
+    </div>
+    <div class="form-group" style="margin-top:20px">
+      <label>Mots interdits</label>
+      <textarea id="banned-words" class="form-textarea" rows="4" placeholder="mot1, mot2, mot3"></textarea>
+    </div>
+  </div>
+  <div class="panel-footer">
+    <button class="btn btn-primary" id="save-automod">Sauvegarder</button>
+  </div>
+</div>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WARSTACK — Inscription Tournoi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/core/variables.css">
+  <link rel="stylesheet" href="css/core/reset.css">
+  <link rel="stylesheet" href="css/core/base.css">
+  <link rel="stylesheet" href="css/components/forms.css">
+  <link rel="stylesheet" href="css/components/buttons.css">
+  <link rel="stylesheet" href="css/sections/inscription.css">
+  <script type="module" src="js/sections/inscription.js"></script>
+</head>
+<body class="inscription-page">
+
+  <div class="inscription-logo">
+    <span class="logo-icon">⚔️</span>
+    <span class="logo-text">WARSTACK</span>
+    <div class="logo-sub">INSCRIPTION TOURNOI</div>
+  </div>
+
+  <div class="inscription-card">
+
+    <div id="state-loading" class="insc-state visible center-msg">
+      <span class="spinner"></span> Chargement du tournoi...
+    </div>
+
+    <div id="state-no-tournoi" class="insc-state center-msg">
+      <i class="fas fa-ban" style="color:var(--red)"></i>
+      Aucun tournoi en cours.<br>Reviens plus tard.
+    </div>
+
+    <div id="state-form" class="insc-state">
+
+      <div class="tournoi-banner">
+        <div class="tournoi-name" id="tournoi-name">—</div>
+        <div class="tournoi-dates" id="tournoi-dates">—</div>
+        <div class="badge-actif">● EN COURS</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">PSEUDO PSN *</label>
+        <div class="input-row">
+          <input type="text" class="form-input" id="psn-input" placeholder="Ton pseudo PlayStation Network" autocomplete="off">
+          <button class="btn-verify" id="btn-verify">VÉRIFIER</button>
+        </div>
+        <div class="hint" id="psn-hint" style="display:none"></div>
+      </div>
+
+      <div class="fallback-box" id="fallback-box">
+        <p>⚠ Profil PSN introuvable sur tracker.gg.<br>Entre ton pseudo Discord pour validation manuelle par un orga.</p>
+        <input type="text" class="form-input" id="discord-input" placeholder="TonPseudo ou TonPseudo#1234">
+      </div>
+
+      <hr class="insc-sep">
+
+      <div class="form-group" id="team-zone" style="display:none">
+        <label class="form-label">CHOIX DE LA TEAM *</label>
+        <div class="teams-grid" id="teams-grid"></div>
+        <div class="hint err" id="team-hint" style="display:none">Choisis une team.</div>
+      </div>
+
+      <button class="btn btn-primary" style="width:100%;letter-spacing:3px;" id="btn-submit" disabled>
+        S'INSCRIRE AU TOURNOI
+      </button>
+
+    </div>
+
+    <div id="state-success" class="insc-state">
+      <div class="success-wrap">
+        <div class="success-icon"><i class="fas fa-check-circle"></i></div>
+        <div class="success-title">INSCRIT !</div>
+        <div class="success-sub">Tu es dans la liste. Good luck soldier.</div>
+        <div class="success-recap" id="success-recap"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="inscription-footer">WARSTACK © 2026 — LES POTES Ö FEU</div>
+
+</body>
+</html>

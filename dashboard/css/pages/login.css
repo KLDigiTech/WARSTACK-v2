@@ -1,0 +1,157 @@
+.login-body {
+  margin: 0;
+  min-height: 100vh;
+  overflow: hidden;
+  background: #050805;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.login-background {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at top, rgba(0,255,120,.08), transparent 40%),
+    radial-gradient(circle at bottom, rgba(0,255,120,.04), transparent 35%),
+    #050805;
+}
+
+.login-background::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgba(0,255,120,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,120,.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(circle at center, black, transparent 85%);
+}
+
+.login-background::after {
+  content: '';
+  position: absolute;
+  width: 700px; height: 700px;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(0,255,120,.08), transparent 70%);
+  filter: blur(60px);
+  animation: pulseGlow 6s ease-in-out infinite;
+}
+
+.login-page {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 40px;
+  border-radius: 24px;
+  background: rgba(8,14,10,.92);
+  border: 1px solid rgba(0,255,120,.12);
+  box-shadow: 0 0 50px rgba(0,255,120,.08), 0 30px 80px rgba(0,0,0,.55);
+  backdrop-filter: blur(18px);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+
+.login-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.03), transparent 30%);
+  pointer-events: none;
+}
+
+.login-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(to bottom, rgba(255,255,255,.015), rgba(255,255,255,.015) 1px, transparent 1px, transparent 3px);
+  opacity: .25;
+  pointer-events: none;
+}
+
+.login-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 70px rgba(0,255,120,.12), 0 40px 100px rgba(0,0,0,.65);
+}
+
+.login-logo { margin-bottom: 24px; }
+.login-logo img {
+  width: 96px; height: 96px;
+  object-fit: cover;
+  border-radius: 24px;
+  border: 1px solid rgba(0,255,120,.2);
+  box-shadow: 0 0 25px rgba(0,255,120,.15);
+  animation: logoFloat 4s ease-in-out infinite;
+}
+
+.login-card h1 {
+  margin: 0;
+  color: #fff;
+  font-size: 42px;
+  letter-spacing: 6px;
+  text-shadow: 0 0 25px rgba(255,255,255,.12);
+}
+
+.login-card p {
+  margin-top: 10px;
+  margin-bottom: 35px;
+  color: #7dffb3;
+  font-size: 15px;
+  letter-spacing: 1px;
+  opacity: .82;
+}
+
+.discord-login-btn {
+  width: 100%;
+  height: 58px;
+  border: none;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #5865F2, #404EED);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: .2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.discord-login-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -120%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.2), transparent);
+  transition: .6s;
+}
+
+.discord-login-btn:hover::before { left: 120%; }
+.discord-login-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(88,101,242,.35); }
+.discord-login-btn:active { transform: scale(.98); }
+.discord-login-btn i { font-size: 18px; }
+
+@keyframes pulseGlow {
+  0%,100% { opacity: .5; transform: translate(-50%, -50%) scale(1); }
+  50%      { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+}
+
+@keyframes logoFloat {
+  0%,100% { transform: translateY(0px); }
+  50%      { transform: translateY(-6px); }
+}

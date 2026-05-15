@@ -1,0 +1,125 @@
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.8);
+  z-index: 999;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal.open { display: flex; }
+
+.modal-box {
+  background: var(--surface);
+  border: 1px solid var(--green-dim);
+  width: 620px;
+  max-width: 95vw;
+  max-height: 96vh;
+  box-shadow: 0 0 40px rgba(0,255,65,.05);
+  animation: modalIn .2s ease;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(0,255,65,.02);
+}
+
+.modal-header h3 {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--green);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  transition: color .15s ease;
+}
+
+.modal-close:hover { color: var(--text); }
+
+.modal-body {
+  padding: 14px;
+  max-height: 78vh;
+  overflow-y: auto;
+}
+
+.modal-footer { display: none; }
+
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+#global-confirm {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.85);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+#global-confirm.show { display: flex; }
+
+.confirm-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--orange);
+  width: 420px;
+  max-width: 95vw;
+  padding: 28px;
+  box-shadow: 0 0 40px var(--orange-glow);
+  animation: modalIn .2s ease;
+}
+
+.confirm-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin-bottom: 12px;
+}
+
+.confirm-message {
+  font-size: 13px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.confirm-btn {
+  padding: 8px 20px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  transition: all .15s ease;
+}
+
+.confirm-btn.cancel { background: transparent; color: var(--text-muted); }
+.confirm-btn.cancel:hover { border-color: var(--text-muted); color: var(--text); }
+.confirm-btn.confirm { background: var(--orange); color: var(--bg); border-color: var(--orange); }
+.confirm-btn.confirm:hover { opacity: .85; }

@@ -1,0 +1,138 @@
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.form-group.full { grid-column: 1 / -1; }
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.form-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #7dffb3;
+}
+
+label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #7dffb3;
+  opacity: .8;
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+  width: 100%;
+  height: 54px;
+  padding: 0 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(0,255,120,.08);
+  background: linear-gradient(180deg, rgba(13,18,16,.96), rgba(8,11,9,.98));
+  color: #ffffff;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  outline: none;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+.form-textarea {
+  min-height: 140px;
+  padding: 18px;
+  resize: vertical;
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder { color: #5d7265; }
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+  border-color: rgba(0,255,120,.24);
+  box-shadow: 0 0 0 4px rgba(0,255,120,.05), 0 10px 30px rgba(0,0,0,.22);
+  transform: translateY(-1px);
+}
+
+.form-input:hover,
+.form-textarea:hover { border-color: rgba(0,255,120,.16); }
+
+input[type="date"] { color-scheme: dark; }
+
+.form-helper {
+  font-size: 11px;
+  color: #7fa38a;
+  letter-spacing: 1px;
+}
+
+.muted {
+  font-size: 10px;
+  color: #7fa38a;
+  font-weight: 400;
+  letter-spacing: 1px;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+}
+
+.toggle-row strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f2fff2;
+  letter-spacing: 1px;
+}
+
+.toggle-row p {
+  font-size: 11px;
+  color: #7fa38a;
+  margin-top: 3px;
+}
+
+.toggle {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.10);
+  cursor: pointer;
+  position: relative;
+  transition: .2s ease;
+  flex-shrink: 0;
+}
+
+.toggle::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #7fa38a;
+  top: 2px;
+  left: 2px;
+  transition: .2s ease;
+}
+
+.toggle.on {
+  background: rgba(0,255,120,.2);
+  border-color: rgba(0,255,120,.4);
+}
+
+.toggle.on::after {
+  background: #00ff88;
+  left: 22px;
+}

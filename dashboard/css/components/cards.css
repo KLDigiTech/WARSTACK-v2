@@ -1,0 +1,68 @@
+.card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 92px;
+  padding: 18px 20px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(10,16,13,.94), rgba(7,10,9,.98));
+  border: 1px solid rgba(0,255,120,.07);
+  box-shadow: 0 8px 25px rgba(0,0,0,.30), 0 0 18px rgba(0,255,120,.03);
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(0,255,120,.14);
+  box-shadow: 0 12px 30px rgba(0,0,0,.36), 0 0 20px rgba(0,255,120,.05);
+}
+
+.card-icon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  font-size: 16px;
+  color: #ffffff;
+  background: linear-gradient(145deg, rgba(0,255,140,.18), rgba(0,180,255,.08));
+  border: 1px solid rgba(255,255,255,.05);
+}
+
+.card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.card-value {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+  color: #00ff88;
+  text-shadow: 0 0 12px rgba(0,255,120,.20);
+}
+
+.card-label {
+  margin-top: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #caffdb;
+  opacity: .72;
+}
+
+.cards-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+  margin-top: 18px;
+  margin-bottom: 24px;
+}

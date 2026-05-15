@@ -1,0 +1,26 @@
+name: WARSTACK Scraper
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Toutes les 6h
+  workflow_dispatch:        # Lancement manuel possible
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run scraper
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: node bot/jobs/scraper-job.js

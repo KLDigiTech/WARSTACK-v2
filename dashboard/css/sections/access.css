@@ -1,0 +1,235 @@
+.access-topbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 24px;
+}
+
+.access-roles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 18px;
+}
+
+.access-role-card {
+  border: 1px solid rgba(0,255,120,.12);
+  background: linear-gradient(180deg, rgba(0,255,120,.05), rgba(0,0,0,.4));
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: .25s ease;
+}
+
+.access-role-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top right, rgba(0,255,120,.12), transparent 45%);
+  pointer-events: none;
+}
+
+.access-role-card:hover {
+  border-color: rgba(0,255,120,.4);
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(0,255,120,.08);
+}
+
+.access-role-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.access-role-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #00ff88;
+  letter-spacing: 1px;
+  text-shadow: 0 0 10px rgba(0,255,120,.35);
+}
+
+.access-role-badge {
+  padding: 6px 10px;
+  border: 1px solid rgba(0,255,120,.2);
+  background: rgba(0,255,120,.08);
+  font-size: 11px;
+  font-weight: 700;
+  color: #00ff88;
+  letter-spacing: 1px;
+}
+
+.access-create-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 22px;
+  border: 1px solid rgba(0,255,120,.25);
+  background: linear-gradient(180deg, rgba(0,255,120,.16), rgba(0,255,120,.04));
+  color: #00ff88;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: .25s ease;
+  box-shadow: 0 0 18px rgba(0,255,120,.08);
+}
+
+.access-create-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(0,255,120,.12), transparent);
+  transform: translateX(-100%);
+  transition: .45s ease;
+}
+
+.access-create-btn:hover::before { transform: translateX(100%); }
+
+.access-create-btn:hover {
+  border-color: rgba(0,255,120,.5);
+  box-shadow: 0 0 30px rgba(0,255,120,.16);
+  transform: translateY(-2px);
+}
+
+.permissions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.permission-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  min-height: 38px;
+  border: 1px solid rgba(0,255,120,.12);
+  background: rgba(0,255,120,.02);
+}
+
+.permission-toggle:hover {
+  border-color: rgba(0,255,120,.25);
+  background: rgba(0,255,120,.04);
+}
+
+.permission-toggle span {
+  color: #d8ffe8;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.permission-toggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: #00ff88;
+  cursor: pointer;
+}
+
+.access-save-btn {
+  width: 100%;
+  height: 46px;
+  padding: 14px 18px;
+  border: 1px solid rgba(0,255,120,.25);
+  background: linear-gradient(180deg, rgba(0,255,120,.18), rgba(0,255,120,.05));
+  color: #00ff88;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: .25s ease;
+}
+
+.access-save-btn:hover {
+  border-color: rgba(0,255,120,.45);
+  background: linear-gradient(180deg, rgba(0,255,120,.28), rgba(0,255,120,.08));
+  box-shadow: 0 0 20px rgba(0,255,120,.12);
+}
+
+.access-delete-btn {
+  width: 100%;
+  height: 46px;
+  border: 1px solid rgba(255,70,70,.25);
+  background: linear-gradient(180deg, rgba(255,70,70,.16), rgba(255,70,70,.05));
+  color: #ff6666;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: .25s ease;
+}
+
+.access-delete-btn:hover {
+  background: rgba(255,59,59,.18);
+  box-shadow: 0 0 16px rgba(255,59,59,.25);
+}
+
+.access-role-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.create-role-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.modal-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #00ff88;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.modal-input {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(0,255,120,.18);
+  background: rgba(0,0,0,.45);
+  color: #ffffff;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: .25s ease;
+  box-sizing: border-box;
+}
+
+.modal-input::placeholder { color: rgba(255,255,255,.25); }
+
+.modal-input:focus {
+  border-color: rgba(0,255,120,.5);
+  box-shadow: 0 0 18px rgba(0,255,120,.12);
+  background: rgba(0,255,120,.03);
+}
+
+.role-color-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+  margin-bottom: 16px;
+}
+
+.role-color {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: .2s;
+}
+
+.role-color:hover  { transform: scale(1.08); }
+.role-color.active { border-color: #fff; box-shadow: 0 0 12px rgba(255,255,255,.4); }

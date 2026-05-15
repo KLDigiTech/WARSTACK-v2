@@ -1,0 +1,154 @@
+.inscription-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background-image: var(--scanline);
+}
+
+.inscription-logo { text-align: center; margin-bottom: 2rem; }
+.inscription-logo .logo-icon { font-size: 2.5rem; }
+.inscription-logo .logo-text {
+  display: block;
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: 6px;
+  color: var(--green);
+  text-shadow: 0 0 20px rgba(0,255,100,.4);
+}
+.inscription-logo .logo-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  letter-spacing: 3px;
+  margin-top: 4px;
+}
+
+.inscription-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  width: 100%;
+  max-width: 500px;
+  padding: 2rem;
+  position: relative;
+}
+.inscription-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--green), transparent);
+}
+
+.tournoi-banner {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--orange);
+  padding: 1rem 1.2rem;
+  margin-bottom: 1.8rem;
+}
+.tournoi-banner .tournoi-name { font-size: 1.25rem; font-weight: 700; color: var(--orange); letter-spacing: 2px; }
+.tournoi-banner .tournoi-dates { font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; }
+
+.badge-actif {
+  display: inline-block;
+  background: rgba(0,255,100,.08);
+  border: 1px solid var(--green);
+  color: var(--green);
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  padding: 2px 8px;
+  margin-top: 8px;
+}
+
+.insc-state         { display: none; }
+.insc-state.visible { display: block; }
+
+.center-msg { text-align: center; padding: 2rem 1rem; font-size: 0.85rem; color: var(--text-muted); }
+.center-msg i { display: block; font-size: 2rem; margin-bottom: 1rem; }
+
+.input-row { display: flex; gap: 0.5rem; }
+.input-row .form-input { flex: 1; }
+
+.btn-verify {
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  color: var(--green);
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+  padding: 0 1rem;
+  cursor: pointer;
+  transition: all .2s;
+  white-space: nowrap;
+  border-radius: var(--radius);
+}
+.btn-verify:hover:not(:disabled) { border-color: var(--green); background: var(--green-glow); }
+.btn-verify:disabled { opacity: .4; cursor: not-allowed; }
+
+.hint { font-size: 0.7rem; margin-top: 6px; }
+.hint.ok   { color: var(--green); }
+.hint.err  { color: var(--red); }
+.hint.warn { color: var(--yellow); }
+.hint.info { color: var(--text-muted); }
+
+.fallback-box {
+  background: rgba(255,189,46,.04);
+  border: 1px solid rgba(255,189,46,.25);
+  border-left: 3px solid var(--yellow);
+  padding: 1rem;
+  margin-top: 1rem;
+  display: none;
+}
+.fallback-box.visible { display: block; }
+.fallback-box p { font-size: 0.7rem; color: var(--yellow); margin-bottom: 0.8rem; line-height: 1.6; }
+
+.teams-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+.team-btn {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: all .2s;
+  text-align: center;
+  border-radius: var(--radius);
+}
+.team-btn:hover    { border-color: var(--border-hover); color: var(--text); }
+.team-btn.selected { border-color: var(--green); background: var(--green-glow); color: var(--green); }
+
+.insc-sep { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+
+.success-wrap  { text-align: center; padding: 1.5rem 0.5rem; }
+.success-icon  { font-size: 3rem; color: var(--green); margin-bottom: 1rem; }
+.success-title { font-size: 2rem; font-weight: 700; letter-spacing: 5px; color: var(--green); text-shadow: 0 0 20px rgba(0,255,100,.4); }
+.success-sub   { font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; margin-bottom: 1.5rem; }
+.success-recap {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  padding: 1rem 1.2rem;
+  text-align: left;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  line-height: 2;
+}
+.success-recap span { color: var(--green); font-weight: 700; }
+.pending-note { color: var(--yellow); margin-top: 0.5rem; font-size: 0.7rem; }
+
+.inscription-footer { margin-top: 1.5rem; font-size: 0.65rem; color: var(--text-muted); text-align: center; letter-spacing: 1px; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  display: inline-block;
+  width: 11px; height: 11px;
+  border: 2px solid var(--border);
+  border-top-color: var(--green);
+  border-radius: 50%;
+  animation: spin .6s linear infinite;
+  vertical-align: middle;
+  margin-right: 5px;
+}

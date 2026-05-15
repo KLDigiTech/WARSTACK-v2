@@ -1,0 +1,38 @@
+.main-content {
+  margin-left: var(--sidebar-width);
+  width: calc(100% - var(--sidebar-width));
+  min-height: 100vh;
+  padding: 26px 34px;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(circle at top, rgba(0,255,120,.03), transparent 35%),
+    #050805;
+}
+
+.dashboard-container {
+  width: 100%;
+  max-width: 1700px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.cards-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 10px;
+}
+
+.dash-header {
+  margin-bottom: 32px;
+}
+
+#section-content {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}

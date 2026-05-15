@@ -1,0 +1,82 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.06);
+  background: linear-gradient(180deg, rgba(15,20,18,.96), rgba(8,11,9,.98));
+  color: #e7fff0;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease, background .16s ease;
+}
+
+.btn i { font-size: 12px; }
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0,0,0,.24);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, rgba(0,255,120,.18), rgba(0,180,120,.08));
+  border-color: rgba(0,255,120,.24);
+  color: #00ff88;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, rgba(0,255,120,.24), rgba(0,180,120,.12));
+  border-color: rgba(0,255,120,.34);
+}
+
+.btn-orange {
+  background: linear-gradient(135deg, rgba(255,140,0,.14), rgba(255,90,0,.06));
+  border-color: rgba(255,140,0,.22);
+  color: #ffb347;
+}
+
+.btn-orange:hover {
+  background: linear-gradient(135deg, rgba(255,140,0,.20), rgba(255,90,0,.10));
+  border-color: rgba(255,140,0,.34);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, rgba(255,70,70,.14), rgba(255,0,0,.05));
+  border-color: rgba(255,70,70,.22);
+  color: #ff7d7d;
+}
+
+.btn-danger:hover {
+  background: linear-gradient(135deg, rgba(255,70,70,.20), rgba(255,0,0,.08));
+  border-color: rgba(255,70,70,.34);
+}
+
+.btn-secondary {
+  background: linear-gradient(180deg, rgba(18,22,20,.96), rgba(10,13,11,.98));
+  border-color: rgba(255,255,255,.06);
+  color: #d7e7dd;
+}
+
+.btn-sm {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 12px;
+  font-size: 11px;
+}
+
+.outils-actions,
+.tournament-actions,
+.panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}

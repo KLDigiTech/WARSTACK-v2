@@ -1,0 +1,21 @@
+@media (max-width: 1200px) {
+  .cards-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .sidebar { width: 50px; }
+
+  .sidebar .logo-text,
+  .sidebar .nav-item span,
+  .sidebar .nav-group-title,
+  .sidebar .sidebar-status span,
+  .sidebar .sidebar-server span { display: none; }
+
+  .main-content {
+    margin-left: 50px;
+    padding: 16px;
+  }
+
+  .cards-grid  { grid-template-columns: 1fr 1fr; }
+  .form-grid   { grid-template-columns: 1fr; }
+}

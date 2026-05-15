@@ -1,0 +1,25 @@
+{
+  "name": "warstack",
+  "version": "1.0.0",
+  "description": "WARSTACK - Bot Discord BF6 PöF",
+  "main": "bot/index.js",
+  "scripts": {
+    "start": "node bot/index.js",
+    "dev": "nodemon bot/index.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.0.0",
+    "axios": "^1.0.0",
+    "cheerio": "^1.2.0",
+    "discord.js": "^14.0.0",
+    "dotenv": "^16.0.0",
+    "express": "^5.2.1",
+    "node-cron": "^3.0.3",
+    "puppeteer": "^24.43.0",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  }
+}

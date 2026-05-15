@@ -1,6 +1,8 @@
 import { fetchSupabase, updateSupabase, insertSupabase, deleteSupabase, callBotAPI } from '../api.js';
 import { showConfirm } from '../ui/confirm.js';
 
+let showCreateForm = false;
+
 export async function initTournament() {
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -29,90 +31,113 @@ async function loadTournoi() {
   container.innerHTML = '<p>Chargement...</p>';
 
   const tournois = await fetchSupabase('tournaments?order=created_at.desc&limit=20');
-  const actif    = tournois?.find(t => t.status === 'active');
-  let html       = '';
+  const actifs   = tournois?.filter(t => t.status === 'active') || [];
+  const archives = tournois?.filter(t => t.status !== 'active') || [];
 
-  if (actif) {
-    html += `
-      <div class="tournament-active-card">
-        <div class="tournament-active-top">
-          <div>
-            <div class="tournament-badge-active">🟢 TOURNOI ACTIF</div>
-            <h2 class="tournament-active-title">${actif.name}</h2>
-            <div class="tournament-stats">
-              <div class="tournament-stat">
-                <span class="tournament-stat-label">DÉBUT</span>
-                <span class="tournament-stat-value">${formatDate(actif.start_date)}</span>
+  let html = '';
+
+  // BOUTON NOUVEAU TOURNOI — toujours visible
+  html += `
+    <div class="tournament-topbar">
+      <button class="btn btn-primary" id="btn-toggle-create">
+        <i class="fas fa-plus"></i> Nouveau tournoi
+      </button>
+    </div>
+  `;
+
+  // FORMULAIRE CRÉATION — togglable
+  html += `
+    <div class="tournament-create-card" id="create-form" style="display:${showCreateForm ? 'block' : 'none'}">
+      <div class="tournament-create-header">➕ CRÉER UN TOURNOI</div>
+      <div class="tournament-form-grid">
+        <div class="form-group full">
+          <label>Nom du tournoi</label>
+          <input type="text" id="t-nom" class="form-input" placeholder="ex: Tournoi PöF — Saison 1">
+        </div>
+        <div class="form-group">
+          <label>Date de début</label>
+          <input type="date" id="t-start" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Date de fin</label>
+          <input type="date" id="t-end" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Max joueurs <span class="muted">(0 = illimité)</span></label>
+          <input type="number" id="t-max" class="form-input" value="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Phase <span class="muted">(optionnel)</span></label>
+          <input type="text" id="t-phase" class="form-input" placeholder="ex: Phase 1, RedSec, Multi...">
+        </div>
+        <div class="form-group full">
+          <label>Description <span class="muted">(optionnel)</span></label>
+          <textarea id="t-desc" class="form-textarea" placeholder="Règles, format, informations..."></textarea>
+        </div>
+      </div>
+      <div class="tournament-actions">
+        <button id="btn-create-tournoi" class="btn btn-primary">
+          <i class="fas fa-trophy"></i> Créer le tournoi
+        </button>
+        <button id="btn-cancel-create" class="btn btn-secondary">Annuler</button>
+        <span class="form-helper">* Champs obligatoires : nom, dates</span>
+      </div>
+    </div>
+  `;
+
+  // TOURNOIS ACTIFS
+  if (actifs.length) {
+    actifs.forEach(actif => {
+      html += `
+        <div class="tournament-active-card" data-id="${actif.id}">
+          <div class="tournament-active-top">
+            <div>
+              <div class="tournament-badge-active">🟢 TOURNOI ACTIF${actif.phase ? ` — ${actif.phase}` : ''}</div>
+              <h2 class="tournament-active-title">${actif.name}</h2>
+              <div class="tournament-stats">
+                <div class="tournament-stat">
+                  <span class="tournament-stat-label">DÉBUT</span>
+                  <span class="tournament-stat-value">${formatDate(actif.start_date)}</span>
+                </div>
+                <div class="tournament-stat">
+                  <span class="tournament-stat-label">FIN</span>
+                  <span class="tournament-stat-value">${formatDate(actif.end_date)}</span>
+                </div>
+                <div class="tournament-stat">
+                  <span class="tournament-stat-label">MAX JOUEURS</span>
+                  <span class="tournament-stat-value">${actif.max_players || '∞'}</span>
+                </div>
               </div>
-              <div class="tournament-stat">
-                <span class="tournament-stat-label">FIN</span>
-                <span class="tournament-stat-value">${formatDate(actif.end_date)}</span>
-              </div>
-              <div class="tournament-stat">
-                <span class="tournament-stat-label">MAX JOUEURS</span>
-                <span class="tournament-stat-value">${actif.max_players || '∞'}</span>
-              </div>
+              ${actif.description ? `<p class="tournament-description">${actif.description}</p>` : ''}
             </div>
-            ${actif.description ? `<p class="tournament-description">${actif.description}</p>` : ''}
-          </div>
-          <div class="tournament-actions-column">
-            <button class="btn btn-danger" id="btn-terminer">🏁 Terminer</button>
-            <button class="btn btn-secondary" id="btn-annuler">❌ Annuler</button>
+            <div class="tournament-actions-column">
+              <button class="btn btn-danger btn-terminer" data-id="${actif.id}">🏁 Terminer</button>
+              <button class="btn btn-secondary btn-annuler" data-id="${actif.id}">❌ Annuler</button>
+            </div>
           </div>
         </div>
-      </div>
-    `;
+      `;
+    });
   } else {
-    html += `
-      <div class="tournament-create-card">
-        <div class="tournament-create-header">➕ CRÉER UN TOURNOI</div>
-        <div class="tournament-form-grid">
-          <div class="form-group full">
-            <label>Nom du tournoi</label>
-            <input type="text" id="t-nom" class="form-input" placeholder="ex: Tournoi PöF — Saison 1">
-          </div>
-          <div class="form-group">
-            <label>Date de début</label>
-            <input type="date" id="t-start" class="form-input">
-          </div>
-          <div class="form-group">
-            <label>Date de fin</label>
-            <input type="date" id="t-end" class="form-input">
-          </div>
-          <div class="form-group">
-            <label>Max joueurs <span class="muted">(0 = illimité)</span></label>
-            <input type="number" id="t-max" class="form-input" value="0" min="0">
-          </div>
-          <div class="form-group full">
-            <label>Description <span class="muted">(optionnel)</span></label>
-            <textarea id="t-desc" class="form-textarea" placeholder="Règles, format, informations..."></textarea>
-          </div>
-        </div>
-        <div class="tournament-actions">
-          <button id="btn-create-tournoi" class="btn btn-primary">
-            <i class="fas fa-trophy"></i> Créer le tournoi
-          </button>
-          <span class="form-helper">* Champs obligatoires : nom, dates</span>
-        </div>
-      </div>
-    `;
+    html += `<div class="empty-state"><i class="fas fa-trophy"></i>Aucun tournoi actif</div>`;
   }
 
-  const archives = tournois?.filter(t => t.status !== 'active') || [];
+  // HISTORIQUE
   if (archives.length) {
     html += `
       <div class="tournament-history-card">
         <div class="tournament-history-title">📁 HISTORIQUE</div>
         <table class="data-table">
-          <thead><tr><th>Nom</th><th>Début</th><th>Fin</th><th>Statut</th><th>Action</th></tr></thead>
+          <thead><tr><th>Nom</th><th>Phase</th><th>Début</th><th>Fin</th><th>Statut</th><th>Action</th></tr></thead>
           <tbody>
             ${archives.map(t => `
               <tr>
                 <td>${t.name}</td>
+                <td>${t.phase || '—'}</td>
                 <td>${formatDate(t.start_date)}</td>
                 <td>${formatDate(t.end_date)}</td>
                 <td class="${t.status === 'termine' ? 'status-green' : 'status-red'}">${t.status}</td>
-                <td><button class="btn btn-danger btn-sm" onclick="window.supprimerTournoi('${t.id}', '${t.name}')">🗑️ Supprimer</button></td>
+                <td><button class="btn btn-danger btn-sm" onclick="window.supprimerTournoi('${t.id}', '${t.name}')">🗑️</button></td>
               </tr>
             `).join('')}
           </tbody>
@@ -121,14 +146,30 @@ async function loadTournoi() {
     `;
   }
 
+  html += `<div id="tournament-feedback" class="feedback"></div>`;
+
   container.innerHTML = html;
 
-  if (actif) {
-    document.getElementById('btn-terminer')?.addEventListener('click', () => terminerTournoi(actif.id));
-    document.getElementById('btn-annuler')?.addEventListener('click',  () => annulerTournoi(actif.id));
-  } else {
-    document.getElementById('btn-create-tournoi')?.addEventListener('click', creerTournoi);
-  }
+  // EVENTS
+  document.getElementById('btn-toggle-create')?.addEventListener('click', () => {
+    showCreateForm = !showCreateForm;
+    document.getElementById('create-form').style.display = showCreateForm ? 'block' : 'none';
+  });
+
+  document.getElementById('btn-cancel-create')?.addEventListener('click', () => {
+    showCreateForm = false;
+    document.getElementById('create-form').style.display = 'none';
+  });
+
+  document.getElementById('btn-create-tournoi')?.addEventListener('click', creerTournoi);
+
+  document.querySelectorAll('.btn-terminer').forEach(btn => {
+    btn.addEventListener('click', () => terminerTournoi(btn.dataset.id));
+  });
+
+  document.querySelectorAll('.btn-annuler').forEach(btn => {
+    btn.addEventListener('click', () => annulerTournoi(btn.dataset.id));
+  });
 }
 
 function loadOutils() {
@@ -226,22 +267,35 @@ async function creerTournoi() {
   const start = document.getElementById('t-start').value;
   const end   = document.getElementById('t-end').value;
   const max   = parseInt(document.getElementById('t-max').value) || 0;
+  const phase = document.getElementById('t-phase').value.trim();
   const desc  = document.getElementById('t-desc').value.trim();
   if (!nom || !start || !end) return setFeedback('❌ Remplis tous les champs obligatoires.');
   setFeedback('Création en cours...');
-  await insertSupabase('tournaments', { name: nom, start_date: start, end_date: end, max_players: max || null, description: desc || null, status: 'active', created_at: new Date().toISOString() });
+  await insertSupabase('tournaments', {
+    name        : nom,
+    start_date  : start,
+    end_date    : end,
+    max_players : max || null,
+    phase       : phase || null,
+    description : desc || null,
+    status      : 'active',
+    created_at  : new Date().toISOString()
+  });
+  showCreateForm = false;
   setFeedback('✅ Tournoi créé !');
   loadTournoi();
 }
 
 async function terminerTournoi(id) {
-  showConfirm({ title: '🏁 Terminer', message: 'Es-tu sûr ?', confirmText: 'Terminer', cancelText: 'Annuler',
+  showConfirm({
+    title: '🏁 Terminer', message: 'Es-tu sûr ?', confirmText: 'Terminer', cancelText: 'Annuler',
     onConfirm: async () => { await changerStatut(id, 'termine'); setFeedback('✅ Terminé.'); loadTournoi(); }
   });
 }
 
 async function annulerTournoi(id) {
-  showConfirm({ title: '❌ Annuler', message: 'Es-tu sûr ?', confirmText: 'Annuler le tournoi', cancelText: 'Retour',
+  showConfirm({
+    title: '❌ Annuler', message: 'Es-tu sûr ?', confirmText: 'Annuler le tournoi', cancelText: 'Retour',
     onConfirm: async () => { await changerStatut(id, 'annule'); setFeedback('✅ Annulé.'); loadTournoi(); }
   });
 }
@@ -253,15 +307,8 @@ async function changerStatut(id, statut) {
 
 window.supprimerTournoi = async function(id, nom) {
   showConfirm({
-    title: '🗑️ Supprimer le tournoi',
-    message: `Supprimer "${nom}" ?`,
-    confirmText: 'Supprimer',
-    cancelText: 'Annuler',
-
-    onConfirm: async () => {
-      await deleteSupabase(`tournaments?id=eq.${id}`);
-      loadTournoi();
-    }
+    title: '🗑️ Supprimer', message: `Supprimer "${nom}" ?`, confirmText: 'Supprimer', cancelText: 'Annuler',
+    onConfirm: async () => { await deleteSupabase(`tournaments?id=eq.${id}`); loadTournoi(); }
   });
 };
 

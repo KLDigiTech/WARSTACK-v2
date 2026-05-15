@@ -146,3 +146,27 @@
   gap: 12px;
   align-items: center;
 }
+
+.tournament-topbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 24px;
+}
+
+#tab-tournoi {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+#tab-tournoi .tournament-topbar { margin-bottom: 0; }
+#tab-tournoi .tournament-create-card { margin-bottom: 0; }
+#tab-tournoi .tournament-active-card { margin-bottom: 0; }
+#tab-tournoi .tournament-history-card { margin-bottom: 0; }
+
+#tournament-feedback {
+  font-size: 13px;
+  color: #7dffb3;
+  letter-spacing: 1px;
+  min-height: 20px;
+}

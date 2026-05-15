@@ -252,9 +252,17 @@ async function changerStatut(id, statut) {
 }
 
 window.supprimerTournoi = async function(id, nom) {
-  if (!confirm(`Supprimer "${nom}" ?`)) return;
-  await deleteSupabase(`tournaments?id=eq.${id}`);
-  loadTournoi();
+  showConfirm({
+    title: '🗑️ Supprimer le tournoi',
+    message: `Supprimer "${nom}" ?`,
+    confirmText: 'Supprimer',
+    cancelText: 'Annuler',
+
+    onConfirm: async () => {
+      await deleteSupabase(`tournaments?id=eq.${id}`);
+      loadTournoi();
+    }
+  });
 };
 
 async function getTournoiActif() {

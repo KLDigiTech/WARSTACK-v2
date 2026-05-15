@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
+
 <body class="login-body">
 
   <div class="login-background"></div>
@@ -31,7 +33,7 @@
     import { supabase } from './js/supabaseClient.js';
 
     const guildResponse = await fetch('https://warstack-bot.onrender.com/api/guild');
-    const guild         = await guildResponse.json();
+    const guild = await guildResponse.json();
 
     document.getElementById('login-server-logo').src = guild.icon || 'https://placehold.co/128x128';
 
@@ -39,11 +41,14 @@
       await supabase.auth.signInWithOAuth({
         provider: 'discord',
         options: {
-          redirectTo: 'http://127.0.0.1:3000/dashboard/index.html'
+          redirectTo: window.location.hostname === '127.0.0.1'
+            ? 'http://127.0.0.1:3000/dashboard/index.html'
+            : 'https://warstack-v2.vercel.app/index.html'
         }
       });
     });
   </script>
 
 </body>
+
 </html>

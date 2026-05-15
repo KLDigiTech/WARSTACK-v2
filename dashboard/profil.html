@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WARSTACK — Profil Joueur</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/pages/profil.css">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body class="profil-body">
+
+  <div class="profil-bg"></div>
+
+  <main class="profil-page">
+
+    <div class="profil-header">
+      <a href="index.html" class="profil-back">
+        <i class="fas fa-arrow-left"></i> Dashboard
+      </a>
+      <div class="profil-brand">⚔️ WARSTACK</div>
+    </div>
+
+    <div id="profil-loading" class="profil-loading">
+      <div class="loading-spinner"></div>
+      <span>Chargement du profil...</span>
+    </div>
+
+    <div id="profil-notfound" class="profil-notfound" style="display:none">
+      <i class="fas fa-user-slash"></i>
+      <h2>Joueur introuvable</h2>
+      <p>Ce profil n'existe pas ou n'est pas encore inscrit sur WARSTACK.</p>
+    </div>
+
+    <div id="profil-content" style="display:none">
+
+      <div class="profil-hero">
+        <div class="profil-avatar-wrapper">
+          <img id="p-avatar" src="" alt="avatar" class="profil-avatar">
+          <div class="profil-division-badge" id="p-division-badge"></div>
+        </div>
+        <div class="profil-identity">
+          <div class="profil-username" id="p-username"></div>
+          <div class="profil-platform" id="p-platform"></div>
+          <div class="profil-division" id="p-division"></div>
+        </div>
+        <div class="profil-score-block">
+          <div class="profil-score-value" id="p-score"></div>
+          <div class="profil-score-label">WARSTACK SCORE</div>
+        </div>
+      </div>
+
+      <div class="profil-section-title">📊 Stats Tracker.gg — Global</div>
+      <div class="profil-stats-grid">
+        <div class="profil-stat-card">
+          <div class="profil-stat-icon"><i class="fas fa-crosshairs"></i></div>
+          <div class="profil-stat-value" id="p-kills">—</div>
+          <div class="profil-stat-label">Kills</div>
+        </div>
+        <div class="profil-stat-card">
+          <div class="profil-stat-icon"><i class="fas fa-skull"></i></div>
+          <div class="profil-stat-value" id="p-deaths">—</div>
+          <div class="profil-stat-label">Deaths</div>
+        </div>
+        <div class="profil-stat-card highlight">
+          <div class="profil-stat-icon"><i class="fas fa-chart-line"></i></div>
+          <div class="profil-stat-value" id="p-kd">—</div>
+          <div class="profil-stat-label">K/D Ratio</div>
+        </div>
+        <div class="profil-stat-card">
+          <div class="profil-stat-icon"><i class="fas fa-trophy"></i></div>
+          <div class="profil-stat-value" id="p-wins">—</div>
+          <div class="profil-stat-label">Wins</div>
+        </div>
+        <div class="profil-stat-card">
+          <div class="profil-stat-icon"><i class="fas fa-gamepad"></i></div>
+          <div class="profil-stat-value" id="p-games">—</div>
+          <div class="profil-stat-label">Parties</div>
+        </div>
+        <div class="profil-stat-card">
+          <div class="profil-stat-icon"><i class="fas fa-flag"></i></div>
+          <div class="profil-stat-value" id="p-winrate">—</div>
+          <div class="profil-stat-label">Win Rate</div>
+        </div>
+      </div>
+
+      <div class="profil-section-title">🏆 Historique Tournois</div>
+      <div id="p-tournois" class="profil-tournois-list"></div>
+
+      <div class="profil-footer">
+        <a id="p-tracker-link" href="#" target="_blank" class="profil-tracker-btn">
+          <i class="fas fa-external-link-alt"></i> Voir sur Tracker.gg
+        </a>
+        <div class="profil-updated" id="p-updated"></div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <script type="module" src="./js/pages/profil.js"></script>
+
+</body>
+</html>

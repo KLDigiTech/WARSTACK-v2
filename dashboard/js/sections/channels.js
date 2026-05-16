@@ -21,15 +21,19 @@ export async function initChannels() {
   });
 
   document.getElementById('btn-cancel-channel')?.addEventListener('click', () => {
-    document.getElementById('create-channel-form').style.display = 'none';
-    document.getElementById('channel-name').value = '';
-    selectedEmoji = '';
-    document.getElementById('emoji-selected').textContent = 'Aucun emoji sélectionné';
-    document.getElementById('channel-name-emoji').textContent = '';
-    document.querySelectorAll('.emoji-btn.active').forEach(b => b.classList.remove('active'));
+    resetForm();
   });
 
   document.getElementById('btn-confirm-channel')?.addEventListener('click', createChannel);
+}
+
+function resetForm() {
+  document.getElementById('create-channel-form').style.display = 'none';
+  document.getElementById('channel-name').value = '';
+  selectedEmoji = '';
+  document.getElementById('emoji-selected').textContent = 'Aucun emoji sélectionné';
+  document.getElementById('channel-name-emoji').textContent = '';
+  document.querySelectorAll('.emoji-btn.active').forEach(b => b.classList.remove('active'));
 }
 
 function buildEmojiGrid() {
@@ -67,6 +71,13 @@ async function loadChannels() {
 
   // Grouper par catégorie
   const categories = {};
+
+  // Ajoute d'abord les catégories vides
+  data.channels.filter(c => c.type === 'category').forEach(cat => {
+    if (!categories[cat.name]) categories[cat.name] = [];
+  });
+
+  // Puis les salons
   for (const ch of data.channels) {
     if (ch.type === 'category') continue;
     const cat = ch.category || 'Sans catégorie';
@@ -74,12 +85,12 @@ async function loadChannels() {
     categories[cat].push(ch);
   }
 
-  // Catégories dans le select
+  // Remplir le select catégories
   const select = document.getElementById('channel-category');
   select.innerHTML = '<option value="">Aucune</option>';
   data.channels.filter(c => c.type === 'category').forEach(cat => {
-    const opt     = document.createElement('option');
-    opt.value     = cat.id;
+    const opt       = document.createElement('option');
+    opt.value       = cat.id;
     opt.textContent = cat.name;
     select.appendChild(opt);
   });
@@ -88,7 +99,7 @@ async function loadChannels() {
     <div class="channels-category">
       <div class="channels-category-title">${cat}</div>
       <div class="channels-grid">
-        ${channels.map(ch => `
+        ${channels.length ? channels.map(ch => `
           <div class="channel-card">
             <div class="channel-icon">
               <i class="fas fa-${ch.type === 'voice' ? 'volume-up' : 'hashtag'}"></i>
@@ -101,7 +112,7 @@ async function loadChannels() {
               <i class="fas fa-trash"></i>
             </button>
           </div>
-        `).join('')}
+        `).join('') : '<div class="channel-empty">Catégorie vide</div>'}
       </div>
     </div>
   `).join('');
@@ -123,12 +134,7 @@ async function createChannel() {
 
   if (result?.success) {
     showToast(`✅ ${fullName} créé !`);
-    document.getElementById('create-channel-form').style.display = 'none';
-    document.getElementById('channel-name').value = '';
-    selectedEmoji = '';
-    document.getElementById('emoji-selected').textContent = 'Aucun emoji sélectionné';
-    document.getElementById('channel-name-emoji').textContent = '';
-    document.querySelectorAll('.emoji-btn.active').forEach(b => b.classList.remove('active'));
+    resetForm();
     await loadChannels();
   } else {
     showToast('❌ Erreur création salon', 'error');

@@ -132,3 +132,11 @@
   background: #0a0f0a;
   color: #f2fff2;
 }
+
+.channel-empty {
+  font-size: 11px;
+  color: #7fa38a;
+  opacity: .5;
+  letter-spacing: 1px;
+  padding: 8px 12px;
+}

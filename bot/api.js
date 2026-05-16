@@ -57,15 +57,15 @@ router.post('/tournament/results', auth, async (req, res) => {
 
 router.post('/channel/create', auth, async (req, res) => {
   try {
-    const { name, category } = req.body;
+    const { name, type = 0, category } = req.body;
     if (!name) return res.status(400).json({ error: 'name manquant' });
 
-    const guild = global.botClient.guilds.cache.first();
+    const guild   = global.botClient.guilds.cache.first();
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
     const channel = await guild.channels.create({
       name,
-      type: 0, // text channel
+      type,
       ...(category ? { parent: category } : {})
     });
 

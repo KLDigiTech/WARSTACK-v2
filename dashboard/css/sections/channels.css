@@ -1,0 +1,134 @@
+.channels-category {
+  margin-bottom: 28px;
+}
+
+.channels-category-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #7dffb3;
+  opacity: .65;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(0,255,120,.06);
+}
+
+.channels-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.channel-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(10,16,13,.94), rgba(7,10,9,.98));
+  border: 1px solid rgba(0,255,120,.06);
+  transition: border-color .18s ease;
+}
+
+.channel-card:hover {
+  border-color: rgba(0,255,120,.14);
+}
+
+.channel-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,255,120,.06);
+  border: 1px solid rgba(0,255,120,.08);
+  color: #7dffb3;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.channel-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.channel-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 1px;
+}
+
+.channel-id {
+  font-size: 10px;
+  color: #7fa38a;
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+
+.emoji-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(0,0,0,.2);
+  border: 1px solid rgba(0,255,120,.06);
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.emoji-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  font-size: 18px;
+  cursor: pointer;
+  transition: .15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emoji-btn:hover {
+  background: rgba(0,255,120,.08);
+  border-color: rgba(0,255,120,.14);
+  transform: scale(1.15);
+}
+
+.emoji-btn.active {
+  background: rgba(0,255,120,.14);
+  border-color: rgba(0,255,120,.3);
+}
+
+.emoji-selected {
+  font-size: 12px;
+  color: #7dffb3;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+  opacity: .7;
+}
+
+.channel-name-preview {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.channel-name-preview span {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.channel-name-preview .form-input {
+  flex: 1;
+}
+.form-select option {
+  background: #0a0f0a;
+  color: #f2fff2;
+}

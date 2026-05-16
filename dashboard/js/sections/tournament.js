@@ -326,3 +326,15 @@ function setFeedback(msg) {
   const el = document.getElementById('tournament-feedback');
   if (el) el.textContent = msg;
 }
+
+async function terminerTournoi(id) {
+  showConfirm({
+    title: '🏁 Terminer', message: 'Es-tu sûr ?', confirmText: 'Terminer', cancelText: 'Annuler',
+    onConfirm: async () => {
+      await changerStatut(id, 'termine');
+      await callBotAPI('tournament/results', 'POST', { tournament_id: id });
+      setFeedback('✅ Terminé — résultats postés sur Discord !');
+      loadTournoi();
+    }
+  });
+}

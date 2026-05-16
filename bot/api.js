@@ -42,5 +42,16 @@ router.get('/guild', async (req, res) => {
   if (!guild) return res.status(404).json({ error: 'Serveur introuvable' });
   res.json({ name: guild.name, icon: guild.iconURL({ dynamic: true, size: 256 }) });
 });
+const { postTournamentResults } = require('./jobs/tournament-results');
 
+router.post('/tournament/results', auth, async (req, res) => {
+  try {
+    const { tournament_id } = req.body;
+    if (!tournament_id) return res.status(400).json({ error: 'tournament_id manquant' });
+    await postTournamentResults(global.botClient, tournament_id);
+    res.json({ success: true, message: 'Résultats postés !' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 module.exports = router;

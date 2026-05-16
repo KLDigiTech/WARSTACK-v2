@@ -6,10 +6,12 @@ import pytesseract
 import numpy as np
 from PIL import Image
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import requests
 from io import BytesIO
 
 app = Flask(__name__)
+CORS(app)
 
 def preprocess_image(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -78,7 +80,6 @@ def ocr():
         if not image_url and not image_base64:
             return jsonify({ 'error': 'image_url ou image_base64 requis' }), 400
 
-        # Chargement de l'image
         if image_base64:
             img = load_image_from_base64(image_base64)
         else:
@@ -87,15 +88,12 @@ def ocr():
         if img is None:
             return jsonify({ 'error': 'Image invalide ou non décodable' }), 400
 
-        # Prétraitement + OCR
         processed = preprocess_image(img)
         text = pytesseract.image_to_string(processed, config='--psm 6')
 
-        # Extraction des stats
         stats = extract_stats(text)
         stats['raw_text'] = text.strip()
 
-        # Réponse aplatie (kills, deaths, kd, score, raw_text à la racine)
         return jsonify({ 'success': True, **stats })
 
     except Exception as e:

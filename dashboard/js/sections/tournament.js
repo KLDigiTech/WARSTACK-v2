@@ -181,6 +181,7 @@ function loadOutils() {
           <button class="btn btn-primary" id="btn-leaderboard"><i class="fas fa-sync"></i> Forcer leaderboard</button>
           <button class="btn btn-orange"  id="btn-mvp"><i class="fas fa-star"></i> Poster MVP</button>
           <button class="btn btn-danger"  id="btn-reset"><i class="fas fa-redo"></i> Reset classement</button>
+          <button class="btn btn-secondary" id="btn-create-channel"><i class="fas fa-hashtag"></i> Créer salon résultats</button>
         </div>
       </div>
     </div>
@@ -332,3 +333,11 @@ function setFeedback(msg) {
   if (el) el.textContent = msg;
 }
 
+document.getElementById('btn-create-channel')?.addEventListener('click', async () => {
+  const result = await callBotAPI('channel/create', 'POST', { name: 'resultats-tournoi' });
+  if (result?.success) {
+    setFeedback('✅ Salon #resultats-tournoi créé sur Discord !');
+  } else {
+    setFeedback('❌ Erreur création salon');
+  }
+});

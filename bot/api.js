@@ -54,4 +54,58 @@ router.post('/tournament/results', auth, async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+router.post('/channel/create', auth, async (req, res) => {
+  try {
+    const { name, category } = req.body;
+    if (!name) return res.status(400).json({ error: 'name manquant' });
+
+    const guild = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
+
+    const channel = await guild.channels.create({
+      name,
+      type: 0, // text channel
+      ...(category ? { parent: category } : {})
+    });
+
+    res.json({ success: true, channel_id: channel.id, channel_name: channel.name });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+router.get('/channels', auth, async (req, res) => {
+  try {
+    const guild    = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
+
+    const channels = guild.channels.cache
+      .filter(c => [0, 2, 4].includes(c.type))
+      .map(c => ({
+        id      : c.id,
+        name    : c.name,
+        type    : c.type === 2 ? 'voice' : c.type === 4 ? 'category' : 'text',
+        category: c.parent?.name || null,
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    res.json({ success: true, channels });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/channel/delete', auth, async (req, res) => {
+  try {
+    const { channel_id } = req.body;
+    if (!channel_id) return res.status(400).json({ error: 'channel_id manquant' });
+    const guild   = global.botClient.guilds.cache.first();
+    const channel = guild.channels.cache.get(channel_id);
+    if (!channel) return res.status(404).json({ error: 'Salon introuvable' });
+    await channel.delete();
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 module.exports = router;

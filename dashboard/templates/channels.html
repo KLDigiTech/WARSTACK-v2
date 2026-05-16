@@ -1,15 +1,35 @@
 <div class="panel">
   <div class="panel-header">
-    <h2>#️⃣ Salons</h2>
+    <h2>#️⃣ Salons Discord</h2>
+    <button class="btn btn-primary" id="btn-create-channel">
+      <i class="fas fa-plus"></i> Créer un salon
+    </button>
+  </div>
+  <div class="panel-body">
+    <div id="channels-list"></div>
+  </div>
+</div>
+
+<div class="panel" id="create-channel-form" style="display:none">
+  <div class="panel-header">
+    <h2>➕ Nouveau salon</h2>
   </div>
   <div class="panel-body">
     <div class="form-grid">
-      <div class="form-group"><label># tournoi-live</label><input type="text" class="form-input"></div>
-      <div class="form-group"><label># classement</label><input type="text" class="form-input"></div>
-      <div class="form-group"><label># annonces</label><input type="text" class="form-input"></div>
-      <div class="form-group"><label># inscriptions</label><input type="text" class="form-input"></div>
-      <div class="form-group"><label># logs</label><input type="text" class="form-input"></div>
-      <div class="form-group"><label># mvp</label><input type="text" class="form-input"></div>
+      <div class="form-group">
+        <label>Nom du salon</label>
+        <input type="text" id="channel-name" class="form-input" placeholder="ex: resultats-tournoi">
+      </div>
+      <div class="form-group">
+        <label>Catégorie <span class="muted">(optionnel)</span></label>
+        <select id="channel-category" class="form-select">
+          <option value="">Aucune catégorie</option>
+        </select>
+      </div>
     </div>
+  </div>
+  <div class="panel-footer">
+    <button class="btn btn-secondary" id="btn-cancel-channel">Annuler</button>
+    <button class="btn btn-primary" id="btn-confirm-channel">Créer</button>
   </div>
 </div>

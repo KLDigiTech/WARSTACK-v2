@@ -1,8 +1,8 @@
 // app.js — Router + init dashboard
 
-import { initModal }          from './ui/modal.js';
-import { $  }                 from './utils/dom.js';
-import { getBotStatus }       from './services/botService.js';
+import { initModal } from './ui/modal.js';
+import { $ } from './utils/dom.js';
+import { getBotStatus } from './services/botService.js';
 import { getUserPermissions } from './services/permissionService.js';
 
 initModal();
@@ -19,8 +19,8 @@ updateClock();
 // BOT STATUS
 async function checkBotStatus() {
   try {
-    const data  = await getBotStatus();
-    const dot   = $('#status-dot');
+    const data = await getBotStatus();
+    const dot = $('#status-dot');
     const label = $('#status-label');
     if (data?.status === 'online') {
       dot?.classList.add('online');
@@ -38,23 +38,23 @@ setInterval(checkBotStatus, 30000);
 
 // SECTIONS
 const sections = {
-  overview:    () => import('./sections/overview.js').then(m => m.initOverview()),
-  players:     () => import('./sections/players.js').then(m => m.initPlayers()),
-  tournament:  () => import('./sections/tournament.js').then(m => m.initTournament()),
-  welcome:     () => import('./sections/welcome.js').then(m => m.initWelcome()),
-  roles:       () => import('./sections/roles.js').then(m => m.initRoles()),
-  birthdays:   () => import('./sections/birthdays.js').then(m => m.initBirthdays()),
+  overview: () => import('./sections/overview.js').then(m => m.initOverview()),
+  players: () => import('./sections/players.js').then(m => m.initPlayers()),
+  tournament: () => import('./sections/tournament.js').then(m => m.initTournament()),
+  welcome: () => import('./sections/welcome.js').then(m => m.initWelcome()),
+  roles: () => import('./sections/roles.js').then(m => m.initRoles()),
+  birthdays: () => import('./sections/birthdays.js').then(m => m.initBirthdays()),
   suggestions: () => import('./sections/suggestions.js').then(m => m.initSuggestions()),
-  moderation:  () => import('./sections/moderation.js').then(m => m.initModeration()),
-  automod:     () => import('./sections/automod.js').then(m => m.initAutomod()),
-  tickets:     () => import('./sections/tickets.js').then(m => m.initTickets()),
-  logs:        () => import('./sections/logs.js').then(m => m.initLogs()),
-  messages:    () => import('./sections/messages.js').then(m => m.initMessages()),
-  reactions:   () => import('./sections/reactions.js').then(m => m.initReactions()),
-  channels:    () => import('./sections/channels.js').then(m => m.initChannels()),
-  access:      () => import('./sections/access.js').then(m => m.initAccess()),
-  settings:    () => import('./sections/settings.js').then(m => m.initSettings()),
-  'ocr-test':  () => import('./sections/ocr-test.js').then(m => m.initOcrTest()),
+  moderation: () => import('./sections/moderation.js').then(m => m.initModeration()),
+  automod: () => import('./sections/automod.js').then(m => m.initAutomod()),
+  tickets: () => import('./sections/tickets.js').then(m => m.initTickets()),
+  logs: () => import('./sections/logs.js').then(m => m.initLogs()),
+  messages: () => import('./sections/messages.js').then(m => m.initMessages()),
+  reactions: () => import('./sections/reactions.js').then(m => m.initReactions()),
+  channels: () => import('./sections/channels.js').then(m => m.initChannels()),
+  access: () => import('./sections/access.js').then(m => m.initAccess()),
+  settings: () => import('./sections/settings.js').then(m => m.initSettings()),
+  'ocr-test': () => import('./sections/ocr-test.js').then(m => m.initOcrTest()),
 };
 
 // ROUTER
@@ -69,7 +69,7 @@ async function navigate(section) {
   content.innerHTML = '<div class="loading-screen">CHARGEMENT...</div>';
 
   try {
-    const res  = await fetch(`./templates/${section}.html`);
+    const res = await fetch(`./templates/${section}.html`);
     const html = await res.text();
     content.innerHTML = html;
   } catch {
@@ -92,7 +92,7 @@ async function applyPermissions() {
     document.querySelectorAll('.nav-item').forEach(item => {
       const section = item.dataset.section;
       if (!section) return;
-      item.style.display = (section === 'overview' || permissions.includes(section)) ? 'flex' : 'none';
+      item.style.display = (section === 'overview' || section === 'ocr-test' || permissions.includes(section)) ? 'flex' : 'none';
     });
   } catch {
     document.querySelectorAll('.nav-item').forEach(i => i.style.display = 'flex');

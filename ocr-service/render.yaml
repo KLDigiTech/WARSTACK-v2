@@ -3,6 +3,6 @@ services:
     name: warstack-ocr
     env: python
     pythonVersion: "3.11"
-    buildCommand: apt-get install -y tesseract-ocr && pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt
     startCommand: python app.py
     plan: free

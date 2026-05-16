@@ -1,0 +1,32 @@
+<div class="panel">
+  <div class="panel-header">
+    <h2>🔬 Test OCR</h2>
+  </div>
+  <div class="panel-body">
+
+    <div id="ocr-drop-zone">
+      <div id="ocr-drop-icon">📁</div>
+      <div id="ocr-drop-text">Glisse un screenshot ici</div>
+      <div id="ocr-drop-sub">ou clique pour sélectionner</div>
+      <input type="file" id="ocr-file-input" accept="image/*" style="display:none">
+    </div>
+
+    <div id="ocr-preview-wrap" style="display:none">
+      <img id="ocr-preview-img" alt="preview">
+    </div>
+
+    <button id="ocr-send-btn" style="display:none">
+      <span id="ocr-btn-text">▶ ANALYSER</span>
+    </button>
+
+    <div id="ocr-result" style="display:none">
+      <div class="ocr-result-title">RÉSULTAT OCR</div>
+      <div id="ocr-stats-grid"></div>
+      <div class="ocr-result-title" style="margin-top:1rem">TEXTE BRUT DÉTECTÉ</div>
+      <pre id="ocr-raw-text"></pre>
+    </div>
+
+    <div id="ocr-error" style="display:none"></div>
+
+  </div>
+</div>

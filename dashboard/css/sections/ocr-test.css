@@ -1,0 +1,134 @@
+/* dashboard/css/sections/ocr-test.css */
+
+#ocr-drop-zone {
+  border: 2px dashed var(--border-hover);
+  border-radius: var(--radius);
+  padding: 3rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  background: var(--surface-2);
+  margin-bottom: 1.5rem;
+}
+
+#ocr-drop-zone:hover,
+#ocr-drop-zone.drag-over {
+  background: var(--green-glow);
+  border-color: var(--green);
+}
+
+#ocr-drop-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+#ocr-drop-text {
+  color: var(--green);
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+#ocr-drop-sub {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+#ocr-preview-wrap {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+#ocr-preview-img {
+  max-width: 100%;
+  max-height: 300px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+#ocr-send-btn {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  background: transparent;
+  border: 1px solid var(--green);
+  color: var(--green);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: background 0.2s;
+  margin-bottom: 1.5rem;
+}
+
+#ocr-send-btn:hover:not(:disabled) {
+  background: var(--green-glow);
+}
+
+#ocr-send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ocr-result-title {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+#ocr-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.ocr-stat-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  text-align: center;
+}
+
+.ocr-stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.ocr-stat-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  margin-top: 0.25rem;
+}
+
+#ocr-raw-text {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+#ocr-error {
+  color: var(--red);
+  background: rgba(255, 68, 68, 0.08);
+  border: 1px solid rgba(255, 68, 68, 0.3);
+  border-radius: var(--radius);
+  padding: 1rem;
+  font-size: 0.9rem;
+}

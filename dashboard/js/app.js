@@ -54,6 +54,7 @@ const sections = {
   channels:    () => import('./sections/channels.js').then(m => m.initChannels()),
   access:      () => import('./sections/access.js').then(m => m.initAccess()),
   settings:    () => import('./sections/settings.js').then(m => m.initSettings()),
+  'ocr-test':  () => import('./sections/ocr-test.js').then(m => m.initOcrTest()),
 };
 
 // ROUTER

@@ -1,10 +1,9 @@
 .players-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(340px, 420px));
   gap: 22px;
   margin-top: 24px;
 }
-
 .player-card {
   position: relative;
   overflow: hidden;
@@ -20,6 +19,7 @@
     transform .2s ease,
     border-color .2s ease,
     box-shadow .2s ease;
+    max-width: 480px;
 }
 
 .player-card:hover {
@@ -33,10 +33,10 @@
 .player-card-top {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   margin-bottom: 24px;
+  flex-wrap: nowrap;
 }
-
 .player-avatar {
   width: 58px;
   height: 58px;
@@ -85,6 +85,9 @@
   color: #ff7b7b;
   cursor: pointer;
   transition: .18s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .player-delete:hover {
@@ -126,4 +129,80 @@
   color: #7fa38a;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.player-tournoi {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  border-top: 1px solid rgba(0,255,120,.06);
+  margin-top: 8px;
+}
+
+.player-tournoi-name {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #7dffb3;
+  opacity: .8;
+  flex: 1;
+}
+
+.player-tournoi-stat {
+  font-size: 10px;
+  color: #7fa38a;
+  letter-spacing: 1px;
+}
+
+.player-tournoi-stat strong {
+  color: #00ff88;
+  margin-left: 4px;
+}
+
+.player-card-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.action-btn.profile {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  border: 1px solid rgba(0,255,120,.14);
+  background: rgba(0,255,120,.06);
+  color: #7dffb3;
+  cursor: pointer;
+  transition: .18s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.action-btn.profile:hover {
+  background: rgba(0,255,120,.12);
+  border-color: rgba(0,255,120,.24);
+}
+
+.action-btn.delete {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,80,80,.14);
+  background: rgba(255,80,80,.06);
+  color: #ff7b7b;
+  cursor: pointer;
+  transition: .18s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-btn.delete:hover {
+  background: rgba(255,80,80,.12);
+  border-color: rgba(255,80,80,.24);
 }

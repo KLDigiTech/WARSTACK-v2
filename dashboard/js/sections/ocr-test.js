@@ -75,7 +75,7 @@ export function initOcrTest() {
       .select('pseudo_bf6, discord_id, username, avatar_url, tracker_id')
       .ilike('pseudo_bf6', pseudo)
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (error || !data) return null;
 

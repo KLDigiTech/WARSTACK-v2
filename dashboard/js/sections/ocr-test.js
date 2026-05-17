@@ -3,6 +3,7 @@
 const OCR_URL = 'https://kldigitech-warstack-ocr.hf.space/ocr';
 
 export function initOcrTest() {
+
   const dropZone    = document.getElementById('ocr-drop-zone');
   const fileInput   = document.getElementById('ocr-file-input');
   const previewWrap = document.getElementById('ocr-preview-wrap');
@@ -16,111 +17,260 @@ export function initOcrTest() {
 
   let currentFile = null;
 
+  // =====================================================
+  // DRAG OVER
+  // =====================================================
+
   dropZone.addEventListener('dragover', (e) => {
+
     e.preventDefault();
+
     dropZone.classList.add('drag-over');
+
   });
+
+  // =====================================================
+  // DRAG LEAVE
+  // =====================================================
 
   dropZone.addEventListener('dragleave', () => {
+
     dropZone.classList.remove('drag-over');
+
   });
+
+  // =====================================================
+  // DROP
+  // =====================================================
 
   dropZone.addEventListener('drop', (e) => {
+
     e.preventDefault();
+
     dropZone.classList.remove('drag-over');
+
     const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) loadPreview(file);
+
+    if (file && file.type.startsWith('image/')) {
+
+      loadPreview(file);
+
+    }
+
   });
 
-  dropZone.addEventListener('click', () => fileInput.click());
+  // =====================================================
+  // CLICK OPEN FILE
+  // =====================================================
+
+  dropZone.addEventListener('click', () => {
+
+    fileInput.click();
+
+  });
+
+  // =====================================================
+  // INPUT CHANGE
+  // =====================================================
 
   fileInput.addEventListener('change', () => {
-    if (fileInput.files[0]) loadPreview(fileInput.files[0]);
+
+    if (fileInput.files[0]) {
+
+      loadPreview(fileInput.files[0]);
+
+    }
+
   });
 
+  // =====================================================
+  // LOAD PREVIEW
+  // =====================================================
+
   function loadPreview(file) {
+
     currentFile = file;
+
     const reader = new FileReader();
+
     reader.onload = (e) => {
+
       previewImg.src = e.target.result;
+
       previewWrap.style.display = 'block';
+
       sendBtn.style.display = 'block';
+
       resultDiv.style.display = 'none';
+
       errorDiv.style.display = 'none';
+
     };
+
     reader.readAsDataURL(file);
+
   }
 
+  // =====================================================
+  // OCR ANALYZE
+  // =====================================================
+
   sendBtn.addEventListener('click', async () => {
+
     if (!currentFile) return;
 
     btnText.textContent = '⏳ ANALYSE EN COURS...';
+
     sendBtn.disabled = true;
+
     resultDiv.style.display = 'none';
+
     errorDiv.style.display = 'none';
 
     try {
-      const base64 = await fileToBase64(currentFile);
+
+      // =========================
+      // FORM DATA
+      // =========================
+
+      const formData = new FormData();
+
+      formData.append('image', currentFile);
+
+      // =========================
+      // FETCH OCR
+      // =========================
 
       const response = await fetch(OCR_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image_base64: base64 })
+        body: formData
       });
 
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      if (!response.ok) {
+
+        throw new Error(`HTTP ${response.status}`);
+
+      }
 
       const data = await response.json();
 
+      console.log(data);
+
+      // =========================
+      // RESET GRID
+      // =========================
+
       statsGrid.innerHTML = '';
 
-      // Placement
+      // =========================
+      // PLACEMENT
+      // =========================
+
       if (data.placement) {
+
         const card = document.createElement('div');
+
         card.className = 'ocr-stat-card';
-        card.innerHTML = `<div class="ocr-stat-value">#${data.placement}</div><div class="ocr-stat-label">PLACEMENT</div>`;
+
+        card.innerHTML = `
+          <div class="ocr-stat-value">
+            #${data.placement}
+          </div>
+
+          <div class="ocr-stat-label">
+            PLACEMENT
+          </div>
+        `;
+
         statsGrid.appendChild(card);
+
       }
 
-      // Kills escouade
+      // =========================
+      // SQUAD KILLS
+      // =========================
+
       if (data.squad_kills) {
+
         const card = document.createElement('div');
+
         card.className = 'ocr-stat-card';
-        card.innerHTML = `<div class="ocr-stat-value">${data.squad_kills}</div><div class="ocr-stat-label">KILLS ESCOUADE</div>`;
+
+        card.innerHTML = `
+          <div class="ocr-stat-value">
+            ${data.squad_kills}
+          </div>
+
+          <div class="ocr-stat-label">
+            KILLS ESCOUADE
+          </div>
+        `;
+
         statsGrid.appendChild(card);
+
       }
 
-      // 4 joueurs
+      // =========================
+      // PLAYERS
+      // =========================
+
       if (data.players && data.players.length > 0) {
-        data.players.forEach(p => {
+
+        data.players.forEach(player => {
+
           const card = document.createElement('div');
+
           card.className = 'ocr-stat-card';
+
           card.innerHTML = `
-            <div class="ocr-stat-value" style="font-size:1rem">${p.pseudo}</div>
-            <div class="ocr-stat-label">${p.kills}K · ${p.deaths}D · KD ${p.kd} · ${p.score}pts</div>
+            <div class="ocr-stat-value" style="font-size:1rem">
+              ${player.pseudo}
+            </div>
+
+            <div class="ocr-stat-label">
+              ${player.kills}K ·
+              ${player.deaths}D ·
+              KD ${player.kd} ·
+              ${player.score}pts
+            </div>
           `;
+
           statsGrid.appendChild(card);
+
         });
+
       }
 
-      rawText.textContent = data.raw_text || '(aucun texte détecté)';
+      // =========================
+      // RAW TEXT
+      // =========================
+
+      rawText.textContent = Array.isArray(data.raw_text)
+        ? data.raw_text.join('\n')
+        : '(aucun texte détecté)';
+
+      // =========================
+      // SHOW RESULT
+      // =========================
+
       resultDiv.style.display = 'block';
 
     } catch (err) {
+
+      console.error(err);
+
       errorDiv.textContent = '❌ Erreur : ' + err.message;
+
       errorDiv.style.display = 'block';
+
     } finally {
+
       btnText.textContent = '▶ ANALYSER';
+
       sendBtn.disabled = false;
+
     }
+
   });
 
-  function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload  = () => resolve(reader.result.split(',')[1]);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
 }

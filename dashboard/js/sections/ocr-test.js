@@ -1,6 +1,6 @@
 // dashboard/js/sections/ocr-test.js
 
-const OCR_URL = 'https://warstack-ocr.onrender.com/ocr';
+const OCR_URL = 'https://kldigitech-warstack-ocr.hf.space/ocr';*
 
 export function initOcrTest() {
   const dropZone   = document.getElementById('ocr-drop-zone');

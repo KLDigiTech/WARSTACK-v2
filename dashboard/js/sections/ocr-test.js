@@ -12,6 +12,7 @@ export function initOcrTest() {
   const btnText     = document.getElementById('ocr-btn-text');
   const resultDiv   = document.getElementById('ocr-result');
   const statsGrid   = document.getElementById('ocr-stats-grid');
+  const playersGrid = document.getElementById('ocr-players-grid');
   const rawText     = document.getElementById('ocr-raw-text');
   const errorDiv    = document.getElementById('ocr-error');
 
@@ -22,10 +23,8 @@ export function initOcrTest() {
   // =====================================================
 
   dropZone.addEventListener('dragover', (e) => {
-
     e.preventDefault();
     dropZone.classList.add('drag-over');
-
   });
 
   // =====================================================
@@ -33,9 +32,7 @@ export function initOcrTest() {
   // =====================================================
 
   dropZone.addEventListener('dragleave', () => {
-
     dropZone.classList.remove('drag-over');
-
   });
 
   // =====================================================
@@ -43,19 +40,12 @@ export function initOcrTest() {
   // =====================================================
 
   dropZone.addEventListener('drop', (e) => {
-
     e.preventDefault();
-
     dropZone.classList.remove('drag-over');
-
     const file = e.dataTransfer.files[0];
-
     if (file && file.type.startsWith('image/')) {
-
       loadPreview(file);
-
     }
-
   });
 
   // =====================================================
@@ -63,9 +53,7 @@ export function initOcrTest() {
   // =====================================================
 
   dropZone.addEventListener('click', () => {
-
     fileInput.click();
-
   });
 
   // =====================================================
@@ -73,13 +61,9 @@ export function initOcrTest() {
   // =====================================================
 
   fileInput.addEventListener('change', () => {
-
     if (fileInput.files[0]) {
-
       loadPreview(fileInput.files[0]);
-
     }
-
   });
 
   // =====================================================
@@ -87,27 +71,16 @@ export function initOcrTest() {
   // =====================================================
 
   function loadPreview(file) {
-
     currentFile = file;
-
     const reader = new FileReader();
-
     reader.onload = (e) => {
-
       previewImg.src = e.target.result;
-
       previewWrap.style.display = 'block';
-
       sendBtn.style.display = 'block';
-
       resultDiv.style.display = 'none';
-
       errorDiv.style.display = 'none';
-
     };
-
     reader.readAsDataURL(file);
-
   }
 
   // =====================================================
@@ -121,57 +94,27 @@ export function initOcrTest() {
     try {
 
       btnText.textContent = '⏳ ANALYSE EN COURS...';
-
       sendBtn.disabled = true;
-
       resultDiv.style.display = 'none';
-
       errorDiv.style.display = 'none';
-
       statsGrid.innerHTML = '';
-
+      playersGrid.innerHTML = '';
       rawText.textContent = '';
 
-      // =========================================
-      // FORM DATA
-      // =========================================
-
       const formData = new FormData();
-
       formData.append('image', currentFile);
-
-      // =========================================
-      // FETCH OCR
-      // =========================================
 
       const response = await fetch(OCR_URL, {
         method: 'POST',
         body: formData
       });
 
-      if (!response.ok) {
-
-        throw new Error(`HTTP ${response.status}`);
-
-      }
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
       const data = await response.json();
-
       console.log('OCR RESPONSE:', data);
 
-      // =========================================
-      // VALIDATION
-      // =========================================
-
-      if (!data || data.success === false) {
-
-        throw new Error('Réponse OCR invalide');
-
-      }
-
-      // =========================================
-      // SHOW RESULT
-      // =========================================
+      if (!data || data.success === false) throw new Error('Réponse OCR invalide');
 
       resultDiv.style.display = 'block';
 
@@ -180,47 +123,27 @@ export function initOcrTest() {
       // =========================================
 
       if (data.placement !== null && data.placement !== undefined) {
-
         const placementCard = document.createElement('div');
-
         placementCard.className = 'ocr-stat-card';
-
         placementCard.innerHTML = `
-          <div class="ocr-stat-value">
-            #${data.placement}
-          </div>
-
-          <div class="ocr-stat-label">
-            PLACEMENT
-          </div>
+          <div class="ocr-stat-value">#${data.placement}</div>
+          <div class="ocr-stat-label">PLACEMENT</div>
         `;
-
         statsGrid.appendChild(placementCard);
-
       }
 
       // =========================================
-      // KILLS TOTAL
+      // KILLS ESCOUADE
       // =========================================
 
       if (data.squad_kills !== null && data.squad_kills !== undefined) {
-
         const killsCard = document.createElement('div');
-
         killsCard.className = 'ocr-stat-card';
-
         killsCard.innerHTML = `
-          <div class="ocr-stat-value">
-            ${data.squad_kills}
-          </div>
-
-          <div class="ocr-stat-label">
-            KILLS ESCOUADE
-          </div>
+          <div class="ocr-stat-value">${data.squad_kills}</div>
+          <div class="ocr-stat-label">KILLS ESCOUADE</div>
         `;
-
         statsGrid.appendChild(killsCard);
-
       }
 
       // =========================================
@@ -232,29 +155,37 @@ export function initOcrTest() {
         data.players.forEach(player => {
 
           const pseudo = player.pseudo || 'JOUEUR';
-          const kills  = player.kills ?? '?';
-          const deaths = player.deaths ?? '?';
-          const kd      = player.kd ?? '?';
-          const score   = player.score ?? '?';
+          const kills  = player.kills ?? 0;
+          const deaths = player.deaths ?? 0;
+          const kd     = player.kd ?? 0;
+          const score  = player.score ?? 0;
 
           const card = document.createElement('div');
-
-          card.className = 'ocr-stat-card';
+          card.className = 'ocr-player-card';
 
           card.innerHTML = `
-            <div class="ocr-stat-value" style="font-size:1rem">
-              ${pseudo}
-            </div>
-
-            <div class="ocr-stat-label">
-              ${kills}K ·
-              ${deaths}D ·
-              KD ${kd} ·
-              ${score}pts
+            <div class="ocr-player-name">${pseudo}</div>
+            <div class="ocr-player-kd">${kd}</div>
+            <div class="ocr-player-kd-label">K/D</div>
+            <div class="ocr-player-stats">
+              <div class="ocr-player-stat">
+                <span class="stat-val">${kills}</span>
+                <span class="stat-lbl">KILLS</span>
+              </div>
+              <div class="ocr-player-stat-sep"></div>
+              <div class="ocr-player-stat">
+                <span class="stat-val">${deaths}</span>
+                <span class="stat-lbl">MORTS</span>
+              </div>
+              <div class="ocr-player-stat-sep"></div>
+              <div class="ocr-player-stat">
+                <span class="stat-val">${score}</span>
+                <span class="stat-lbl">PTS</span>
+              </div>
             </div>
           `;
 
-          statsGrid.appendChild(card);
+          playersGrid.appendChild(card);
 
         });
 
@@ -265,27 +196,20 @@ export function initOcrTest() {
       // =========================================
 
       if (Array.isArray(data.raw_text)) {
-
         rawText.textContent = data.raw_text.join('\n');
-
       } else {
-
         rawText.textContent = '(aucun texte détecté)';
-
       }
 
     } catch (err) {
 
       console.error(err);
-
       errorDiv.textContent = '❌ Erreur : ' + err.message;
-
       errorDiv.style.display = 'block';
 
     } finally {
 
       btnText.textContent = '▶ ANALYSER';
-
       sendBtn.disabled = false;
 
     }

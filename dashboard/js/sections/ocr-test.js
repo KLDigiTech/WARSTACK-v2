@@ -4,17 +4,17 @@ const OCR_URL = 'https://kldigitech-warstack-ocr.hf.space/ocr';
 
 export function initOcrTest() {
 
-  const dropZone    = document.getElementById('ocr-drop-zone');
-  const fileInput   = document.getElementById('ocr-file-input');
+  const dropZone = document.getElementById('ocr-drop-zone');
+  const fileInput = document.getElementById('ocr-file-input');
   const previewWrap = document.getElementById('ocr-preview-wrap');
-  const previewImg  = document.getElementById('ocr-preview-img');
-  const sendBtn     = document.getElementById('ocr-send-btn');
-  const btnText     = document.getElementById('ocr-btn-text');
-  const resultDiv   = document.getElementById('ocr-result');
-  const statsGrid   = document.getElementById('ocr-stats-grid');
+  const previewImg = document.getElementById('ocr-preview-img');
+  const sendBtn = document.getElementById('ocr-send-btn');
+  const btnText = document.getElementById('ocr-btn-text');
+  const resultDiv = document.getElementById('ocr-result');
+  const statsGrid = document.getElementById('ocr-stats-grid');
   const playersGrid = document.getElementById('ocr-players-grid');
-  const rawText     = document.getElementById('ocr-raw-text');
-  const errorDiv    = document.getElementById('ocr-error');
+  const rawText = document.getElementById('ocr-raw-text');
+  const errorDiv = document.getElementById('ocr-error');
 
   let currentFile = null;
 
@@ -155,22 +155,22 @@ export function initOcrTest() {
         data.players.forEach(player => {
 
           const pseudo = player.pseudo || 'JOUEUR';
-          const kills  = player.kills ?? 0;
+          const kills = player.kills ?? 0;
           const deaths = player.deaths ?? 0;
-          const kd     = player.kd ?? 0;
-          const score  = player.score ?? 0;
+          const kd = player.kd ?? 0;
+          const score = player.score ?? 0;
 
           const card = document.createElement('div');
           card.className = 'ocr-player-card';
 
           card.innerHTML = `
             <div class="ocr-player-name">${pseudo}</div>
-            <div class="ocr-player-kd">${kd}</div>
-            <div class="ocr-player-kd-label">K/D</div>
+            <div class="ocr-player-kd">${kills}</div>
+            <div class="ocr-player-kd-label">KILLS</div>
             <div class="ocr-player-stats">
               <div class="ocr-player-stat">
-                <span class="stat-val">${kills}</span>
-                <span class="stat-lbl">KILLS</span>
+                <span class="stat-val">${kd}</span>
+                <span class="stat-lbl">K/D</span>
               </div>
               <div class="ocr-player-stat-sep"></div>
               <div class="ocr-player-stat">

@@ -27,24 +27,39 @@ def extract_stats(text):
         'kd'     : None,
     }
 
-    lines = text.lower().split('\n')
+    lines = text.split('\n')
     lines = [l.strip() for l in lines if l.strip()]
 
-    for line in lines:
-        if 'kill' in line or 'élimin' in line:
-            numbers = re.findall(r'\d+', line)
+    for i, line in enumerate(lines):
+        line_lower = line.lower()
+
+        # Kills — BF FR
+        if any(k in line_lower for k in ['elimination', 'élimination', 'confirmee', 'confirmées']):
+            numbers = re.findall(r'\b(\d{1,3})\b', line)
             if numbers and stats['kills'] is None:
                 stats['kills'] = int(numbers[0])
 
-        if 'death' in line or 'mort' in line:
-            numbers = re.findall(r'\d+', line)
+        # Deaths
+        if any(k in line_lower for k in ['death', 'mort', 'decede', 'décédé']):
+            numbers = re.findall(r'\b(\d{1,3})\b', line)
             if numbers and stats['deaths'] is None:
                 stats['deaths'] = int(numbers[0])
 
-        if 'score' in line:
-            numbers = re.findall(r'\d+', line)
+        # Score
+        if 'score' in line_lower:
+            numbers = re.findall(r'\b(\d+)\b', line)
             if numbers and stats['score'] is None:
                 stats['score'] = int(numbers[0])
+
+    # Fallback kills — cherche grands nombres isolés dans les premières lignes
+    if stats['kills'] is None:
+        for line in lines[:15]:
+            numbers = re.findall(r'\b(\d{1,3})\b', line)
+            if numbers:
+                for n in numbers:
+                    if 1 <= int(n) <= 100 and stats['kills'] is None:
+                        stats['kills'] = int(n)
+                        break
 
     if stats['kills'] is not None and stats['deaths'] is not None:
         deaths = stats['deaths'] if stats['deaths'] > 0 else 1
@@ -100,5 +115,4 @@ def ocr():
         return jsonify({ 'error': str(e) }), 500
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 7860))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=7860)

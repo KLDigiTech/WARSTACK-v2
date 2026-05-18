@@ -452,6 +452,19 @@ function initSoumissionEvents(tournoi) {
       // =======================================
       const playerData = data.players?.[0] || {};
 
+      // =======================================
+      // AUTO-APPROVE ou FLAG
+      // =======================================
+      const exif = data.exif || {};
+      let autoStatus = 'approved';
+      let flagReason = [];
+
+      if (!pseudoOk)            flagReason.push('pseudo_non_inscrit');
+      if (placement === 0)      flagReason.push('placement_non_detecte');
+      if (exif.suspicious)      flagReason.push(`exif_suspect:${exif.reason}`);
+
+      if (flagReason.length > 0) autoStatus = 'pending';
+
       await supabase.from('tournament_submissions').insert({
         tournament_id : tournoi.id,
         discord_id    : matchedPlayer?.discord_id || null,
@@ -461,10 +474,38 @@ function initSoumissionEvents(tournoi) {
         score         : totalScore,
         kd            : playerData.kd || 0,
         image_hash    : imageHash,
-        status        : 'pending',
+        status        : autoStatus,
         submitted_at  : new Date().toISOString(),
         created_at    : new Date().toISOString(),
       });
+
+      // Si auto-approuvé → mise à jour directe tournament_scores
+      if (autoStatus === 'approved' && matchedPlayer?.discord_id) {
+        const { data: existing } = await supabase
+          .from('tournament_scores')
+          .select('*')
+          .eq('tournament_id', tournoi.id)
+          .eq('discord_id', matchedPlayer.discord_id)
+          .maybeSingle();
+
+        if (existing) {
+          await supabase.from('tournament_scores').update({
+            total_kills  : (existing.total_kills || 0) + squadKills,
+            total_score  : (existing.total_score || 0) + totalScore,
+            games_played : (existing.games_played || 0) + 1,
+            updated_at   : new Date().toISOString(),
+          }).eq('id', existing.id);
+        } else {
+          await supabase.from('tournament_scores').insert({
+            tournament_id : tournoi.id,
+            discord_id    : matchedPlayer.discord_id,
+            total_kills   : squadKills,
+            total_score   : totalScore,
+            games_played  : 1,
+            updated_at    : new Date().toISOString(),
+          });
+        }
+      }
 
       // =======================================
       // AFFICHAGE RÉSULTAT
@@ -487,7 +528,11 @@ function initSoumissionEvents(tournoi) {
           </div>
         </div>
         <div class="sub-result-detail">
-          ${placementPts} pts placement + ${killsPts} pts kills — En attente de validation admin
+          ${placementPts} pts placement + ${killsPts} pts kills
+          ${autoStatus === 'approved'
+            ? '— ✅ Auto-approuvé, score enregistré !'
+            : '— ⚠️ En attente de validation admin (' + flagReason.join(', ') + ')'
+          }
         </div>
       `;
 

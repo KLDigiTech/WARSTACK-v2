@@ -38,22 +38,22 @@ setInterval(checkBotStatus, 30000);
 
 // SECTIONS
 const sections = {
-  overview: () => import('./sections/overview.js').then(m => m.initOverview()),
-  players: () => import('./sections/players.js').then(m => m.initPlayers()),
+  overview:   () => import('./sections/overview.js').then(m => m.initOverview()),
+  players:    () => import('./sections/players.js').then(m => m.initPlayers()),
   tournament: () => import('./sections/tournament.js').then(m => m.initTournament()),
-  welcome: () => import('./sections/welcome.js').then(m => m.initWelcome()),
-  roles: () => import('./sections/roles.js').then(m => m.initRoles()),
-  birthdays: () => import('./sections/birthdays.js').then(m => m.initBirthdays()),
-  suggestions: () => import('./sections/suggestions.js').then(m => m.initSuggestions()),
+  welcome:    () => import('./sections/welcome.js').then(m => m.initWelcome()),
+  roles:      () => import('./sections/roles.js').then(m => m.initRoles()),
+  birthdays:  () => import('./sections/birthdays.js').then(m => m.initBirthdays()),
+  suggestions:() => import('./sections/suggestions.js').then(m => m.initSuggestions()),
   moderation: () => import('./sections/moderation.js').then(m => m.initModeration()),
-  automod: () => import('./sections/automod.js').then(m => m.initAutomod()),
-  tickets: () => import('./sections/tickets.js').then(m => m.initTickets()),
-  logs: () => import('./sections/logs.js').then(m => m.initLogs()),
-  messages: () => import('./sections/messages.js').then(m => m.initMessages()),
-  reactions: () => import('./sections/reactions.js').then(m => m.initReactions()),
-  channels: () => import('./sections/channels.js').then(m => m.initChannels()),
-  access: () => import('./sections/access.js').then(m => m.initAccess()),
-  settings: () => import('./sections/settings.js').then(m => m.initSettings()),
+  automod:    () => import('./sections/automod.js').then(m => m.initAutomod()),
+  tickets:    () => import('./sections/tickets.js').then(m => m.initTickets()),
+  logs:       () => import('./sections/logs.js').then(m => m.initLogs()),
+  messages:   () => import('./sections/messages.js').then(m => m.initMessages()),
+  reactions:  () => import('./sections/reactions.js').then(m => m.initReactions()),
+  channels:   () => import('./sections/channels.js').then(m => m.initChannels()),
+  access:     () => import('./sections/access.js').then(m => m.initAccess()),
+  settings:   () => import('./sections/settings.js').then(m => m.initSettings()),
   'ocr-test': () => import('./sections/ocr-test.js').then(m => m.initOcrTest()),
 };
 
@@ -91,7 +91,8 @@ async function applyPermissions() {
     }
     document.querySelectorAll('.nav-item').forEach(item => {
       const section = item.dataset.section;
-      if (!section) return;
+      // Les liens externes (pas de data-section) sont toujours visibles
+      if (!section) { item.style.display = 'flex'; return; }
       item.style.display = (section === 'overview' || section === 'ocr-test' || permissions.includes(section)) ? 'flex' : 'none';
     });
   } catch {
@@ -102,6 +103,8 @@ async function applyPermissions() {
 // NAV EVENTS
 document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', async (e) => {
+    // Lien externe — laisse le navigateur gérer
+    if (!item.dataset.section) return;
     e.preventDefault();
     await navigate(item.dataset.section);
   });

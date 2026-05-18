@@ -215,20 +215,17 @@ async function loadSoumissions() {
   const container = document.getElementById('tab-soumissions');
   const tournoi   = await getTournoiActif();
 
-  if (!tournoi) {
-    container.innerHTML = '<div class="empty-state"><i class="fas fa-trophy"></i>Aucun tournoi actif</div>';
-    return;
-  }
-
-  const subs = await fetchSupabase(`tournament_submissions?tournament_id=eq.${tournoi.id}&order=submitted_at.desc`);
+  const subs = tournoi
+    ? await fetchSupabase(`tournament_submissions?tournament_id=eq.${tournoi.id}&order=submitted_at.desc`)
+    : [];
 
   let html = `
     <div class="soumission-header">
       <div class="soumission-title">📸 SOUMETTRE UN RÉSULTAT</div>
-      <div class="soumission-tournoi">Tournoi actif : <strong>${tournoi.name}</strong></div>
+      <div class="soumission-tournoi">${tournoi ? `Tournoi actif : <strong>${tournoi.name}</strong>` : '⚠️ Aucun tournoi actif'}</div>
     </div>
 
-    <div class="soumission-drop-zone" id="sub-drop-zone">
+    <div class="soumission-drop-zone${!tournoi ? ' drop-disabled' : ''}" id="sub-drop-zone" ${!tournoi ? 'style="opacity:0.4;pointer-events:none;cursor:not-allowed"' : ''}>
       <div class="soumission-drop-icon">📁</div>
       <div class="soumission-drop-text">Glisse le screenshot de fin de partie ici</div>
       <div class="soumission-drop-sub">ou clique pour sélectionner</div>
@@ -288,7 +285,8 @@ async function loadSoumissions() {
                 ${s.status === 'pending' ? `
                   <button class="btn btn-sm btn-primary btn-approve" data-id="${s.id}" data-tid="${tournoi.id}" data-did="${s.discord_id}" data-kills="${s.kills}" data-score="${s.score}" data-placement="${s.placement}">✅</button>
                   <button class="btn btn-sm btn-danger btn-reject" data-id="${s.id}">❌</button>
-                ` : '—'}
+                ` : ''}
+                <button class="btn btn-sm btn-danger btn-delete-sub" data-id="${s.id}">🗑️</button>
               </td>
             </tr>
           `).join('')}
@@ -555,6 +553,13 @@ function initSoumissionEvents(tournoi) {
 
   document.querySelectorAll('.btn-reject').forEach(btn => {
     btn.addEventListener('click', () => rejectSubmission(btn.dataset.id));
+  });
+
+  document.querySelectorAll('.btn-delete-sub').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      await supabase.from('tournament_submissions').delete().eq('id', btn.dataset.id);
+      loadSoumissions();
+    });
   });
 }
 

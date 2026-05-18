@@ -25,7 +25,7 @@
   <div class="inscription-card">
 
     <div id="state-loading" class="insc-state visible center-msg">
-      <span class="spinner"></span> Chargement du tournoi...
+      <span class="spinner"></span> Chargement...
     </div>
 
     <div id="state-no-tournoi" class="insc-state center-msg">
@@ -33,6 +33,13 @@
       Aucun tournoi en cours.<br>Reviens plus tard.
     </div>
 
+    <!-- CHOIX TOURNOI si plusieurs -->
+    <div id="state-choose" class="insc-state">
+      <div class="tournoi-choose-title">🏆 CHOISIS TON TOURNOI</div>
+      <div id="tournois-list" class="tournois-list"></div>
+    </div>
+
+    <!-- FORMULAIRE -->
     <div id="state-form" class="insc-state">
 
       <div class="tournoi-banner">
@@ -41,14 +48,12 @@
         <div class="badge-actif">● EN COURS</div>
       </div>
 
-      <!-- PSEUDO BF6 -->
       <div class="form-group">
         <label class="form-label">PSEUDO BATTLEFIELD 6 *</label>
         <input type="text" class="form-input" id="psn-input" placeholder="Ton pseudo exact en jeu" autocomplete="off">
         <div class="hint" id="psn-hint" style="display:none"></div>
       </div>
 
-      <!-- PLATEFORME -->
       <div class="form-group" style="margin-top:1.25rem">
         <label class="form-label">PLATEFORME *</label>
         <div class="platform-grid">
@@ -66,7 +71,6 @@
 
       <hr class="insc-sep">
 
-      <!-- BOUTON INSCRIPTION DISCORD -->
       <button class="btn btn-discord" style="width:100%;letter-spacing:2px;" id="btn-submit" disabled>
         <i class="fab fa-discord"></i> S'INSCRIRE AVEC DISCORD
       </button>
@@ -78,6 +82,7 @@
 
     </div>
 
+    <!-- SUCCESS -->
     <div id="state-success" class="insc-state">
       <div class="success-wrap">
         <div class="success-icon"><i class="fas fa-check-circle"></i></div>

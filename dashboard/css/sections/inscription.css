@@ -166,3 +166,57 @@
   vertical-align: middle;
   margin-right: 5px;
 }
+
+/* CHOIX TOURNOI */
+.tournoi-choose-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: 1.25rem;
+  text-align: center;
+}
+
+.tournois-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tournoi-choice-btn {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all .2s;
+  width: 100%;
+}
+
+.tournoi-choice-btn:hover {
+  border-color: var(--green);
+  background: var(--green-glow);
+}
+
+.tc-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--orange);
+  letter-spacing: 1px;
+}
+
+.tc-dates {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.tc-phase {
+  font-size: 0.65rem;
+  color: var(--green);
+  letter-spacing: 2px;
+  margin-top: 4px;
+  text-transform: uppercase;
+}

@@ -9,26 +9,48 @@ import { supabase } from '../supabaseClient.js';
 async function init() {
   showState('loading');
 
-  // Récupère le tournoi actif
   const { data: tournois } = await supabase
     .from('tournaments')
     .select('*')
     .eq('status', 'active')
-    .limit(1);
+    .order('created_at', { ascending: false });
 
-  const tournoi = tournois?.[0];
-
-  if (!tournoi) {
+  if (!tournois?.length) {
     showState('no-tournoi');
     return;
   }
 
-  // Affiche infos tournoi
+  if (tournois.length === 1) {
+    await setupTournoi(tournois[0]);
+  } else {
+    showState('choose');
+    const list = document.getElementById('tournois-list');
+    list.innerHTML = tournois.map(t => `
+      <button class="tournoi-choice-btn" data-id="${t.id}">
+        <div class="tc-name">${t.name}</div>
+        <div class="tc-dates">${formatDate(t.start_date)} → ${formatDate(t.end_date)}</div>
+        ${t.phase ? `<div class="tc-phase">${t.phase}</div>` : ''}
+      </button>
+    `).join('');
+
+    list.querySelectorAll('.tournoi-choice-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tournoi = tournois.find(t => t.id === btn.dataset.id);
+        if (tournoi) setupTournoi(tournoi);
+      });
+    });
+  }
+}
+
+// =====================================================
+// SETUP TOURNOI
+// =====================================================
+
+async function setupTournoi(tournoi) {
   document.getElementById('tournoi-name').textContent = tournoi.name;
   document.getElementById('tournoi-dates').textContent =
     `${formatDate(tournoi.start_date)} → ${formatDate(tournoi.end_date)}`;
 
-  // Vérifie si user déjà connecté Discord
   const { data: { session } } = await supabase.auth.getSession();
 
   if (session?.user) {
@@ -45,14 +67,13 @@ async function init() {
 
 function initForm(tournoi) {
 
-  const btnSubmit  = document.getElementById('btn-submit');
-  const bfInput    = document.getElementById('psn-input');
-  const bfHint     = document.getElementById('psn-hint');
+  const btnSubmit    = document.getElementById('btn-submit');
+  const bfInput      = document.getElementById('psn-input');
+  const bfHint       = document.getElementById('psn-hint');
   const platformBtns = document.querySelectorAll('.platform-btn');
 
   let selectedPlatform = null;
 
-  // Plateforme
   platformBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       platformBtns.forEach(b => b.classList.remove('selected'));
@@ -62,7 +83,6 @@ function initForm(tournoi) {
     });
   });
 
-  // Pseudo BF6
   bfInput.addEventListener('input', () => {
     const val = bfInput.value.trim();
     if (val.length >= 3) {
@@ -81,21 +101,18 @@ function initForm(tournoi) {
     btnSubmit.disabled = !(pseudoOk && platformOk);
   }
 
-  // Submit → Discord OAuth
   btnSubmit.addEventListener('click', async () => {
     const pseudo   = bfInput.value.trim();
     const platform = selectedPlatform;
 
     if (!pseudo || !platform) return;
 
-    // Sauvegarde temporaire
     sessionStorage.setItem('ws_inscription', JSON.stringify({
       pseudo,
       platform,
       tournament_id: tournoi.id,
     }));
 
-    // OAuth Discord
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'discord',
       options: {
@@ -120,7 +137,6 @@ async function handleLoggedIn(user, tournoi) {
   const saved = sessionStorage.getItem('ws_inscription');
 
   if (!saved) {
-    // Déjà connecté mais pas de données → affiche le form pré-rempli
     showState('form');
     initForm(tournoi);
     return;
@@ -128,7 +144,6 @@ async function handleLoggedIn(user, tournoi) {
 
   const { pseudo, platform, tournament_id } = JSON.parse(saved);
 
-  // Vérifie si déjà inscrit
   const { data: existing } = await supabase
     .from('tournament_entries')
     .select('id')
@@ -140,15 +155,14 @@ async function handleLoggedIn(user, tournoi) {
     showSuccess({
       pseudo,
       platform,
-      username: user.user_metadata?.full_name || user.email,
-      avatar: user.user_metadata?.avatar_url,
-      already: true,
+      username : user.user_metadata?.full_name || user.email,
+      avatar   : user.user_metadata?.avatar_url,
+      already  : true,
     });
     sessionStorage.removeItem('ws_inscription');
     return;
   }
 
-  // Insertion tournament_entries
   await supabase.from('tournament_entries').insert({
     tournament_id : tournament_id,
     discord_id    : user.id,
@@ -158,7 +172,6 @@ async function handleLoggedIn(user, tournoi) {
     created_at    : new Date().toISOString(),
   });
 
-  // Insertion / update players
   const { data: existingPlayer } = await supabase
     .from('players')
     .select('id')
@@ -167,12 +180,12 @@ async function handleLoggedIn(user, tournoi) {
 
   if (!existingPlayer) {
     await supabase.from('players').insert({
-      discord_id  : user.id,
-      pseudo_bf6  : pseudo,
-      platform    : platform,
-      username    : user.user_metadata?.full_name || user.email,
-      avatar_url  : user.user_metadata?.avatar_url || null,
-      created_at  : new Date().toISOString(),
+      discord_id : user.id,
+      pseudo_bf6 : pseudo,
+      platform   : platform,
+      username   : user.user_metadata?.full_name || user.email,
+      avatar_url : user.user_metadata?.avatar_url || null,
+      created_at : new Date().toISOString(),
     });
   } else {
     await supabase.from('players').update({
@@ -187,9 +200,9 @@ async function handleLoggedIn(user, tournoi) {
   showSuccess({
     pseudo,
     platform,
-    username: user.user_metadata?.full_name || user.email,
-    avatar: user.user_metadata?.avatar_url,
-    already: false,
+    username : user.user_metadata?.full_name || user.email,
+    avatar   : user.user_metadata?.avatar_url,
+    already  : false,
   });
 }
 
@@ -207,7 +220,7 @@ function showSuccess({ pseudo, platform, username, avatar, already }) {
     Discord : <span>${username}</span><br>
     Pseudo BF6 : <span>${pseudo}</span><br>
     Plateforme : <span>${platformLabel}</span><br>
-    ${already ? '<span style="color:var(--yellow)">⚠ Tu étais déjà inscrit.</span>' : ''}
+    ${already ? '<div class="pending-note">⚠ Tu étais déjà inscrit.</div>' : ''}
   `;
 }
 
@@ -231,18 +244,17 @@ function formatDate(d) {
 
 init();
 
-// Écoute le retour OAuth
 supabase.auth.onAuthStateChange(async (event, session) => {
   if (event === 'SIGNED_IN' && session?.user) {
     const saved = sessionStorage.getItem('ws_inscription');
     if (saved) {
       const { tournament_id } = JSON.parse(saved);
-      const { data: tournois } = await supabase
+      const { data: tournoi } = await supabase
         .from('tournaments')
         .select('*')
         .eq('id', tournament_id)
         .single();
-      if (tournois) await handleLoggedIn(session.user, tournois);
+      if (tournoi) await handleLoggedIn(session.user, tournoi);
     }
   }
 });

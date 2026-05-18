@@ -377,3 +377,7 @@
 .row-bronze { background: rgba(205,127,50,.06); }
 
 .status-orange { color: #ff9900; }
+
+.tab-content.hidden .tournament-topbar {
+  display: none !important;
+}

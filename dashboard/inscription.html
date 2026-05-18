@@ -41,31 +41,40 @@
         <div class="badge-actif">● EN COURS</div>
       </div>
 
+      <!-- PSEUDO BF6 -->
       <div class="form-group">
-        <label class="form-label">PSEUDO PSN *</label>
-        <div class="input-row">
-          <input type="text" class="form-input" id="psn-input" placeholder="Ton pseudo PlayStation Network" autocomplete="off">
-          <button class="btn-verify" id="btn-verify">VÉRIFIER</button>
-        </div>
+        <label class="form-label">PSEUDO BATTLEFIELD 6 *</label>
+        <input type="text" class="form-input" id="psn-input" placeholder="Ton pseudo exact en jeu" autocomplete="off">
         <div class="hint" id="psn-hint" style="display:none"></div>
       </div>
 
-      <div class="fallback-box" id="fallback-box">
-        <p>⚠ Profil PSN introuvable sur tracker.gg.<br>Entre ton pseudo Discord pour validation manuelle par un orga.</p>
-        <input type="text" class="form-input" id="discord-input" placeholder="TonPseudo ou TonPseudo#1234">
+      <!-- PLATEFORME -->
+      <div class="form-group" style="margin-top:1.25rem">
+        <label class="form-label">PLATEFORME *</label>
+        <div class="platform-grid">
+          <button class="platform-btn" data-platform="psn">
+            <i class="fab fa-playstation"></i> PlayStation
+          </button>
+          <button class="platform-btn" data-platform="xbox">
+            <i class="fab fa-xbox"></i> Xbox
+          </button>
+          <button class="platform-btn" data-platform="pc">
+            <i class="fas fa-desktop"></i> PC
+          </button>
+        </div>
       </div>
 
       <hr class="insc-sep">
 
-      <div class="form-group" id="team-zone" style="display:none">
-        <label class="form-label">CHOIX DE LA TEAM *</label>
-        <div class="teams-grid" id="teams-grid"></div>
-        <div class="hint err" id="team-hint" style="display:none">Choisis une team.</div>
-      </div>
-
-      <button class="btn btn-primary" style="width:100%;letter-spacing:3px;" id="btn-submit" disabled>
-        S'INSCRIRE AU TOURNOI
+      <!-- BOUTON INSCRIPTION DISCORD -->
+      <button class="btn btn-discord" style="width:100%;letter-spacing:2px;" id="btn-submit" disabled>
+        <i class="fab fa-discord"></i> S'INSCRIRE AVEC DISCORD
       </button>
+
+      <div class="insc-note">
+        Tu seras redirigé vers Discord pour confirmer ton identité.<br>
+        Aucun message ne sera posté en ton nom.
+      </div>
 
     </div>
 

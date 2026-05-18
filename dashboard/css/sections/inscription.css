@@ -71,58 +71,73 @@
 .input-row { display: flex; gap: 0.5rem; }
 .input-row .form-input { flex: 1; }
 
-.btn-verify {
-  background: var(--surface-3);
-  border: 1px solid var(--border);
-  color: var(--green);
-  font-size: 0.7rem;
-  letter-spacing: 1px;
-  padding: 0 1rem;
-  cursor: pointer;
-  transition: all .2s;
-  white-space: nowrap;
-  border-radius: var(--radius);
-}
-.btn-verify:hover:not(:disabled) { border-color: var(--green); background: var(--green-glow); }
-.btn-verify:disabled { opacity: .4; cursor: not-allowed; }
-
 .hint { font-size: 0.7rem; margin-top: 6px; }
 .hint.ok   { color: var(--green); }
 .hint.err  { color: var(--red); }
 .hint.warn { color: var(--yellow); }
 .hint.info { color: var(--text-muted); }
 
-.fallback-box {
-  background: rgba(255,189,46,.04);
-  border: 1px solid rgba(255,189,46,.25);
-  border-left: 3px solid var(--yellow);
-  padding: 1rem;
-  margin-top: 1rem;
-  display: none;
-}
-.fallback-box.visible { display: block; }
-.fallback-box p { font-size: 0.7rem; color: var(--yellow); margin-bottom: 0.8rem; line-height: 1.6; }
+.insc-sep { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
 
-.teams-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
-.team-btn {
+/* PLATEFORME */
+.platform-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.platform-btn {
   background: var(--surface-2);
   border: 1px solid var(--border);
   color: var(--text-dim);
   font-family: 'Rajdhani', sans-serif;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
   letter-spacing: 1px;
-  padding: 0.75rem;
+  padding: 0.75rem 0.5rem;
   cursor: pointer;
   transition: all .2s;
   text-align: center;
   border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
 }
-.team-btn:hover    { border-color: var(--border-hover); color: var(--text); }
-.team-btn.selected { border-color: var(--green); background: var(--green-glow); color: var(--green); }
+.platform-btn i { font-size: 1.4rem; }
+.platform-btn:hover    { border-color: var(--border-hover); color: var(--text); }
+.platform-btn.selected { border-color: var(--green); background: var(--green-glow); color: var(--green); }
 
-.insc-sep { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+/* BOUTON DISCORD */
+.btn-discord {
+  background: #5865F2;
+  border: none;
+  color: #fff;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0.85rem;
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: background .2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+}
+.btn-discord:hover:not(:disabled) { background: #4752c4; }
+.btn-discord:disabled { opacity: .4; cursor: not-allowed; }
 
+.insc-note {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 0.75rem;
+  line-height: 1.6;
+}
+
+/* SUCCESS */
 .success-wrap  { text-align: center; padding: 1.5rem 0.5rem; }
 .success-icon  { font-size: 3rem; color: var(--green); margin-bottom: 1rem; }
 .success-title { font-size: 2rem; font-weight: 700; letter-spacing: 5px; color: var(--green); text-shadow: 0 0 20px rgba(0,255,100,.4); }
@@ -137,7 +152,6 @@
   line-height: 2;
 }
 .success-recap span { color: var(--green); font-weight: 700; }
-.pending-note { color: var(--yellow); margin-top: 0.5rem; font-size: 0.7rem; }
 
 .inscription-footer { margin-top: 1.5rem; font-size: 0.65rem; color: var(--text-muted); text-align: center; letter-spacing: 1px; }
 

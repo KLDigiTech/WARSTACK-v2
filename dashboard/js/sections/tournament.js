@@ -787,8 +787,16 @@ async function changerStatut(id, statut) {
 
 window.supprimerTournoi = async function(id, nom) {
   showConfirm({
-    title: '🗑️ Supprimer', message: `Supprimer "${nom}" ?`, confirmText: 'Supprimer', cancelText: 'Annuler',
-    onConfirm: async () => { await deleteSupabase(`tournaments?id=eq.${id}`); loadTournoi(); }
+    title: '🗑️ Supprimer', message: `Supprimer "${nom}" et toutes ses soumissions ?`, confirmText: 'Supprimer', cancelText: 'Annuler',
+    onConfirm: async () => {
+      // Supprimer d'abord les soumissions liées
+      await supabase.from('tournament_submissions').delete().eq('tournament_id', id);
+      await supabase.from('tournament_scores').delete().eq('tournament_id', id);
+      await supabase.from('tournament_entries').delete().eq('tournament_id', id);
+      // Puis supprimer le tournoi
+      await deleteSupabase(`tournaments?id=eq.${id}`);
+      loadTournoi();
+    }
   });
 };
 

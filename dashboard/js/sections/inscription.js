@@ -2,15 +2,7 @@
 
 import { supabase } from '../supabaseClient.js';
 
-// =====================================================
-// STATE — mémorise si plusieurs tournois dispo
-// =====================================================
-
 let _multipleTournois = false;
-
-// =====================================================
-// INIT
-// =====================================================
 
 async function init() {
   showState('loading');
@@ -50,10 +42,6 @@ async function init() {
   }
 }
 
-// =====================================================
-// SETUP TOURNOI
-// =====================================================
-
 async function setupTournoi(tournoi) {
   document.getElementById('tournoi-name').textContent = tournoi.name;
   document.getElementById('tournoi-dates').textContent =
@@ -69,40 +57,30 @@ async function setupTournoi(tournoi) {
   }
 }
 
-// =====================================================
-// FORM
-// =====================================================
-
 function initForm(tournoi) {
-
-  const btnSubmit    = document.getElementById('btn-submit');
-  const btnBack      = document.getElementById('btn-back');
-  const bfInput      = document.getElementById('psn-input');
-  const bfHint       = document.getElementById('psn-hint');
+  const bfInput = document.getElementById('psn-input');
+  const bfHint = document.getElementById('psn-hint');
+  const btnSubmit = document.getElementById('btn-submit');
   const platformBtns = document.querySelectorAll('.platform-btn');
-
   let selectedPlatform = null;
 
-  // BOUTON RETOUR — visible seulement si plusieurs tournois
-  if (btnBack) {
+  // BOUTON RETOUR — clone d'abord, style après
+  const btnBackOld = document.getElementById('btn-back');
+  if (btnBackOld) {
+    const btnBack = btnBackOld.cloneNode(true);
+    btnBackOld.replaceWith(btnBack);
     btnBack.style.display = _multipleTournois ? 'inline-flex' : 'none';
-    // Retire l'ancien listener pour éviter les doublons
-    btnBack.replaceWith(btnBack.cloneNode(true));
-    const freshBtnBack = document.getElementById('btn-back');
-    freshBtnBack.addEventListener('click', () => {
+    btnBack.addEventListener('click', () => {
       resetForm();
       showState('choose');
     });
   }
 
-  // Reset plateforme
-  platformBtns.forEach(b => b.classList.remove('selected'));
-  selectedPlatform = null;
-
-  // Reset input
+  // Reset
   bfInput.value = '';
   bfHint.style.display = 'none';
   btnSubmit.disabled = true;
+  platformBtns.forEach(b => b.classList.remove('selected'));
 
   platformBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -126,15 +104,12 @@ function initForm(tournoi) {
   });
 
   function checkReady() {
-    const pseudoOk   = bfInput.value.trim().length >= 3;
-    const platformOk = !!selectedPlatform;
-    btnSubmit.disabled = !(pseudoOk && platformOk);
+    btnSubmit.disabled = !(bfInput.value.trim().length >= 3 && !!selectedPlatform);
   }
 
   btnSubmit.addEventListener('click', async () => {
-    const pseudo   = bfInput.value.trim();
+    const pseudo = bfInput.value.trim();
     const platform = selectedPlatform;
-
     if (!pseudo || !platform) return;
 
     sessionStorage.setItem('ws_inscription', JSON.stringify({
@@ -145,9 +120,7 @@ function initForm(tournoi) {
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'discord',
-      options: {
-        redirectTo: window.location.href,
-      }
+      options: { redirectTo: window.location.href }
     });
 
     if (error) {
@@ -158,28 +131,14 @@ function initForm(tournoi) {
   });
 }
 
-// =====================================================
-// RESET FORM
-// =====================================================
-
 function resetForm() {
-  const bfInput      = document.getElementById('psn-input');
-  const bfHint       = document.getElementById('psn-hint');
-  const btnSubmit    = document.getElementById('btn-submit');
-  const platformBtns = document.querySelectorAll('.platform-btn');
-
-  bfInput.value = '';
-  bfHint.style.display = 'none';
-  btnSubmit.disabled = true;
-  platformBtns.forEach(b => b.classList.remove('selected'));
+  document.getElementById('psn-input').value = '';
+  document.getElementById('psn-hint').style.display = 'none';
+  document.getElementById('btn-submit').disabled = true;
+  document.querySelectorAll('.platform-btn').forEach(b => b.classList.remove('selected'));
 }
 
-// =====================================================
-// APRÈS CONNEXION DISCORD
-// =====================================================
-
 async function handleLoggedIn(user, tournoi) {
-
   const saved = sessionStorage.getItem('ws_inscription');
 
   if (!saved) {
@@ -198,69 +157,47 @@ async function handleLoggedIn(user, tournoi) {
     .maybeSingle();
 
   if (existing) {
-    showSuccess({
-      pseudo,
-      platform,
-      username : user.user_metadata?.full_name || user.email,
-      avatar   : user.user_metadata?.avatar_url,
-      already  : true,
-    });
+    showSuccess({ pseudo, platform, username: user.user_metadata?.full_name || user.email, avatar: user.user_metadata?.avatar_url, already: true });
     sessionStorage.removeItem('ws_inscription');
     return;
   }
 
   await supabase.from('tournament_entries').insert({
-    tournament_id : tournament_id,
-    discord_id    : user.id,
-    username      : user.user_metadata?.full_name || user.email,
-    tracker_id    : null,
-    status        : 'active',
-    created_at    : new Date().toISOString(),
+    tournament_id,
+    discord_id: user.id,
+    username: user.user_metadata?.full_name || user.email,
+    tracker_id: null,
+    status: 'active',
+    created_at: new Date().toISOString(),
   });
 
   const { data: existingPlayer } = await supabase
-    .from('players')
-    .select('id')
-    .eq('discord_id', user.id)
-    .maybeSingle();
+    .from('players').select('id').eq('discord_id', user.id).maybeSingle();
 
   if (!existingPlayer) {
     await supabase.from('players').insert({
-      discord_id : user.id,
-      pseudo_bf6 : pseudo,
-      platform   : platform,
-      username   : user.user_metadata?.full_name || user.email,
-      avatar_url : user.user_metadata?.avatar_url || null,
-      created_at : new Date().toISOString(),
+      discord_id: user.id,
+      pseudo_bf6: pseudo,
+      platform,
+      username: user.user_metadata?.full_name || user.email,
+      avatar_url: user.user_metadata?.avatar_url || null,
+      created_at: new Date().toISOString(),
     });
   } else {
     await supabase.from('players').update({
-      pseudo_bf6 : pseudo,
-      platform   : platform,
-      avatar_url : user.user_metadata?.avatar_url || null,
+      pseudo_bf6: pseudo,
+      platform,
+      avatar_url: user.user_metadata?.avatar_url || null,
     }).eq('discord_id', user.id);
   }
 
   sessionStorage.removeItem('ws_inscription');
-
-  showSuccess({
-    pseudo,
-    platform,
-    username : user.user_metadata?.full_name || user.email,
-    avatar   : user.user_metadata?.avatar_url,
-    already  : false,
-  });
+  showSuccess({ pseudo, platform, username: user.user_metadata?.full_name || user.email, avatar: user.user_metadata?.avatar_url, already: false });
 }
-
-// =====================================================
-// SUCCESS
-// =====================================================
 
 function showSuccess({ pseudo, platform, username, avatar, already }) {
   showState('success');
-
   const platformLabel = { psn: 'PlayStation', xbox: 'Xbox', pc: 'PC' }[platform] || platform;
-
   document.getElementById('success-recap').innerHTML = `
     ${avatar ? `<img src="${avatar}" style="width:48px;height:48px;border-radius:50%;margin-bottom:0.75rem;display:block">` : ''}
     Discord : <span>${username}</span><br>
@@ -269,10 +206,6 @@ function showSuccess({ pseudo, platform, username, avatar, already }) {
     ${already ? '<div class="pending-note">⚠ Tu étais déjà inscrit.</div>' : ''}
   `;
 }
-
-// =====================================================
-// HELPERS
-// =====================================================
 
 function showState(name) {
   document.querySelectorAll('.insc-state').forEach(el => el.classList.remove('visible'));
@@ -284,10 +217,6 @@ function formatDate(d) {
   return new Date(d).toLocaleDateString('fr-FR');
 }
 
-// =====================================================
-// START
-// =====================================================
-
 init();
 
 supabase.auth.onAuthStateChange(async (event, session) => {
@@ -295,11 +224,7 @@ supabase.auth.onAuthStateChange(async (event, session) => {
     const saved = sessionStorage.getItem('ws_inscription');
     if (saved) {
       const { tournament_id } = JSON.parse(saved);
-      const { data: tournoi } = await supabase
-        .from('tournaments')
-        .select('*')
-        .eq('id', tournament_id)
-        .single();
+      const { data: tournoi } = await supabase.from('tournaments').select('*').eq('id', tournament_id).single();
       if (tournoi) await handleLoggedIn(session.user, tournoi);
     }
   }

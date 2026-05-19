@@ -336,7 +336,7 @@ function showState(name) {
 // START
 // =====================================================
 
-init();
+document.addEventListener('DOMContentLoaded', () => init());
 
 supabase.auth.onAuthStateChange(async (event, session) => {
   if (event === 'SIGNED_IN' && session?.user) {

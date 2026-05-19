@@ -3,6 +3,12 @@
 import { supabase } from '../supabaseClient.js';
 
 // =====================================================
+// STATE — mémorise si plusieurs tournois dispo
+// =====================================================
+
+let _multipleTournois = false;
+
+// =====================================================
 // INIT
 // =====================================================
 
@@ -19,6 +25,8 @@ async function init() {
     showState('no-tournoi');
     return;
   }
+
+  _multipleTournois = tournois.length > 1;
 
   if (tournois.length === 1) {
     await setupTournoi(tournois[0]);
@@ -68,11 +76,33 @@ async function setupTournoi(tournoi) {
 function initForm(tournoi) {
 
   const btnSubmit    = document.getElementById('btn-submit');
+  const btnBack      = document.getElementById('btn-back');
   const bfInput      = document.getElementById('psn-input');
   const bfHint       = document.getElementById('psn-hint');
   const platformBtns = document.querySelectorAll('.platform-btn');
 
   let selectedPlatform = null;
+
+  // BOUTON RETOUR — visible seulement si plusieurs tournois
+  if (btnBack) {
+    btnBack.style.display = _multipleTournois ? 'inline-flex' : 'none';
+    // Retire l'ancien listener pour éviter les doublons
+    btnBack.replaceWith(btnBack.cloneNode(true));
+    const freshBtnBack = document.getElementById('btn-back');
+    freshBtnBack.addEventListener('click', () => {
+      resetForm();
+      showState('choose');
+    });
+  }
+
+  // Reset plateforme
+  platformBtns.forEach(b => b.classList.remove('selected'));
+  selectedPlatform = null;
+
+  // Reset input
+  bfInput.value = '';
+  bfHint.style.display = 'none';
+  btnSubmit.disabled = true;
 
   platformBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -126,6 +156,22 @@ function initForm(tournoi) {
       bfHint.textContent = '❌ Erreur connexion Discord : ' + error.message;
     }
   });
+}
+
+// =====================================================
+// RESET FORM
+// =====================================================
+
+function resetForm() {
+  const bfInput      = document.getElementById('psn-input');
+  const bfHint       = document.getElementById('psn-hint');
+  const btnSubmit    = document.getElementById('btn-submit');
+  const platformBtns = document.querySelectorAll('.platform-btn');
+
+  bfInput.value = '';
+  bfHint.style.display = 'none';
+  btnSubmit.disabled = true;
+  platformBtns.forEach(b => b.classList.remove('selected'));
 }
 
 // =====================================================

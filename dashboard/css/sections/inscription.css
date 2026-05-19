@@ -220,3 +220,26 @@
   margin-top: 4px;
   text-transform: uppercase;
 }
+
+/* ── BOUTON RETOUR ── */
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 1.25rem;
+  transition: color 0.2s;
+}
+.btn-back:hover {
+  color: var(--green);
+}
+.btn-back i {
+  font-size: 0.7rem;
+}

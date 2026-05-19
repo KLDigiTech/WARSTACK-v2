@@ -1,0 +1,88 @@
+/* ── REGISTER PAGE ── */
+
+.reg-step-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--green);
+}
+
+.reg-step-num {
+  background: var(--green);
+  color: var(--bg);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  letter-spacing: 1px;
+}
+
+.reg-step-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 0.75rem;
+  line-height: 1.6;
+}
+
+/* BANNER USER DISCORD */
+.reg-user-banner {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-left: 3px solid #5865F2;
+  padding: 0.85rem 1rem;
+}
+
+.reg-user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.reg-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+}
+
+.reg-avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #5865F2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.reg-username {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.reg-discord-tag {
+  font-size: 0.65rem;
+  color: var(--green);
+  margin-top: 2px;
+  letter-spacing: 1px;
+}
+
+/* HINT INFO avec lien */
+.hint.info {
+  color: var(--text-muted);
+}
+.hint.info a {
+  color: var(--green);
+  text-decoration: none;
+}
+.hint.info a:hover {
+  text-decoration: underline;
+}

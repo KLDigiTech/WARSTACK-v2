@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WARSTACK — Lier mon compte</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/core/variables.css">
+  <link rel="stylesheet" href="css/core/reset.css">
+  <link rel="stylesheet" href="css/core/base.css">
+  <link rel="stylesheet" href="css/components/forms.css">
+  <link rel="stylesheet" href="css/components/buttons.css">
+  <link rel="stylesheet" href="css/sections/inscription.css">
+  <link rel="stylesheet" href="css/sections/register.css">
+  <script type="module" src="js/sections/register.js"></script>
+</head>
+<body class="inscription-page">
+
+  <div class="inscription-logo">
+    <span class="logo-icon">⚔️</span>
+    <span class="logo-text">WARSTACK</span>
+    <div class="logo-sub">LIER MON COMPTE BF6</div>
+  </div>
+
+  <div class="inscription-card">
+
+    <!-- LOADING -->
+    <div id="state-loading" class="insc-state visible center-msg">
+      <span class="spinner"></span> Chargement...
+    </div>
+
+    <!-- STEP 1 — Connexion Discord -->
+    <div id="state-discord" class="insc-state">
+      <div class="reg-step-title">
+        <span class="reg-step-num">01</span>
+        CONNECTE TON DISCORD
+      </div>
+      <p class="reg-step-desc">
+        On a besoin de ton compte Discord pour t'identifier sur WARSTACK.
+      </p>
+      <button class="btn btn-discord" style="width:100%;letter-spacing:2px;margin-top:1.5rem" id="btn-discord-login">
+        <i class="fab fa-discord"></i> SE CONNECTER AVEC DISCORD
+      </button>
+      <div class="insc-note">
+        Aucun message ne sera posté en ton nom.
+      </div>
+    </div>
+
+    <!-- STEP 2 — Formulaire tracker -->
+    <div id="state-form" class="insc-state">
+
+      <div class="reg-user-banner" id="reg-user-banner">
+        <!-- rempli par JS -->
+      </div>
+
+      <div class="reg-step-title" style="margin-top:1.5rem">
+        <span class="reg-step-num">02</span>
+        TON PROFIL BATTLEFIELD 6
+      </div>
+
+      <div class="form-group" style="margin-top:1.25rem">
+        <label class="form-label">PSEUDO EN JEU *</label>
+        <input type="text" class="form-input" id="reg-pseudo" placeholder="Ton pseudo exact (ex: HolyPriest34)" autocomplete="off">
+        <div class="hint" id="reg-pseudo-hint" style="display:none"></div>
+      </div>
+
+      <div class="form-group" style="margin-top:1.25rem">
+        <label class="form-label">PLATEFORME *</label>
+        <div class="platform-grid">
+          <button class="platform-btn" data-platform="psn">
+            <i class="fab fa-playstation"></i> PlayStation
+          </button>
+          <button class="platform-btn" data-platform="xbox">
+            <i class="fab fa-xbox"></i> Xbox
+          </button>
+          <button class="platform-btn" data-platform="pc">
+            <i class="fas fa-desktop"></i> PC
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top:1.25rem">
+        <label class="form-label">URL TRACKER.GG *</label>
+        <input type="text" class="form-input" id="reg-tracker" placeholder="https://tracker.gg/bf6/profile/..." autocomplete="off">
+        <div class="hint info" style="display:block;margin-top:6px">
+          <i class="fas fa-info-circle"></i>
+          Va sur <a href="https://tracker.gg/bf6" target="_blank" style="color:var(--green)">tracker.gg/bf6</a>, cherche ton profil, copie l'URL.
+        </div>
+        <div class="hint" id="reg-tracker-hint" style="display:none"></div>
+      </div>
+
+      <hr class="insc-sep">
+
+      <button class="btn btn-primary" style="width:100%;letter-spacing:2px;" id="btn-register" disabled>
+        <i class="fas fa-link"></i> LIER MON COMPTE
+      </button>
+
+      <div class="insc-note" style="margin-top:0.75rem">
+        Tu pourras modifier ces infos plus tard via le dashboard.
+      </div>
+
+    </div>
+
+    <!-- SUCCESS -->
+    <div id="state-success" class="insc-state">
+      <div class="success-wrap">
+        <div class="success-icon"><i class="fas fa-check-circle"></i></div>
+        <div class="success-title">LIÉ !</div>
+        <div class="success-sub">Ton compte BF6 est lié à WARSTACK.</div>
+        <div class="success-recap" id="success-recap"></div>
+        <a href="inscription.html" class="btn btn-primary" style="margin-top:1.5rem;display:inline-block;letter-spacing:2px;">
+          <i class="fas fa-trophy"></i> S'INSCRIRE À UN TOURNOI
+        </a>
+      </div>
+    </div>
+
+    <!-- DÉJÀ INSCRIT -->
+    <div id="state-already" class="insc-state">
+      <div class="success-wrap">
+        <div class="success-icon" style="color:var(--orange)"><i class="fas fa-user-check"></i></div>
+        <div class="success-title" style="color:var(--orange)">DÉJÀ LIÉ</div>
+        <div class="success-sub">Ton compte est déjà enregistré sur WARSTACK.</div>
+        <div class="success-recap" id="already-recap"></div>
+        <button class="btn btn-secondary" style="margin-top:1rem;width:100%" id="btn-update">
+          <i class="fas fa-edit"></i> METTRE À JOUR MES INFOS
+        </button>
+        <a href="inscription.html" class="btn btn-primary" style="margin-top:0.75rem;display:block;letter-spacing:2px;text-align:center">
+          <i class="fas fa-trophy"></i> S'INSCRIRE À UN TOURNOI
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="inscription-footer">WARSTACK © 2026 — LES POTES Ö FEU</div>
+
+</body>
+</html>

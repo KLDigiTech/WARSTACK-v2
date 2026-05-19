@@ -300,15 +300,15 @@ async function loadSoumissions() {
 }
 
 function initSoumissionEvents(tournoi) {
-  const dropZone  = document.getElementById('sub-drop-zone');
-  const fileInput = document.getElementById('sub-file-input');
-  const sendBtn   = document.getElementById('sub-send-btn');
-  const btnText   = document.getElementById('sub-btn-text');
-  const preview   = document.getElementById('sub-preview-wrap');
-  const previewImg= document.getElementById('sub-preview-img');
-  const resultDiv = document.getElementById('sub-result');
-  const errorDiv  = document.getElementById('sub-error');
-  const antiCheat = document.getElementById('sub-anti-cheat');
+  const dropZone   = document.getElementById('sub-drop-zone');
+  const fileInput  = document.getElementById('sub-file-input');
+  const sendBtn    = document.getElementById('sub-send-btn');
+  const btnText    = document.getElementById('sub-btn-text');
+  const preview    = document.getElementById('sub-preview-wrap');
+  const previewImg = document.getElementById('sub-preview-img');
+  const resultDiv  = document.getElementById('sub-result');
+  const errorDiv   = document.getElementById('sub-error');
+  const antiCheat  = document.getElementById('sub-anti-cheat');
 
   let currentFile = null;
   let imageHash   = null;
@@ -368,9 +368,6 @@ function initSoumissionEvents(tournoi) {
       // =======================================
       // ANTI-TRICHE 2 — Tournoi actif
       // =======================================
-      const now = new Date();
-      const start = new Date(tournoi.start_date);
-      const end   = new Date(tournoi.end_date);
       const tournoiOk = tournoi.status === 'active';
       setCheck('sub-check-tournoi', tournoiOk, `Tournoi ${tournoiOk ? 'actif ✅' : 'inactif ❌'}`);
       if (!tournoiOk) throw new Error('Aucun tournoi actif en ce moment.');
@@ -381,14 +378,14 @@ function initSoumissionEvents(tournoi) {
       const hashBuffer = await crypto.subtle.digest('SHA-256', await currentFile.arrayBuffer());
       imageHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
 
-      const { data: existing } = await supabase
+      const { data: existingHash } = await supabase
         .from('tournament_submissions')
         .select('id')
         .eq('tournament_id', tournoi.id)
         .eq('image_hash', imageHash)
         .maybeSingle();
 
-      const doublonOk = !existing;
+      const doublonOk = !existingHash;
       setCheck('sub-check-doublon', doublonOk, `Doublon ${doublonOk ? 'aucun ✅' : 'détecté ❌'}`);
       if (!doublonOk) throw new Error('Ce screenshot a déjà été soumis.');
 
@@ -431,24 +428,19 @@ function initSoumissionEvents(tournoi) {
       // =======================================
       // CALCUL SCORE
       // =======================================
-      const ppk      = tournoi.points_per_kill ?? 1;
-      const topPts   = [
+      const ppk     = tournoi.points_per_kill ?? 1;
+      const topPts  = [
         tournoi.points_top1 ?? 10,
         tournoi.points_top2 ?? 7,
         tournoi.points_top3 ?? 5,
         tournoi.points_top4 ?? 3,
         tournoi.points_top5 ?? 1,
       ];
-      const placement     = data.placement ?? 0;
-      const squadKills    = data.squad_kills ?? 0;
-      const placementPts  = placement >= 1 && placement <= 5 ? topPts[placement - 1] : 0;
-      const killsPts      = squadKills * ppk;
-      const totalScore    = placementPts + killsPts;
-
-      // =======================================
-      // INSERTION SUPABASE
-      // =======================================
-      const playerData = data.players?.[0] || {};
+      const placement    = data.placement ?? 0;
+      const squadKills   = data.squad_kills ?? 0;
+      const placementPts = placement >= 1 && placement <= 5 ? topPts[placement - 1] : 0;
+      const killsPts     = squadKills * ppk;
+      const totalScore   = placementPts + killsPts;
 
       // =======================================
       // AUTO-APPROVE ou FLAG
@@ -457,12 +449,17 @@ function initSoumissionEvents(tournoi) {
       let autoStatus = 'approved';
       let flagReason = [];
 
-      if (!pseudoOk)            flagReason.push('pseudo_non_inscrit');
-      if (placement === 0)      flagReason.push('placement_non_detecte');
-      if (exif.suspicious)      flagReason.push(`exif_suspect:${exif.reason}`);
+      if (!pseudoOk)       flagReason.push('pseudo_non_inscrit');
+      if (placement === 0) flagReason.push('placement_non_detecte');
+      if (exif.suspicious) flagReason.push(`exif_suspect:${exif.reason}`);
 
       if (flagReason.length > 0) autoStatus = 'pending';
 
+      const playerData = data.players?.[0] || {};
+
+      // =======================================
+      // INSERTION SUPABASE
+      // =======================================
       await supabase.from('tournament_submissions').insert({
         tournament_id : tournoi.id,
         discord_id    : matchedPlayer?.discord_id || null,
@@ -477,22 +474,24 @@ function initSoumissionEvents(tournoi) {
         created_at    : new Date().toISOString(),
       });
 
-      // Si auto-approuvé → mise à jour directe tournament_scores
+      // =======================================
+      // SI AUTO-APPROUVÉ → scores + leaderboard Discord
+      // =======================================
       if (autoStatus === 'approved' && matchedPlayer?.discord_id) {
-        const { data: existing } = await supabase
+        const { data: existingScore } = await supabase
           .from('tournament_scores')
           .select('*')
           .eq('tournament_id', tournoi.id)
           .eq('discord_id', matchedPlayer.discord_id)
           .maybeSingle();
 
-        if (existing) {
+        if (existingScore) {
           await supabase.from('tournament_scores').update({
-            total_kills  : (existing.total_kills || 0) + squadKills,
-            total_score  : (existing.total_score || 0) + totalScore,
-            games_played : (existing.games_played || 0) + 1,
+            total_kills  : (existingScore.total_kills || 0) + squadKills,
+            total_score  : (existingScore.total_score || 0) + totalScore,
+            games_played : (existingScore.games_played || 0) + 1,
             updated_at   : new Date().toISOString(),
-          }).eq('id', existing.id);
+          }).eq('id', existingScore.id);
         } else {
           await supabase.from('tournament_scores').insert({
             tournament_id : tournoi.id,
@@ -503,6 +502,9 @@ function initSoumissionEvents(tournoi) {
             updated_at    : new Date().toISOString(),
           });
         }
+
+        // ✅ TRIGGER LEADERBOARD DISCORD
+        await callBotAPI('leaderboard/tournament', 'POST', { tournament_id: tournoi.id });
       }
 
       // =======================================
@@ -534,7 +536,6 @@ function initSoumissionEvents(tournoi) {
         </div>
       `;
 
-      // Reload liste
       setTimeout(() => loadSoumissions(), 1500);
 
     } catch (err) {
@@ -546,7 +547,7 @@ function initSoumissionEvents(tournoi) {
     }
   });
 
-  // APPROVE / REJECT
+  // APPROVE / REJECT manuels
   document.querySelectorAll('.btn-approve').forEach(btn => {
     btn.addEventListener('click', () => approveSubmission(btn.dataset));
   });
@@ -568,10 +569,13 @@ function setCheck(id, ok, msg) {
   if (el) { el.textContent = msg; el.className = `check-item ${ok ? 'check-ok' : 'check-fail'}`; }
 }
 
+// =====================================================
+// APPROVE MANUEL — avec trigger leaderboard Discord
+// =====================================================
+
 async function approveSubmission({ id, tid, did, kills, score, placement }) {
   await supabase.from('tournament_submissions').update({ status: 'approved' }).eq('id', id);
 
-  // Mise à jour tournament_scores
   const { data: existing } = await supabase
     .from('tournament_scores')
     .select('*')
@@ -597,6 +601,9 @@ async function approveSubmission({ id, tid, did, kills, score, placement }) {
     });
   }
 
+  // ✅ TRIGGER LEADERBOARD DISCORD
+  await callBotAPI('leaderboard/tournament', 'POST', { tournament_id: tid });
+
   loadSoumissions();
 }
 
@@ -617,10 +624,8 @@ async function loadScoreboard() {
   const scores = await fetchSupabase(`tournament_scores?tournament_id=eq.${tournoi.id}&order=total_score.desc`);
   if (!scores?.length) { container.innerHTML = '<div class="empty-state"><i class="fas fa-chart-bar"></i>Aucun score</div>'; return; }
 
-  // Stats spéciales
   const topKiller  = [...scores].sort((a, b) => (b.total_kills || 0) - (a.total_kills || 0))[0];
   const babyKiller = [...scores].sort((a, b) => (a.total_kills || 0) - (b.total_kills || 0))[0];
-
   const medals = ['🥇', '🥈', '🥉'];
 
   container.innerHTML = `
@@ -641,13 +646,7 @@ async function loadScoreboard() {
 
     <table class="data-table">
       <thead>
-        <tr>
-          <th>#</th>
-          <th>Joueur</th>
-          <th>Score</th>
-          <th>Kills</th>
-          <th>Parties</th>
-        </tr>
+        <tr><th>#</th><th>Joueur</th><th>Score</th><th>Kills</th><th>Parties</th></tr>
       </thead>
       <tbody>
         ${scores.map((s, i) => `
@@ -789,11 +788,9 @@ window.supprimerTournoi = async function(id, nom) {
   showConfirm({
     title: '🗑️ Supprimer', message: `Supprimer "${nom}" et toutes ses soumissions ?`, confirmText: 'Supprimer', cancelText: 'Annuler',
     onConfirm: async () => {
-      // Supprimer d'abord les soumissions liées
       await supabase.from('tournament_submissions').delete().eq('tournament_id', id);
       await supabase.from('tournament_scores').delete().eq('tournament_id', id);
       await supabase.from('tournament_entries').delete().eq('tournament_id', id);
-      // Puis supprimer le tournoi
       await deleteSupabase(`tournaments?id=eq.${id}`);
       loadTournoi();
     }

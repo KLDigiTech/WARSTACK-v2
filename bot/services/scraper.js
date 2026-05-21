@@ -7,7 +7,7 @@ async function scrapeTrackerGG(platform, trackerId) {
   try {
     browser = await puppeteer.launch({
       headless        : 'new',
-      protocolTimeout : 60000,
+      protocolTimeout : 120000,
       args            : ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
     });
 
@@ -19,7 +19,7 @@ async function scrapeTrackerGG(platform, trackerId) {
     console.log(`🌐 Scraping: ${url}`);
 
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
-    await new Promise(r => setTimeout(r, 8000));
+    await new Promise(r => setTimeout(r, 5000));
 
     const stats = await page.evaluate(() => {
 

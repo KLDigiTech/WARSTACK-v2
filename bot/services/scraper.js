@@ -1,4 +1,4 @@
-const puppeteer = require('puppeteer-extra');
+const puppeteer     = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 puppeteer.use(StealthPlugin());
 
@@ -6,15 +6,14 @@ async function scrapeTrackerGG(platform, trackerId) {
   let browser;
   try {
     browser = await puppeteer.launch({
-      headless: 'new',
-      protocolTimeout: 120000,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+      headless        : 'new',
+      protocolTimeout : 120000,
+      args            : ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
     });
 
     const page = await browser.newPage();
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
 
-    // Intercepte la réponse API de tracker.gg
     let apiData = null;
 
     page.on('response', async (response) => {
@@ -23,7 +22,7 @@ async function scrapeTrackerGG(platform, trackerId) {
         try {
           const json = await response.json();
           if (json?.data?.segments) apiData = json.data;
-        } catch (e) { }
+        } catch (e) {}
       }
     });
 
@@ -38,56 +37,57 @@ async function scrapeTrackerGG(platform, trackerId) {
       return null;
     }
 
+    // BR Rank depuis le DOM
+    const brRank = await page.evaluate(() => {
+      const els = Array.from(document.querySelectorAll('span'));
+      for (const el of els) {
+        if (/^(BRONZE|SILVER|GOLD|PLATINUM|DIAMOND|MASTER|PREDATOR)\s+(I{1,3}|IV|V)$/i.test(el.textContent.trim())) {
+          return el.textContent.trim();
+        }
+      }
+      return null;
+    });
+
     const segments = apiData.segments || [];
-    const get = (obj, key) => obj?.[key]?.value ?? null;
+    const get    = (obj, key) => obj?.[key]?.value        ?? null;
     const getStr = (obj, key) => obj?.[key]?.displayValue ?? null;
 
-    // Segment overview global
     const overview = segments.find(s => s.type === 'overview');
-    const gs = overview?.stats || {};
+    const gs       = overview?.stats || {};
 
-    // Segments par mode
     const findMode = (name) => segments.find(s =>
       s.metadata?.name?.toLowerCase().includes(name.toLowerCase())
     );
     const mpSeg = findMode('multiplayer') || findMode('multi');
-    const brSeg = findMode('battle royale') || findMode('br');
-    const ms = mpSeg?.stats || {};
-    const bs = brSeg?.stats || {};
-
-    // BR Rank depuis metadata
-    const brRank = apiData.platformInfo?.additionalParameters?.brRank
-      || segments.find(s => s.type === 'br-rank')?.metadata?.tierName
-      || null;
+    const brSeg = findMode('battle royale') || findMode('br quads') || findMode('br');
+    const ms    = mpSeg?.stats || {};
+    const bs    = brSeg?.stats || {};
 
     const result = {
       trackerId,
-      kills: get(gs, 'kills') || 0,
-      deaths: get(gs, 'deaths') || 0,
-      kd: get(gs, 'kdRatio') || 0,
-      wins: get(gs, 'wins') || 0,
-      games: get(gs, 'matchesPlayed') || 0,
+      kills   : get(gs, 'kills')         || 0,
+      deaths  : get(gs, 'deaths')        || 0,
+      kd      : get(gs, 'kdRatio')       || 0,
+      wins    : get(gs, 'wins')          || 0,
+      games   : get(gs, 'matchesPlayed') || 0,
       playtime: getStr(gs, 'timePlayed') || '0h',
-      winrate: get(gs, 'wlPercentage') || 0,
-      br_rank: brRank,
-      mp_kills: get(ms, 'kills') || 0,
-      mp_deaths: get(ms, 'deaths') || 0,
-      mp_kd: get(ms, 'kdRatio') || 0,
-      mp_wins: get(ms, 'wins') || 0,
-      mp_losses: get(ms, 'losses') || 0,
+      winrate : get(gs, 'wlPercentage')  || 0,
+      br_rank : brRank,
+      mp_kills  : get(ms, 'kills')        || 0,
+      mp_deaths : get(ms, 'deaths')       || 0,
+      mp_kd     : get(ms, 'kdRatio')      || 0,
+      mp_wins   : get(ms, 'wins')         || 0,
+      mp_losses : get(ms, 'losses')       || 0,
       mp_winrate: get(ms, 'wlPercentage') || 0,
-      br_kills: get(bs, 'kills') || 0,
-      br_deaths: get(bs, 'deaths') || 0,
-      br_kd: get(bs, 'kdRatio') || 0,
-      br_wins: get(bs, 'wins') || 0,
+      br_kills  : get(bs, 'kills')        || 0,
+      br_deaths : get(bs, 'deaths')       || 0,
+      br_kd     : get(bs, 'kdRatio')      || 0,
+      br_wins   : get(bs, 'wins')         || 0,
       br_winrate: get(bs, 'wlPercentage') || 0,
-      source: 'tracker.gg-api'
+      source    : 'tracker.gg-api'
     };
 
-    console.log(`✅ Stats — K/D: ${result.kd} | MP Kills: ${result.mp_kills} | BR Rank: ${result.br_rank || 'N/A'}`);
-    console.log('Segments trouvés:', segments.map(s => `${s.type}:${s.metadata?.name || ''}`).join(', '));
-    console.log('BR platformInfo:', JSON.stringify(apiData.platformInfo || {}));
-    console.log('BR segment types:', segments.map(s => s.type).join(', '));
+    console.log(`✅ K/D: ${result.kd} | MP Kills: ${result.mp_kills} | BR Rank: ${result.br_rank || 'N/A'}`);
     return result;
 
   } catch (error) {

@@ -37,17 +37,6 @@ async function scrapeTrackerGG(platform, trackerId) {
       return null;
     }
 
-    // BR Rank depuis le DOM
-    const brRank = await page.evaluate(() => {
-      const els = Array.from(document.querySelectorAll('span'));
-      for (const el of els) {
-        if (/^(BRONZE|SILVER|GOLD|PLATINUM|DIAMOND|MASTER|PREDATOR)\s+(I{1,3}|IV|V)$/i.test(el.textContent.trim())) {
-          return el.textContent.trim();
-        }
-      }
-      return null;
-    });
-
     const segments = apiData.segments || [];
     const get    = (obj, key) => obj?.[key]?.value        ?? null;
     const getStr = (obj, key) => obj?.[key]?.displayValue ?? null;
@@ -62,6 +51,9 @@ async function scrapeTrackerGG(platform, trackerId) {
     const brSeg = findMode('battle royale') || findMode('br quads') || findMode('br');
     const ms    = mpSeg?.stats || {};
     const bs    = brSeg?.stats || {};
+
+    // BR Rank depuis segment competitive
+    const brRank = segments.find(s => s.type === 'competitive')?.stats?.currentLevel?.metadata?.name || null;
 
     const result = {
       trackerId,

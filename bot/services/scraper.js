@@ -47,7 +47,7 @@ async function scrapeTrackerGG(platform, trackerId) {
 
     // Segments par mode
     const findMode = (name) => segments.find(s =>
-      s.type === 'playlist' && s.metadata?.name?.toLowerCase().includes(name.toLowerCase())
+      s.metadata?.name?.toLowerCase().includes(name.toLowerCase())
     );
     const mpSeg = findMode('multiplayer') || findMode('multi');
     const brSeg = findMode('battle royale') || findMode('br');

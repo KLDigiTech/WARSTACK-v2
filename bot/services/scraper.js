@@ -6,8 +6,9 @@ async function scrapeTrackerGG(platform, trackerId) {
   let browser;
   try {
     browser = await puppeteer.launch({
-      headless: 'new',
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+      headless        : 'new',
+      protocolTimeout : 60000,
+      args            : ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
     });
 
     const page = await browser.newPage();
@@ -60,20 +61,14 @@ async function scrapeTrackerGG(platform, trackerId) {
         return null;
       }
 
-      // DEBUG — liste tous les titres de sections
-      const sectionTitles = Array.from(document.querySelectorAll('h1, h2, h3, h4, [class*="title"], [class*="header"], [class*="heading"]'))
-        .map(h => h.textContent.trim())
-        .filter(t => t.length > 0 && t.length < 50)
-        .join(' | ');
-
       function getSectionStats(sectionLabel) {
-        const allEls = Array.from(document.querySelectorAll('*'));
-        for (const el of allEls) {
-          const txt = el.textContent.trim().toUpperCase();
-          if (txt === sectionLabel.toUpperCase() && el.children.length === 0) {
-            // Remonter pour trouver le conteneur parent de la section
-            let container = el.parentElement;
-            for (let i = 0; i < 5; i++) {
+        // Cherche le h2/h3 exact
+        const headers = Array.from(document.querySelectorAll('h2, h3'));
+        for (const h of headers) {
+          if (h.textContent.trim() === sectionLabel) {
+            // Remonter au conteneur parent de la section
+            let container = h.parentElement;
+            for (let i = 0; i < 4; i++) {
               if (!container) break;
               container = container.parentElement;
             }
@@ -81,9 +76,9 @@ async function scrapeTrackerGG(platform, trackerId) {
 
             const get = (label) => {
               const els = Array.from(container.querySelectorAll('span, div, p'));
-              for (const e of els) {
-                if (e.children.length === 0 && e.textContent.trim() === label) {
-                  const p  = e.parentElement;
+              for (const el of els) {
+                if (el.children.length === 0 && el.textContent.trim() === label) {
+                  const p  = el.parentElement;
                   const gp = p?.parentElement;
                   if (!gp) continue;
                   const cands = Array.from(gp.querySelectorAll('span, div, p'));
@@ -118,17 +113,15 @@ async function scrapeTrackerGG(platform, trackerId) {
         winrate : getStatValue('Win %'),
         playtime: getStatValue('Time Played'),
         br_rank : getBRRank(),
-        mp      : getSectionStats('MULTIPLAYER'),
-        br      : getSectionStats('BATTLE ROYALE'),
-        // DEBUG
-        _sectionTitles: sectionTitles,
+        mp      : getSectionStats('Multiplayer'),
+        br      : getSectionStats('Battle Royale'),
       };
     });
 
     console.log('Stats extraites:', JSON.stringify(stats, null, 2));
 
     if (!stats.kd && !stats.kills) {
-      console.warn('⚠️ Aucune stat trouvée — tracker.gg bloque peut-être le scraping');
+      console.warn('⚠️ Aucune stat trouvée');
       return null;
     }
 

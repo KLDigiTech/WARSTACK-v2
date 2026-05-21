@@ -44,15 +44,17 @@ async function scrapeTrackerGG(platform, trackerId) {
       }
 
       function getBRRank() {
-        const allDivs = Array.from(document.querySelectorAll('div, span'));
-        for (const el of allDivs) {
-          if (el.textContent.trim() === 'CURRENT' && el.children.length === 0) {
-            const parent = el.parentElement;
-            if (!parent) continue;
-            const siblings = Array.from(parent.parentElement?.querySelectorAll('div, span') || []);
-            for (const s of siblings) {
-              const txt = s.textContent.trim();
-              if (s.children.length === 0 && /^(BRONZE|SILVER|GOLD|PLATINUM|DIAMOND|MASTER|PREDATOR)\s+(I{1,3}|IV|V)$/i.test(txt)) {
+        // "SILVER I" est dans un span/div après "CURRENT"
+        const allEls = Array.from(document.querySelectorAll('div, span, p'));
+        for (const el of allEls) {
+          if (el.children.length === 0 && el.textContent.trim() === 'CURRENT') {
+            // Le rank est dans le même bloc parent, cherche un texte type "SILVER I"
+            const block = el.closest('.trn-card, .v3-card, section, article') || el.parentElement?.parentElement?.parentElement;
+            if (!block) continue;
+            const candidates = Array.from(block.querySelectorAll('div, span, p'));
+            for (const c of candidates) {
+              const txt = c.textContent.trim();
+              if (c.children.length === 0 && /^(BRONZE|SILVER|GOLD|PLATINUM|DIAMOND|MASTER|PREDATOR)\s+(I{1,3}|IV|V)$/i.test(txt)) {
                 return txt;
               }
             }
@@ -62,20 +64,15 @@ async function scrapeTrackerGG(platform, trackerId) {
       }
 
       function getSectionStats(sectionLabel) {
-        // Cherche le h2/h3 exact
+        // Cherche le h2/h3 exact puis remonte au .v3-card parent
         const headers = Array.from(document.querySelectorAll('h2, h3'));
         for (const h of headers) {
           if (h.textContent.trim() === sectionLabel) {
-            // Remonter au conteneur parent de la section
-            let container = h.parentElement;
-            for (let i = 0; i < 4; i++) {
-              if (!container) break;
-              container = container.parentElement;
-            }
-            if (!container) continue;
+            const card = h.closest('.v3-card') || h.parentElement?.parentElement?.parentElement;
+            if (!card) continue;
 
             const get = (label) => {
-              const els = Array.from(container.querySelectorAll('span, div, p'));
+              const els = Array.from(card.querySelectorAll('span, div, p'));
               for (const el of els) {
                 if (el.children.length === 0 && el.textContent.trim() === label) {
                   const p  = el.parentElement;

@@ -23,53 +23,62 @@ async function scrapeTrackerGG(platform, trackerId) {
 
     const stats = await page.evaluate(() => {
 
-      // Récupère une stat dans une v3-card par le label span.stat-name
-      function getCardStat(card, label) {
-        const spans = Array.from(card.querySelectorAll('.stat-name, [class*="stat-name"]'));
-        for (const span of spans) {
+      // Trouve les attributs data-v- dynamiques de Vue
+      function getVueAttrs() {
+        const statEl = document.querySelector('[class*="stat-name"]');
+        const valEl  = document.querySelector('[class*="stat-value"]');
+        const statAttr = statEl ? Array.from(statEl.attributes).find(a => a.name.startsWith('data-v-'))?.name : null;
+        const valAttr  = valEl  ? Array.from(valEl.attributes).find(a => a.name.startsWith('data-v-'))?.name  : null;
+        return { statAttr, valAttr };
+      }
+
+      const { statAttr, valAttr } = getVueAttrs();
+      console.log('Vue attrs:', statAttr, valAttr);
+
+      // Cherche une stat par label dans un conteneur donné
+      function getStat(container, label) {
+        const labelEls = statAttr
+          ? Array.from(container.querySelectorAll(`[${statAttr}]`))
+          : Array.from(container.querySelectorAll('[class*="stat-name"]'));
+
+        for (const el of labelEls) {
+          const span = el.querySelector('span') || el;
           if (span.textContent.trim() === label) {
-            // La valeur est dans un élément frère ou cousin avec class name-value
-            const parent = span.closest('[class*="stat"]') || span.parentElement;
-            const val = parent?.querySelector('[class*="name-value"], [class*="value"]');
-            if (val) return val.textContent.trim();
+            const parent = el.parentElement;
+            const valEl  = valAttr
+              ? parent?.querySelector(`[${valAttr}] span, [${valAttr}]`)
+              : parent?.querySelector('[class*="stat-value"] span, [class*="value"]');
+            if (valEl) return valEl.textContent.trim();
           }
         }
         return null;
       }
 
-      // Stats globales — cherche dans toute la page
-      function getGlobalStat(label) {
-        const spans = Array.from(document.querySelectorAll('.stat-name, [class*="stat-name"]'));
-        for (const span of spans) {
-          if (span.textContent.trim() === label) {
-            const parent = span.closest('[class*="stat"]') || span.parentElement;
-            const val = parent?.querySelector('[class*="name-value"], [class*="value"]');
-            if (val) return val.textContent.trim();
-          }
-        }
-        return null;
+      // Stats globales
+      function getGlobal(label) {
+        return getStat(document.body, label);
       }
 
-      // Trouve une v3-card par son titre h2/h3
-      function getCard(title) {
-        const headers = Array.from(document.querySelectorAll('.v3-card__title, h2, h3'));
+      // Stats par section via h2
+      function getSection(title) {
+        const headers = Array.from(document.querySelectorAll('h2, h3, [class*="card__title"]'));
         for (const h of headers) {
           if (h.textContent.trim() === title) {
-            return h.closest('.v3-card') || h.parentElement?.parentElement;
+            const card = h.closest('.v3-card') || h.closest('section') || h.parentElement?.parentElement?.parentElement;
+            return card;
           }
         }
         return null;
       }
 
-      // BR Rank — cherche "CURRENT" puis le rank juste après
       function getBRRank() {
-        const allSpans = Array.from(document.querySelectorAll('span, div, p'));
-        for (const el of allSpans) {
+        const all = Array.from(document.querySelectorAll('span, div, p'));
+        for (const el of all) {
           if (el.children.length === 0 && el.textContent.trim() === 'CURRENT') {
             const block = el.parentElement?.parentElement?.parentElement;
             if (!block) continue;
-            const allInBlock = Array.from(block.querySelectorAll('span, div, p'));
-            for (const c of allInBlock) {
+            const cands = Array.from(block.querySelectorAll('span, div, p'));
+            for (const c of cands) {
               if (c.children.length === 0 && /^(BRONZE|SILVER|GOLD|PLATINUM|DIAMOND|MASTER|PREDATOR)\s+(I{1,3}|IV|V)$/i.test(c.textContent.trim())) {
                 return c.textContent.trim();
               }
@@ -79,35 +88,32 @@ async function scrapeTrackerGG(platform, trackerId) {
         return null;
       }
 
-      const mpCard = getCard('Multiplayer');
-      const brCard = getCard('Battle Royale');
+      const mpCard = getSection('Multiplayer');
+      const brCard = getSection('Battle Royale');
 
       return {
-        // Global
-        kd      : getGlobalStat('Player K/D'),
-        kills   : getGlobalStat('Player Kills'),
-        deaths  : getGlobalStat('Deaths'),
-        wins    : getGlobalStat('Wins'),
-        games   : getGlobalStat('Matches Played'),
-        winrate : getGlobalStat('Win %'),
-        playtime: getGlobalStat('Time Played'),
+        kd      : getGlobal('Player K/D'),
+        kills   : getGlobal('Player Kills'),
+        deaths  : getGlobal('Deaths'),
+        wins    : getGlobal('Wins'),
+        games   : getGlobal('Matches Played'),
+        winrate : getGlobal('Win %'),
+        playtime: getGlobal('Time Played'),
         br_rank : getBRRank(),
-        // Multiplayer
         mp: mpCard ? {
-          kills  : getCardStat(mpCard, 'Kills') || getCardStat(mpCard, 'Player Kills'),
-          deaths : getCardStat(mpCard, 'Deaths'),
-          kd     : getCardStat(mpCard, 'K/D'),
-          wins   : getCardStat(mpCard, 'Wins'),
-          losses : getCardStat(mpCard, 'Losses'),
-          winrate: getCardStat(mpCard, 'Win %'),
+          kills  : getStat(mpCard, 'Kills') || getStat(mpCard, 'Player Kills'),
+          deaths : getStat(mpCard, 'Deaths'),
+          kd     : getStat(mpCard, 'K/D'),
+          wins   : getStat(mpCard, 'Wins'),
+          losses : getStat(mpCard, 'Losses'),
+          winrate: getStat(mpCard, 'Win %'),
         } : null,
-        // Battle Royale
         br: brCard ? {
-          kills  : getCardStat(brCard, 'Kills') || getCardStat(brCard, 'Player Kills'),
-          deaths : getCardStat(brCard, 'Deaths'),
-          kd     : getCardStat(brCard, 'K/D'),
-          wins   : getCardStat(brCard, 'Wins'),
-          winrate: getCardStat(brCard, 'Win %'),
+          kills  : getStat(brCard, 'Kills') || getStat(brCard, 'Player Kills'),
+          deaths : getStat(brCard, 'Deaths'),
+          kd     : getStat(brCard, 'K/D'),
+          wins   : getStat(brCard, 'Wins'),
+          winrate: getStat(brCard, 'Win %'),
         } : null,
       };
     });

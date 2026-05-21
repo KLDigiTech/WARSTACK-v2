@@ -86,7 +86,8 @@ async function scrapeTrackerGG(platform, trackerId) {
 
     console.log(`✅ Stats — K/D: ${result.kd} | MP Kills: ${result.mp_kills} | BR Rank: ${result.br_rank || 'N/A'}`);
     console.log('Segments trouvés:', segments.map(s => `${s.type}:${s.metadata?.name || ''}`).join(', '));
-
+    console.log('BR platformInfo:', JSON.stringify(apiData.platformInfo || {}));
+    console.log('BR segment types:', segments.map(s => s.type).join(', '));
     return result;
 
   } catch (error) {

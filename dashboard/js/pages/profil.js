@@ -99,7 +99,7 @@ async function loadProfil() {
     }
   }
 
-  // Global
+  // Global stats
   document.getElementById('p-kills').textContent   = snapshot?.kills  ? Number(snapshot.kills).toLocaleString('fr-FR')  : '—';
   document.getElementById('p-deaths').textContent  = snapshot?.deaths ? Number(snapshot.deaths).toLocaleString('fr-FR') : '—';
   document.getElementById('p-kd').textContent      = snapshot?.kd     || '—';
@@ -150,7 +150,8 @@ async function loadProfil() {
 
 async function loadTournois(discordId) {
   const container = document.getElementById('p-tournois');
-  const entries   = await fetchSupabase(`tournament_entries?discord_id=eq.${discordId}&select=*`);
+
+  const entries = await fetchSupabase(`tournament_entries?discord_id=eq.${discordId}&select=*&order=created_at.desc`);
   if (!entries?.length) {
     container.innerHTML = '<div class="profil-empty">Aucun tournoi participé pour l\'instant.</div>';
     return;
@@ -160,29 +161,72 @@ async function loadTournois(discordId) {
     const tournois = await fetchSupabase(`tournaments?id=eq.${entry.tournament_id}&select=*`);
     const tournoi  = tournois?.[0];
     if (!tournoi) return null;
-    const subs   = await fetchSupabase(`tournament_submissions?tournament_id=eq.${entry.tournament_id}&discord_id=eq.${discordId}&order=submitted_at.desc&limit=1`);
-    const sub    = subs?.[0] || null;
-    const scores = await fetchSupabase(`tournament_scores?tournament_id=eq.${entry.tournament_id}&order=score.desc`);
+
+    // Toutes les soumissions approuvées du joueur dans ce tournoi
+    const subs = await fetchSupabase(`tournament_submissions?tournament_id=eq.${entry.tournament_id}&discord_id=eq.${discordId}&status=eq.approved&order=submitted_at.desc`);
+
+    // Calcul stats tournoi
+    let totalKills  = 0;
+    let bestKd      = 0;
+    let totalGames  = subs?.length || 0;
+
+    if (subs?.length) {
+      subs.forEach(s => {
+        totalKills += s.kills || 0;
+        if ((s.kd || 0) > bestKd) bestKd = s.kd;
+      });
+    }
+
+    // Classement depuis tournament_scores
+    const scores = await fetchSupabase(`tournament_scores?tournament_id=eq.${entry.tournament_id}&order=total_score.desc`);
     const rank   = scores?.findIndex(s => s.discord_id === discordId) ?? -1;
-    return { tournoi, sub, rankDisplay: rank >= 0 ? `#${rank + 1}` : '—', isMvp: rank === 0, isTop3: rank >= 0 && rank < 3 };
+    const rankDisplay = rank >= 0 ? `#${rank + 1}` : '—';
+    const isMvp  = rank === 0;
+    const isTop3 = rank >= 0 && rank < 3;
+
+    // Dernière soumission pour affichage
+    const lastSub = subs?.[0] || null;
+
+    return { tournoi, entry, lastSub, totalKills, bestKd, totalGames, rankDisplay, isMvp, isTop3 };
   }));
 
   const valid = rows.filter(Boolean);
-  if (!valid.length) { container.innerHTML = '<div class="profil-empty">Aucune donnée de tournoi.</div>'; return; }
+  if (!valid.length) {
+    container.innerHTML = '<div class="profil-empty">Aucune donnée de tournoi.</div>';
+    return;
+  }
 
-  container.innerHTML = valid.map(({ tournoi, sub, rankDisplay, isMvp, isTop3 }) => `
+  container.innerHTML = valid.map(({ tournoi, lastSub, totalKills, bestKd, totalGames, rankDisplay, isMvp, isTop3 }) => `
     <div class="profil-tournoi-card">
-      <div>
-        <div class="profil-tournoi-name">${tournoi.name}</div>
-        ${tournoi.phase ? `<div class="profil-tournoi-phase">${tournoi.phase}</div>` : ''}
-        <div class="profil-tournoi-phase">${formatDate(tournoi.start_date)} → ${formatDate(tournoi.end_date)}</div>
+      <div class="profil-tournoi-header">
+        <div>
+          <div class="profil-tournoi-name">${tournoi.name}</div>
+          ${tournoi.phase ? `<div class="profil-tournoi-phase">${tournoi.phase}</div>` : ''}
+          <div class="profil-tournoi-dates">${formatDate(tournoi.start_date)} → ${formatDate(tournoi.end_date)}</div>
+        </div>
+        <div class="profil-tournoi-rank ${isMvp ? 'mvp' : isTop3 ? 'top3' : ''}">
+          ${rankDisplay}
+        </div>
       </div>
       <div class="profil-tournoi-stats">
-        <div class="profil-tournoi-stat"><strong>${sub?.kd ?? '—'}</strong><span>K/D</span></div>
-        <div class="profil-tournoi-stat"><strong>${sub?.kills ?? '—'}</strong><span>Kills</span></div>
-        <div class="profil-tournoi-stat"><strong>${rankDisplay}</strong><span>Classement</span></div>
+        <div class="profil-tournoi-stat">
+          <strong>${lastSub?.kd ?? '—'}</strong>
+          <span>Meilleur K/D</span>
+        </div>
+        <div class="profil-tournoi-stat">
+          <strong>${totalKills || '—'}</strong>
+          <span>Kills totaux</span>
+        </div>
+        <div class="profil-tournoi-stat">
+          <strong>${totalGames || '—'}</strong>
+          <span>Parties</span>
+        </div>
+        <div class="profil-tournoi-stat">
+          <strong>${rankDisplay}</strong>
+          <span>Classement</span>
+        </div>
       </div>
-      ${isMvp ? '<div class="profil-tournoi-badge mvp">⭐ MVP</div>' : ''}
+      ${isMvp  ? '<div class="profil-tournoi-badge mvp">⭐ MVP</div>'   : ''}
       ${isTop3 && !isMvp ? '<div class="profil-tournoi-badge top3">🏆 Top 3</div>' : ''}
     </div>
   `).join('');

@@ -8,15 +8,20 @@ export async function initPlayers() {
   allPlayers    = players || [];
 
   for (const player of allPlayers) {
+    // Dernier snapshot
     if (player.tracker_id) {
       const snaps     = await fetchSupabase(`player_snapshots?tracker_id=eq.${player.tracker_id}&order=snapshot_at.desc&limit=1`);
       player.snapshot = snaps?.[0] || null;
     }
+
+    // Dernière participation tournoi
     const entries = await fetchSupabase(`tournament_entries?discord_id=eq.${player.discord_id}&order=created_at.desc&limit=1`);
     player.lastEntry = entries?.[0] || null;
+
     if (player.lastEntry) {
       const subs = await fetchSupabase(`tournament_submissions?tournament_id=eq.${player.lastEntry.tournament_id}&discord_id=eq.${player.discord_id}&order=submitted_at.desc&limit=1`);
       player.lastSub = subs?.[0] || null;
+
       const tournois = await fetchSupabase(`tournaments?id=eq.${player.lastEntry.tournament_id}&select=name,phase`);
       player.lastTournoi = tournois?.[0] || null;
     }
@@ -29,13 +34,118 @@ export async function initPlayers() {
     searchInput.addEventListener('input', (e) => {
       const q        = e.target.value.toLowerCase();
       const filtered = allPlayers.filter(p =>
-        p.username?.toLowerCase().includes(q) || p.tracker_id?.includes(q)
+        p.username?.toLowerCase().includes(q) ||
+        p.pseudo_bf6?.toLowerCase().includes(q) ||
+        p.tracker_id?.includes(q)
       );
       renderTable(filtered);
     });
   }
 
   initAddPlayerModal();
+}
+
+// ─── SCORE ───────────────────────────────────────────────────────────────────
+
+function calcScore(s) {
+  if (!s) return 0;
+  const kd      = parseFloat(s.kd)      || 0;
+  const winrate = parseFloat(s.winrate) || 0;
+  const kills   = parseInt(s.kills)     || 0;
+  const games   = parseInt(s.games)     || 1;
+  const kpm     = kills / games;
+  return ((Math.min(kd / 5, 1) * 100 * 0.30) + (Math.min(winrate / 60, 1) * 100 * 0.35) + (Math.min(kpm / 20, 1) * 100 * 0.25)).toFixed(2);
+}
+
+function getDivision(score) {
+  const s = parseFloat(score);
+  if (s >= 65) return 'WARSTACK 🔱';
+  if (s >= 55) return 'Phantom 👻';
+  if (s >= 45) return 'Elite 💎';
+  if (s >= 35) return 'Veteran 🎖️';
+  if (s >= 25) return 'Grunt ⚔️';
+  return 'Recruit 🪖';
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+
+function renderTable(players) {
+  const wrapper = document.getElementById('players-grid');
+  if (!players || players.length === 0) {
+    wrapper.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i>Aucun joueur trouvé</div>';
+    return;
+  }
+
+  wrapper.innerHTML = players.map(p => {
+    const s        = p.snapshot;
+    const score    = calcScore(s);
+    const division = getDivision(score);
+    const tournoi  = p.lastTournoi;
+    const sub      = p.lastSub;
+
+    const tournoisBadge = tournoi ? `
+      <div class="player-tournoi">
+        <span class="player-tournoi-name">🏆 ${tournoi.name}${tournoi.phase ? ` — ${tournoi.phase}` : ''}</span>
+        ${sub
+          ? `<span class="player-tournoi-stat">K/D <strong>${sub.kd ?? '—'}</strong></span>
+             <span class="player-tournoi-stat">Kills <strong>${sub.kills ?? '—'}</strong></span>`
+          : '<span class="player-tournoi-stat">Pas de soumission</span>'}
+      </div>` : '';
+
+    // BR rank image
+    const brRankHtml = s?.br_rank ? `
+      <div class="player-br-rank">
+        ${s.br_rank_img ? `<img src="${s.br_rank_img}" style="width:20px;height:20px;object-fit:contain">` : '<i class="fas fa-shield-alt"></i>'}
+        <span>${s.br_rank}</span>
+      </div>` : '';
+
+    return `
+      <div class="player-card">
+        <div class="player-card-top">
+          <div class="player-avatar">
+            <img src="${p.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png'}"
+              alt="${p.username}"
+              onerror="this.onerror=null;this.src='https://cdn.discordapp.com/embed/avatars/0.png';">
+          </div>
+          <div class="player-main">
+            <div class="player-name">${p.username || 'Unknown'}</div>
+            <div class="player-division">${division}</div>
+            ${brRankHtml}
+          </div>
+          <div class="player-card-actions">
+            <a href="profil.html?id=${p.discord_id}" target="_blank" class="action-btn profile" title="Voir le profil">
+              <i class="fas fa-user"></i>
+            </a>
+            <button class="action-btn delete" onclick="window.deletePlayer('${p.discord_id}', '${p.username}')" title="Supprimer">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="player-stats">
+          <div class="player-stat">
+            <span>K/D</span>
+            <strong>${s?.kd ?? '—'}</strong>
+          </div>
+          <div class="player-stat">
+            <span>Kills</span>
+            <strong>${s?.kills ? Number(s.kills).toLocaleString('fr-FR') : '—'}</strong>
+          </div>
+          <div class="player-stat">
+            <span>Win Rate</span>
+            <strong>${s?.winrate ? `${parseFloat(s.winrate).toFixed(1)}%` : '—'}</strong>
+          </div>
+          <div class="player-stat">
+            <span>Score WS</span>
+            <strong style="color:var(--green)">${score}</strong>
+          </div>
+        </div>
+
+        ${tournoisBadge}
+
+        <div class="player-tracker">${p.tracker_id || 'No tracker'}</div>
+      </div>`;
+  }).join('');
 }
 
 // ─── MODAL AJOUT ─────────────────────────────────────────────────────────────
@@ -64,7 +174,6 @@ function initAddPlayerModal() {
   btnClose.addEventListener('click', () => modal.style.display = 'none');
   modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
 
-  // Fetch Discord user via bot API
   btnFetch.addEventListener('click', async () => {
     const id = discordInput.value.trim();
     if (!id || !/^\d{15,20}$/.test(id)) {
@@ -72,25 +181,18 @@ function initAddPlayerModal() {
       discordError.textContent   = 'ID Discord invalide (15-20 chiffres)';
       return;
     }
-
     btnFetch.disabled     = true;
     btnFetch.innerHTML    = '<i class="fas fa-spinner fa-spin"></i>';
     discordError.style.display   = 'none';
     discordPreview.style.display = 'none';
-
     try {
       const data = await callBotAPI(`user/${id}`);
       if (data?.error) throw new Error(data.error);
-
-      // Auto-fill username
       document.getElementById('add-username').value = data.username;
       fetchedAvatar = data.avatar;
-
-      // Preview
-      discordAvatar.src            = data.avatar;
-      discordUsername.textContent  = data.username;
+      discordAvatar.src           = data.avatar;
+      discordUsername.textContent = data.username;
       discordPreview.style.display = 'flex';
-
       checkAddReady();
     } catch (e) {
       discordError.style.display = 'block';
@@ -101,7 +203,6 @@ function initAddPlayerModal() {
     }
   });
 
-  // Plateforme
   document.querySelectorAll('#modal-add-player .platform-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('#modal-add-player .platform-btn').forEach(b => b.classList.remove('selected'));
@@ -111,7 +212,6 @@ function initAddPlayerModal() {
     });
   });
 
-  // Tracker URL → extraire tracker_id
   trackerInput.addEventListener('input', () => {
     const val   = trackerInput.value.trim();
     const match = val.match(/\/(\d{8,})(?:\/|$)/);
@@ -138,15 +238,13 @@ function initAddPlayerModal() {
     btnConfirm.disabled = !(username.length >= 2 && pseudoBf6.length >= 2 && !!selectedPlatform);
   }
 
-  // Confirmer
   btnConfirm.addEventListener('click', async () => {
     const username   = document.getElementById('add-username').value.trim();
     const pseudoBf6  = document.getElementById('add-pseudo-bf6').value.trim();
     const trackerUrl = trackerInput.value.trim();
     const discordId  = discordInput.value.trim();
-
-    const match     = trackerUrl.match(/\/(\d{8,})(?:\/|$)/);
-    const trackerId = match ? match[1] : null;
+    const match      = trackerUrl.match(/\/(\d{8,})(?:\/|$)/);
+    const trackerId  = match ? match[1] : null;
     const finalDiscordId = discordId || `manual_${Date.now()}`;
 
     errorDiv.style.display = 'none';
@@ -171,7 +269,6 @@ function initAddPlayerModal() {
       modal.style.display = 'none';
       showToast(`✅ ${username} ajouté !`);
       initPlayers();
-
     } catch (err) {
       showError('Erreur : ' + err.message);
     }
@@ -199,84 +296,6 @@ function initAddPlayerModal() {
     fetchedAvatar                = null;
     document.querySelectorAll('#modal-add-player .platform-btn').forEach(b => b.classList.remove('selected'));
   }
-}
-
-// ─── RENDER ──────────────────────────────────────────────────────────────────
-
-function calcScore(s) {
-  if (!s) return 0;
-  const kd      = parseFloat(s.kd)      || 0;
-  const winrate = parseFloat(s.winrate) || 0;
-  const kills   = parseInt(s.kills)     || 0;
-  const games   = parseInt(s.games)     || 1;
-  const kpm     = kills / games;
-  return ((Math.min(kd / 5, 1) * 100 * 0.30) + (Math.min(winrate / 60, 1) * 100 * 0.35) + (Math.min(kpm / 20, 1) * 100 * 0.25)).toFixed(2);
-}
-
-function getDivision(score) {
-  const s = parseFloat(score);
-  if (s >= 65) return 'WARSTACK 🔱';
-  if (s >= 55) return 'Phantom 👻';
-  if (s >= 45) return 'Elite 💎';
-  if (s >= 35) return 'Veteran 🎖️';
-  if (s >= 25) return 'Grunt ⚔️';
-  return 'Recruit 🪖';
-}
-
-function renderTable(players) {
-  const wrapper = document.getElementById('players-grid');
-  if (!players || players.length === 0) {
-    wrapper.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i>Aucun joueur trouvé</div>';
-    return;
-  }
-
-  wrapper.innerHTML = players.map(p => {
-    const s        = p.snapshot;
-    const score    = calcScore(s);
-    const division = getDivision(score);
-    const tournoi  = p.lastTournoi;
-    const sub      = p.lastSub;
-
-    const tournoisBadge = tournoi ? `
-      <div class="player-tournoi">
-        <span class="player-tournoi-name">🏆 ${tournoi.name}${tournoi.phase ? ` — ${tournoi.phase}` : ''}</span>
-        ${sub
-          ? `<span class="player-tournoi-stat">K/D <strong>${sub.kd ?? '—'}</strong></span>
-             <span class="player-tournoi-stat">Kills <strong>${sub.kills ?? '—'}</strong></span>`
-          : '<span class="player-tournoi-stat">Pas de soumission</span>'}
-      </div>` : '';
-
-    return `
-      <div class="player-card">
-        <div class="player-card-top">
-          <div class="player-avatar">
-            <img src="${p.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png'}"
-              alt="${p.username}"
-              onerror="this.onerror=null;this.src='https://cdn.discordapp.com/embed/avatars/0.png';">
-          </div>
-          <div class="player-main">
-            <div class="player-name">${p.username || 'Unknown'}</div>
-            <div class="player-division">${division}</div>
-          </div>
-          <div class="player-card-actions">
-            <a href="profil.html?id=${p.discord_id}" target="_blank" class="action-btn profile" title="Voir le profil">
-              <i class="fas fa-user"></i>
-            </a>
-            <button class="action-btn delete" onclick="window.deletePlayer('${p.discord_id}', '${p.username}')" title="Supprimer">
-              <i class="fas fa-trash"></i>
-            </button>
-          </div>
-        </div>
-        <div class="player-stats">
-          <div class="player-stat"><span>K/D</span><strong>${s?.kd ?? '—'}</strong></div>
-          <div class="player-stat"><span>Kills</span><strong>${s?.kills ?? '—'}</strong></div>
-          <div class="player-stat"><span>Wins</span><strong>${s?.wins ?? '—'}</strong></div>
-          <div class="player-stat"><span>Score</span><strong>${score}</strong></div>
-        </div>
-        ${tournoisBadge}
-        <div class="player-tracker">${p.tracker_id || 'No tracker'}</div>
-      </div>`;
-  }).join('');
 }
 
 // ─── DELETE ──────────────────────────────────────────────────────────────────

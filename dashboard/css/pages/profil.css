@@ -824,3 +824,61 @@
   text-transform: uppercase;
 }
 .profil-br-rank-banner i { font-size: 1rem; }
+
+/* ── TOURNOI CARD AMÉLIORÉ ── */
+.profil-tournoi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+.profil-tournoi-dates {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 0.2rem;
+}
+.profil-tournoi-rank {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 40px;
+  text-align: right;
+}
+.profil-tournoi-rank.mvp  { color: #FFD700; }
+.profil-tournoi-rank.top3 { color: var(--green); }
+.profil-tournoi-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+.profil-tournoi-stat {
+  text-align: center;
+  padding: 0.5rem;
+  background: rgba(255,255,255,0.03);
+  border-radius: 6px;
+}
+.profil-tournoi-stat strong {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.profil-tournoi-stat span {
+  font-size: 0.6rem;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+/* ── PLAYER BR RANK ── */
+.player-br-rank {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.3rem;
+  font-size: 0.7rem;
+  color: #C0C0C0;
+  font-weight: 600;
+  letter-spacing: 1px;
+}

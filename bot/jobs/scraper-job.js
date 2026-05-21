@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { createClient }   = require('@supabase/supabase-js');
+const { createClient }    = require('@supabase/supabase-js');
 const { scrapeTrackerGG } = require('../services/scraper');
 
 const supabase = createClient(
@@ -41,20 +41,32 @@ async function runScraper() {
       .from('player_snapshots')
       .insert({
         tracker_id  : player.tracker_id,
-        kills       : parseInt(String(stats.kills).replace(/,/g, ''))    || 0,
-        deaths      : parseInt(String(stats.deaths).replace(/,/g, ''))   || 0,
-        kd          : parseFloat(stats.kd)                               || 0,
-        wins        : parseInt(String(stats.wins).replace(/,/g, ''))     || 0,
-        winrate     : parseFloat(String(stats.winrate).replace('%', '')) || 0,
-        games       : parseInt(String(stats.games).replace(/,/g, ''))    || 0,
+        kills       : stats.kills,
+        deaths      : stats.deaths,
+        kd          : stats.kd,
+        wins        : stats.wins,
+        winrate     : stats.winrate,
+        games       : stats.games,
         playtime    : stats.playtime,
+        br_rank     : stats.br_rank,
+        mp_kills    : stats.mp_kills,
+        mp_deaths   : stats.mp_deaths,
+        mp_kd       : stats.mp_kd,
+        mp_wins     : stats.mp_wins,
+        mp_losses   : stats.mp_losses,
+        mp_winrate  : stats.mp_winrate,
+        br_kills    : stats.br_kills,
+        br_deaths   : stats.br_deaths,
+        br_kd       : stats.br_kd,
+        br_wins     : stats.br_wins,
+        br_winrate  : stats.br_winrate,
         snapshot_at : new Date().toISOString(),
       });
 
     if (snapError) {
       console.error(`❌ Erreur snapshot pour ${player.tracker_id}:`, snapError);
     } else {
-      console.log(`✅ Snapshot sauvegardé — K/D: ${stats.kd} | Kills: ${stats.kills}`);
+      console.log(`✅ Snapshot sauvegardé — K/D: ${stats.kd} | BR Rank: ${stats.br_rank || 'N/A'}`);
     }
 
     await sleep(10000);

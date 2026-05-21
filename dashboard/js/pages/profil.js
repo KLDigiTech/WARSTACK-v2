@@ -32,6 +32,24 @@ function formatDate(d) {
   return new Date(d).toLocaleDateString('fr-FR');
 }
 
+function fmt(v) {
+  if (v === null || v === undefined || v === 0) return '—';
+  return typeof v === 'number' && v > 100 ? Number(v).toLocaleString('fr-FR') : v;
+}
+
+// ─── ONGLETS ────────────────────────────────────────────────────────────────
+function initTabs() {
+  document.querySelectorAll('.profil-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.profil-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.profil-tab-content').forEach(c => c.style.display = 'none');
+      tab.classList.add('active');
+      document.getElementById(`tab-${tab.dataset.tab}`).style.display = 'block';
+    });
+  });
+}
+
+// ─── LOAD ────────────────────────────────────────────────────────────────────
 async function loadProfil() {
   if (!discordId) { showNotFound(); return; }
 
@@ -48,14 +66,22 @@ async function loadProfil() {
   const score    = calcScore(snapshot);
   const division = getDivision(score);
 
-  document.getElementById('p-avatar').src                  = player.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png';
-  document.getElementById('p-username').textContent         = player.username || player.pseudo_bf6 || '—';
-  document.getElementById('p-platform').textContent         = player.platform?.toUpperCase() || '—';
-  document.getElementById('p-division').textContent         = `${division.emoji} ${division.name}`;
-  document.getElementById('p-division-badge').textContent   = division.emoji;
-  document.getElementById('p-score').textContent            = score;
+  // Hero
+  document.getElementById('p-avatar').src                = player.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png';
+  document.getElementById('p-username').textContent       = player.username || player.pseudo_bf6 || '—';
+  document.getElementById('p-platform').textContent       = player.platform?.toUpperCase() || '—';
+  document.getElementById('p-division').textContent       = `${division.emoji} ${division.name}`;
+  document.getElementById('p-division-badge').textContent = division.emoji;
+  document.getElementById('p-score').textContent          = score;
   document.documentElement.style.setProperty('--division-color', division.color);
 
+  // BR Rank badge
+  if (snapshot?.br_rank) {
+    document.getElementById('p-br-rank').style.display  = 'flex';
+    document.getElementById('p-br-rank-value').textContent = snapshot.br_rank;
+  }
+
+  // Stats Global
   document.getElementById('p-kills').textContent   = snapshot?.kills   ? Number(snapshot.kills).toLocaleString('fr-FR')   : '—';
   document.getElementById('p-deaths').textContent  = snapshot?.deaths  ? Number(snapshot.deaths).toLocaleString('fr-FR')  : '—';
   document.getElementById('p-kd').textContent      = snapshot?.kd      ?? '—';
@@ -63,6 +89,23 @@ async function loadProfil() {
   document.getElementById('p-games').textContent   = snapshot?.games   ?? '—';
   document.getElementById('p-winrate').textContent = snapshot?.winrate ? `${snapshot.winrate}%` : '—';
 
+  // Stats Multiplayer
+  document.getElementById('p-mp-kills').textContent   = fmt(snapshot?.mp_kills);
+  document.getElementById('p-mp-deaths').textContent  = fmt(snapshot?.mp_deaths);
+  document.getElementById('p-mp-kd').textContent      = snapshot?.mp_kd || '—';
+  document.getElementById('p-mp-wins').textContent    = fmt(snapshot?.mp_wins);
+  document.getElementById('p-mp-losses').textContent  = fmt(snapshot?.mp_losses);
+  document.getElementById('p-mp-winrate').textContent = snapshot?.mp_winrate ? `${snapshot.mp_winrate}%` : '—';
+
+  // Stats Battle Royale
+  document.getElementById('p-br-kills').textContent    = fmt(snapshot?.br_kills);
+  document.getElementById('p-br-deaths').textContent   = fmt(snapshot?.br_deaths);
+  document.getElementById('p-br-kd').textContent       = snapshot?.br_kd || '—';
+  document.getElementById('p-br-wins').textContent     = fmt(snapshot?.br_wins);
+  document.getElementById('p-br-rank-stat').textContent = snapshot?.br_rank || '—';
+  document.getElementById('p-br-winrate').textContent  = snapshot?.br_winrate ? `${snapshot.br_winrate}%` : '—';
+
+  // Tracker link
   if (player.tracker_url) {
     document.getElementById('p-tracker-link').href = player.tracker_url;
   } else {
@@ -75,8 +118,8 @@ async function loadProfil() {
 
   document.title = `${player.username || 'Joueur'} — WARSTACK`;
 
+  initTabs();
   await loadTournois(discordId);
-
   showContent();
 }
 

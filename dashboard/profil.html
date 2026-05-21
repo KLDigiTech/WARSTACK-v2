@@ -35,6 +35,7 @@
 
     <div id="profil-content" style="display:none">
 
+      <!-- HERO -->
       <div class="profil-hero">
         <div class="profil-avatar-wrapper">
           <img id="p-avatar" src="" alt="avatar" class="profil-avatar">
@@ -44,6 +45,12 @@
           <div class="profil-username" id="p-username"></div>
           <div class="profil-platform" id="p-platform"></div>
           <div class="profil-division" id="p-division"></div>
+          <!-- BR RANK BADGE -->
+          <div class="profil-br-rank" id="p-br-rank" style="display:none">
+            <i class="fas fa-shield-alt"></i>
+            <span id="p-br-rank-value"></span>
+            <span class="br-rank-label">BR RANK</span>
+          </div>
         </div>
         <div class="profil-score-block">
           <div class="profil-score-value" id="p-score"></div>
@@ -51,40 +58,122 @@
         </div>
       </div>
 
-      <div class="profil-section-title">📊 Stats Tracker.gg — Global</div>
-      <div class="profil-stats-grid">
-        <div class="profil-stat-card">
-          <div class="profil-stat-icon"><i class="fas fa-crosshairs"></i></div>
-          <div class="profil-stat-value" id="p-kills">—</div>
-          <div class="profil-stat-label">Kills</div>
-        </div>
-        <div class="profil-stat-card">
-          <div class="profil-stat-icon"><i class="fas fa-skull"></i></div>
-          <div class="profil-stat-value" id="p-deaths">—</div>
-          <div class="profil-stat-label">Deaths</div>
-        </div>
-        <div class="profil-stat-card highlight">
-          <div class="profil-stat-icon"><i class="fas fa-chart-line"></i></div>
-          <div class="profil-stat-value" id="p-kd">—</div>
-          <div class="profil-stat-label">K/D Ratio</div>
-        </div>
-        <div class="profil-stat-card">
-          <div class="profil-stat-icon"><i class="fas fa-trophy"></i></div>
-          <div class="profil-stat-value" id="p-wins">—</div>
-          <div class="profil-stat-label">Wins</div>
-        </div>
-        <div class="profil-stat-card">
-          <div class="profil-stat-icon"><i class="fas fa-gamepad"></i></div>
-          <div class="profil-stat-value" id="p-games">—</div>
-          <div class="profil-stat-label">Parties</div>
-        </div>
-        <div class="profil-stat-card">
-          <div class="profil-stat-icon"><i class="fas fa-flag"></i></div>
-          <div class="profil-stat-value" id="p-winrate">—</div>
-          <div class="profil-stat-label">Win Rate</div>
+      <!-- ONGLETS STATS -->
+      <div class="profil-tabs">
+        <button class="profil-tab active" data-tab="global">🌍 Global</button>
+        <button class="profil-tab" data-tab="mp">🎯 Multiplayer</button>
+        <button class="profil-tab" data-tab="br">🪂 Battle Royale</button>
+      </div>
+
+      <!-- TAB GLOBAL -->
+      <div class="profil-tab-content active" id="tab-global">
+        <div class="profil-stats-grid">
+          <div class="profil-stat-card">
+            <div class="profil-stat-icon"><i class="fas fa-crosshairs"></i></div>
+            <div class="profil-stat-value" id="p-kills">—</div>
+            <div class="profil-stat-label">Kills</div>
+          </div>
+          <div class="profil-stat-card">
+            <div class="profil-stat-icon"><i class="fas fa-skull"></i></div>
+            <div class="profil-stat-value" id="p-deaths">—</div>
+            <div class="profil-stat-label">Deaths</div>
+          </div>
+          <div class="profil-stat-card highlight">
+            <div class="profil-stat-icon"><i class="fas fa-chart-line"></i></div>
+            <div class="profil-stat-value" id="p-kd">—</div>
+            <div class="profil-stat-label">K/D Ratio</div>
+          </div>
+          <div class="profil-stat-card">
+            <div class="profil-stat-icon"><i class="fas fa-trophy"></i></div>
+            <div class="profil-stat-value" id="p-wins">—</div>
+            <div class="profil-stat-label">Wins</div>
+          </div>
+          <div class="profil-stat-card">
+            <div class="profil-stat-icon"><i class="fas fa-gamepad"></i></div>
+            <div class="profil-stat-value" id="p-games">—</div>
+            <div class="profil-stat-label">Parties</div>
+          </div>
+          <div class="profil-stat-card">
+            <div class="profil-stat-icon"><i class="fas fa-flag"></i></div>
+            <div class="profil-stat-value" id="p-winrate">—</div>
+            <div class="profil-stat-label">Win Rate</div>
+          </div>
         </div>
       </div>
 
+      <!-- TAB MULTIPLAYER -->
+      <div class="profil-tab-content" id="tab-mp" style="display:none">
+        <div class="profil-stats-grid">
+          <div class="profil-stat-card">
+            <div class="profil-stat-icon"><i class="fas fa-crosshairs"></i></div>
+            <div class="profil-stat-value" id="p-mp-kills">—</div>
+            <div class="profil-stat-label">Kills</div>
+          </div>
+          <div class="profil-stat-card">
+            <div class="profil-stat-icon"><i class="fas fa-skull"></i></div>
+            <div class="profil-stat-value" id="p-mp-deaths">—</div>
+            <div class="profil-stat-label">Deaths</div>
+          </div>
+          <div class="profil-stat-card highlight">
+            <div class="profil-stat-icon"><i class="fas fa-chart-line"></i></div>
+            <div class="profil-stat-value" id="p-mp-kd">—</div>
+            <div class="profil-stat-label">K/D Ratio</div>
+          </div>
+          <div class="profil-stat-card">
+            <div class="profil-stat-icon"><i class="fas fa-trophy"></i></div>
+            <div class="profil-stat-value" id="p-mp-wins">—</div>
+            <div class="profil-stat-label">Wins</div>
+          </div>
+          <div class="profil-stat-card">
+            <div class="profil-stat-icon"><i class="fas fa-times-circle"></i></div>
+            <div class="profil-stat-value" id="p-mp-losses">—</div>
+            <div class="profil-stat-label">Losses</div>
+          </div>
+          <div class="profil-stat-card">
+            <div class="profil-stat-icon"><i class="fas fa-flag"></i></div>
+            <div class="profil-stat-value" id="p-mp-winrate">—</div>
+            <div class="profil-stat-label">Win Rate</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB BATTLE ROYALE -->
+      <div class="profil-tab-content" id="tab-br" style="display:none">
+        <div class="profil-stats-grid">
+          <div class="profil-stat-card">
+            <div class="profil-stat-icon"><i class="fas fa-crosshairs"></i></div>
+            <div class="profil-stat-value" id="p-br-kills">—</div>
+            <div class="profil-stat-label">Kills</div>
+          </div>
+          <div class="profil-stat-card">
+            <div class="profil-stat-icon"><i class="fas fa-skull"></i></div>
+            <div class="profil-stat-value" id="p-br-deaths">—</div>
+            <div class="profil-stat-label">Deaths</div>
+          </div>
+          <div class="profil-stat-card highlight">
+            <div class="profil-stat-icon"><i class="fas fa-chart-line"></i></div>
+            <div class="profil-stat-value" id="p-br-kd">—</div>
+            <div class="profil-stat-label">K/D Ratio</div>
+          </div>
+          <div class="profil-stat-card">
+            <div class="profil-stat-icon"><i class="fas fa-trophy"></i></div>
+            <div class="profil-stat-value" id="p-br-wins">—</div>
+            <div class="profil-stat-label">Wins</div>
+          </div>
+          <div class="profil-stat-card">
+            <div class="profil-stat-icon"><i class="fas fa-shield-alt"></i></div>
+            <div class="profil-stat-value" id="p-br-rank-stat">—</div>
+            <div class="profil-stat-label">BR Rank</div>
+          </div>
+          <div class="profil-stat-card">
+            <div class="profil-stat-icon"><i class="fas fa-flag"></i></div>
+            <div class="profil-stat-value" id="p-br-winrate">—</div>
+            <div class="profil-stat-label">Win Rate</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOURNOIS -->
       <div class="profil-section-title">🏆 Historique Tournois</div>
       <div id="p-tournois" class="profil-tournois-list"></div>
 

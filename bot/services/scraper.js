@@ -17,8 +17,8 @@ async function scrapeTrackerGG(platform, trackerId) {
     const url = `https://tracker.gg/bf6/profile/${trackerId}/overview`;
     console.log(`🌐 Scraping: ${url}`);
 
-    await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
-    await new Promise(r => setTimeout(r, 5000));
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await new Promise(r => setTimeout(r, 8000));
 
     const stats = await page.evaluate(() => {
 

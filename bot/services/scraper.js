@@ -22,7 +22,6 @@ async function scrapeTrackerGG(platform, trackerId) {
 
     const stats = await page.evaluate(() => {
 
-      // Cherche une valeur stat par son label exact
       function getStatValue(label) {
         const allEls = Array.from(document.querySelectorAll('span, div, p'));
         for (const el of allEls) {
@@ -43,7 +42,6 @@ async function scrapeTrackerGG(platform, trackerId) {
         return null;
       }
 
-      // BR Rank — cherche "CURRENT" suivi du rank dans la section BR RANKS
       function getBRRank() {
         const allDivs = Array.from(document.querySelectorAll('div, span'));
         for (const el of allDivs) {
@@ -62,20 +60,31 @@ async function scrapeTrackerGG(platform, trackerId) {
         return null;
       }
 
-      // Stats par section MULTIPLAYER / BATTLE ROYALE
+      // DEBUG — liste tous les titres de sections
+      const sectionTitles = Array.from(document.querySelectorAll('h1, h2, h3, h4, [class*="title"], [class*="header"], [class*="heading"]'))
+        .map(h => h.textContent.trim())
+        .filter(t => t.length > 0 && t.length < 50)
+        .join(' | ');
+
       function getSectionStats(sectionLabel) {
-        const headers = Array.from(document.querySelectorAll('h2, h3, div'));
-        for (const h of headers) {
-          if (h.textContent.trim().toUpperCase() === sectionLabel.toUpperCase() && h.children.length === 0) {
-            const section = h.closest('[class*="segment"], [class*="section"], [class*="card"]') || h.parentElement?.parentElement;
-            if (!section) continue;
+        const allEls = Array.from(document.querySelectorAll('*'));
+        for (const el of allEls) {
+          const txt = el.textContent.trim().toUpperCase();
+          if (txt === sectionLabel.toUpperCase() && el.children.length === 0) {
+            // Remonter pour trouver le conteneur parent de la section
+            let container = el.parentElement;
+            for (let i = 0; i < 5; i++) {
+              if (!container) break;
+              container = container.parentElement;
+            }
+            if (!container) continue;
+
             const get = (label) => {
-              const els = Array.from(section.querySelectorAll('span, div, p'));
-              for (const el of els) {
-                if (el.children.length === 0 && el.textContent.trim() === label) {
-                  const p = el.parentElement;
-                  if (!p) continue;
-                  const gp = p.parentElement;
+              const els = Array.from(container.querySelectorAll('span, div, p'));
+              for (const e of els) {
+                if (e.children.length === 0 && e.textContent.trim() === label) {
+                  const p  = e.parentElement;
+                  const gp = p?.parentElement;
                   if (!gp) continue;
                   const cands = Array.from(gp.querySelectorAll('span, div, p'));
                   for (const c of cands) {
@@ -86,6 +95,7 @@ async function scrapeTrackerGG(platform, trackerId) {
               }
               return null;
             };
+
             return {
               wins   : get('Wins'),
               losses : get('Losses'),
@@ -100,7 +110,6 @@ async function scrapeTrackerGG(platform, trackerId) {
       }
 
       return {
-        // Stats globales
         kd      : getStatValue('Player K/D'),
         kills   : getStatValue('Player Kills'),
         deaths  : getStatValue('Deaths'),
@@ -108,11 +117,11 @@ async function scrapeTrackerGG(platform, trackerId) {
         games   : getStatValue('Matches Played'),
         winrate : getStatValue('Win %'),
         playtime: getStatValue('Time Played'),
-        // BR Rank
         br_rank : getBRRank(),
-        // Stats par mode
         mp      : getSectionStats('MULTIPLAYER'),
         br      : getSectionStats('BATTLE ROYALE'),
+        // DEBUG
+        _sectionTitles: sectionTitles,
       };
     });
 
@@ -127,23 +136,20 @@ async function scrapeTrackerGG(platform, trackerId) {
 
     return {
       trackerId,
-      // Global
-      kills   : parseNum(stats.kills),
-      deaths  : parseNum(stats.deaths),
-      kd      : parseNum(stats.kd),
-      wins    : parseNum(stats.wins),
-      games   : parseNum(stats.games),
-      playtime: stats.playtime || '0h',
-      winrate : parseNum(String(stats.winrate).replace('%', '')),
-      br_rank : stats.br_rank || null,
-      // Multiplayer
+      kills     : parseNum(stats.kills),
+      deaths    : parseNum(stats.deaths),
+      kd        : parseNum(stats.kd),
+      wins      : parseNum(stats.wins),
+      games     : parseNum(stats.games),
+      playtime  : stats.playtime || '0h',
+      winrate   : parseNum(String(stats.winrate).replace('%', '')),
+      br_rank   : stats.br_rank || null,
       mp_kills  : parseNum(stats.mp?.kills),
       mp_deaths : parseNum(stats.mp?.deaths),
       mp_kd     : parseNum(stats.mp?.kd),
       mp_wins   : parseNum(stats.mp?.wins),
       mp_losses : parseNum(stats.mp?.losses),
       mp_winrate: parseNum(String(stats.mp?.winrate || '0').replace('%', '')),
-      // Battle Royale
       br_kills  : parseNum(stats.br?.kills),
       br_deaths : parseNum(stats.br?.deaths),
       br_kd     : parseNum(stats.br?.kd),

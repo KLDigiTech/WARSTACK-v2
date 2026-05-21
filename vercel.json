@@ -3,7 +3,10 @@
   "buildCommand": "",
   "installCommand": "",
   "framework": null,
+  "cleanUrls": true,
+  "trailingSlash": false,
   "routes": [
+    { "src": "/dashboard/(.*)", "dest": "/$1" },
     { "src": "/(.*)", "dest": "/$1" }
   ]
 }

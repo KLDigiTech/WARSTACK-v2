@@ -44,7 +44,8 @@
           <div class="profil-platform" id="p-platform"></div>
           <div class="profil-division" id="p-division"></div>
           <div class="profil-br-rank" id="p-br-rank" style="display:none">
-            <i class="fas fa-shield-alt"></i>
+            <img id="p-br-rank-img" src="" style="width:20px;height:20px;object-fit:contain;display:none">
+            <i class="fas fa-shield-alt" id="p-br-rank-icon"></i>
             <span id="p-br-rank-value"></span>
             <span class="br-rank-label">BR RANK</span>
           </div>
@@ -81,11 +82,6 @@
             <div class="profil-stat-label">K/D Ratio</div>
           </div>
           <div class="profil-stat-card">
-            <div class="profil-stat-icon"><i class="fas fa-trophy"></i></div>
-            <div class="profil-stat-value" id="p-wins">—</div>
-            <div class="profil-stat-label">Parties</div>
-          </div>
-          <div class="profil-stat-card">
             <div class="profil-stat-icon"><i class="fas fa-gamepad"></i></div>
             <div class="profil-stat-value" id="p-games">—</div>
             <div class="profil-stat-label">Parties</div>
@@ -95,10 +91,23 @@
             <div class="profil-stat-value" id="p-winrate">—</div>
             <div class="profil-stat-label">Win Rate</div>
           </div>
+          <!-- BR RANK CARD -->
+          <div class="profil-stat-card profil-stat-rank" id="p-rank-card" style="display:none">
+            <div class="profil-stat-icon">
+              <img id="p-rank-card-img" src="" style="width:48px;height:48px;object-fit:contain">
+            </div>
+            <div class="profil-stat-value" id="p-rank-card-value" style="font-size:0.9rem">—</div>
+            <div class="profil-stat-label">BR RANK</div>
+          </div>
+          <div class="profil-stat-card" id="p-rank-card-fallback" style="display:none">
+            <div class="profil-stat-icon"><i class="fas fa-shield-alt"></i></div>
+            <div class="profil-stat-value" id="p-rank-card-value-fb" style="font-size:0.9rem">—</div>
+            <div class="profil-stat-label">BR RANK</div>
+          </div>
         </div>
       </div>
 
-      <!-- MULTIPLAYER — Kills / Deaths / KD / Win Rate -->
+      <!-- MULTIPLAYER -->
       <div class="profil-tab-content" id="tab-mp" style="display:none">
         <div class="profil-stats-grid grid-4">
           <div class="profil-stat-card">
@@ -124,11 +133,12 @@
         </div>
       </div>
 
-      <!-- BATTLE ROYALE — Kills / Deaths / KD / Win Rate + BR Rank badge -->
+      <!-- BATTLE ROYALE -->
       <div class="profil-tab-content" id="tab-br" style="display:none">
         <div class="profil-br-rank-banner" id="p-br-rank-banner" style="display:none">
-          <i class="fas fa-shield-alt"></i>
-          <span id="p-br-rank-banner-value"></span>
+          <img id="p-br-banner-img" src="" style="width:40px;height:40px;object-fit:contain;display:none">
+          <i class="fas fa-shield-alt" id="p-br-banner-icon"></i>
+          <span id="p-br-rank-banner-value" style="font-size:1.2rem;font-weight:700;letter-spacing:3px"></span>
           <span class="br-rank-label">RANKED</span>
         </div>
         <div class="profil-stats-grid grid-4">

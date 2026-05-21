@@ -78,10 +78,24 @@ async function loadProfil() {
   if (snapshot?.br_rank) {
     const brRankEl = document.getElementById('p-br-rank');
     brRankEl.style.display = 'flex';
+    document.getElementById('p-br-rank-value').textContent = snapshot.br_rank;
     if (snapshot.br_rank_img) {
-      brRankEl.innerHTML = `<img src="${snapshot.br_rank_img}" style="width:20px;height:20px;object-fit:contain"> <span>${snapshot.br_rank}</span> <span class="br-rank-label">BR RANK</span>`;
+      const img = document.getElementById('p-br-rank-img');
+      img.src = snapshot.br_rank_img;
+      img.style.display = 'inline';
+      document.getElementById('p-br-rank-icon').style.display = 'none';
+    }
+  }
+
+  // BR Rank card dans Global
+  if (snapshot?.br_rank) {
+    if (snapshot.br_rank_img) {
+      document.getElementById('p-rank-card').style.display = 'flex';
+      document.getElementById('p-rank-card-img').src = snapshot.br_rank_img;
+      document.getElementById('p-rank-card-value').textContent = snapshot.br_rank.toUpperCase();
     } else {
-      document.getElementById('p-br-rank-value').textContent = snapshot.br_rank;
+      document.getElementById('p-rank-card-fallback').style.display = 'flex';
+      document.getElementById('p-rank-card-value-fb').textContent = snapshot.br_rank.toUpperCase();
     }
   }
 
@@ -89,8 +103,7 @@ async function loadProfil() {
   document.getElementById('p-kills').textContent   = snapshot?.kills  ? Number(snapshot.kills).toLocaleString('fr-FR')  : '—';
   document.getElementById('p-deaths').textContent  = snapshot?.deaths ? Number(snapshot.deaths).toLocaleString('fr-FR') : '—';
   document.getElementById('p-kd').textContent      = snapshot?.kd     || '—';
-  document.getElementById('p-wins').textContent    = snapshot?.games  ? Number(snapshot.games).toLocaleString('fr-FR')  : '—';
-  document.getElementById('p-games').textContent   = snapshot?.games  || '—';
+  document.getElementById('p-games').textContent   = snapshot?.games  ? Number(snapshot.games).toLocaleString('fr-FR')  : '—';
   document.getElementById('p-winrate').textContent = snapshot?.winrate ? `${parseFloat(snapshot.winrate).toFixed(1)}%` : '—';
 
   // Multiplayer
@@ -105,14 +118,16 @@ async function loadProfil() {
   document.getElementById('p-br-kd').textContent      = snapshot?.br_kd    || '—';
   document.getElementById('p-br-winrate').textContent = fmt(snapshot?.br_winrate, true);
 
-  // BR Rank banner dans onglet BR
+  // BR banner onglet BR
   if (snapshot?.br_rank) {
     const banner = document.getElementById('p-br-rank-banner');
     banner.style.display = 'flex';
+    document.getElementById('p-br-rank-banner-value').textContent = snapshot.br_rank.toUpperCase();
     if (snapshot.br_rank_img) {
-      banner.innerHTML = `<img src="${snapshot.br_rank_img}" style="width:32px;height:32px;object-fit:contain"> <span style="font-size:1.2rem;font-weight:700;letter-spacing:3px">${snapshot.br_rank.toUpperCase()}</span> <span class="br-rank-label">RANKED</span>`;
-    } else {
-      document.getElementById('p-br-rank-banner-value').textContent = snapshot.br_rank;
+      const img = document.getElementById('p-br-banner-img');
+      img.src = snapshot.br_rank_img;
+      img.style.display = 'inline';
+      document.getElementById('p-br-banner-icon').style.display = 'none';
     }
   }
 

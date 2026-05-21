@@ -84,7 +84,7 @@ async function loadProfil() {
   document.getElementById('p-kills').textContent   = snapshot?.kills   ? Number(snapshot.kills).toLocaleString('fr-FR')  : '—';
   document.getElementById('p-deaths').textContent  = snapshot?.deaths  ? Number(snapshot.deaths).toLocaleString('fr-FR') : '—';
   document.getElementById('p-kd').textContent      = snapshot?.kd      || '—';
-  document.getElementById('p-wins').textContent    = snapshot?.wins    || '—';
+  document.getElementById('p-wins').textContent    = snapshot?.games ? Number(snapshot.games).toLocaleString('fr-FR') : '—';
   document.getElementById('p-games').textContent   = snapshot?.games   || '—';
   document.getElementById('p-winrate').textContent = snapshot?.winrate ? `${parseFloat(snapshot.winrate).toFixed(1)}%` : '—';
 

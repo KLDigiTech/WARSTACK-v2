@@ -1,4 +1,4 @@
-const puppeteer     = require('puppeteer-extra');
+const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 puppeteer.use(StealthPlugin());
 
@@ -6,9 +6,9 @@ async function scrapeTrackerGG(platform, trackerId) {
   let browser;
   try {
     browser = await puppeteer.launch({
-      headless        : 'new',
-      protocolTimeout : 120000,
-      args            : ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+      headless: 'new',
+      protocolTimeout: 120000,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
     });
 
     const page = await browser.newPage();
@@ -23,14 +23,15 @@ async function scrapeTrackerGG(platform, trackerId) {
         try {
           const json = await response.json();
           if (json?.data?.segments) apiData = json.data;
-        } catch (e) {}
+        } catch (e) { }
       }
     });
 
     const url = `https://tracker.gg/bf6/profile/${trackerId}/overview`;
     console.log(`🌐 Scraping: ${url}`);
 
-    await page.goto(url, { waitUntil: 'networkidle2', timeout: 90000 });
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await new Promise(r => setTimeout(r, 8000));
 
     if (!apiData) {
       console.warn('⚠️ Pas de données API interceptées');
@@ -61,26 +62,26 @@ async function scrapeTrackerGG(platform, trackerId) {
 
     const result = {
       trackerId,
-      kills   : get(gs, 'kills')         || 0,
-      deaths  : get(gs, 'deaths')        || 0,
-      kd      : get(gs, 'kdRatio')       || 0,
-      wins    : get(gs, 'wins')          || 0,
-      games   : get(gs, 'matchesPlayed') || 0,
+      kills: get(gs, 'kills') || 0,
+      deaths: get(gs, 'deaths') || 0,
+      kd: get(gs, 'kdRatio') || 0,
+      wins: get(gs, 'wins') || 0,
+      games: get(gs, 'matchesPlayed') || 0,
       playtime: getStr(gs, 'timePlayed') || '0h',
-      winrate : get(gs, 'wlPercentage')  || 0,
-      br_rank : brRank,
-      mp_kills  : get(ms, 'kills')        || 0,
-      mp_deaths : get(ms, 'deaths')       || 0,
-      mp_kd     : get(ms, 'kdRatio')      || 0,
-      mp_wins   : get(ms, 'wins')         || 0,
-      mp_losses : get(ms, 'losses')       || 0,
+      winrate: get(gs, 'wlPercentage') || 0,
+      br_rank: brRank,
+      mp_kills: get(ms, 'kills') || 0,
+      mp_deaths: get(ms, 'deaths') || 0,
+      mp_kd: get(ms, 'kdRatio') || 0,
+      mp_wins: get(ms, 'wins') || 0,
+      mp_losses: get(ms, 'losses') || 0,
       mp_winrate: get(ms, 'wlPercentage') || 0,
-      br_kills  : get(bs, 'kills')        || 0,
-      br_deaths : get(bs, 'deaths')       || 0,
-      br_kd     : get(bs, 'kdRatio')      || 0,
-      br_wins   : get(bs, 'wins')         || 0,
+      br_kills: get(bs, 'kills') || 0,
+      br_deaths: get(bs, 'deaths') || 0,
+      br_kd: get(bs, 'kdRatio') || 0,
+      br_wins: get(bs, 'wins') || 0,
       br_winrate: get(bs, 'wlPercentage') || 0,
-      source    : 'tracker.gg-api'
+      source: 'tracker.gg-api'
     };
 
     console.log(`✅ Stats — K/D: ${result.kd} | MP Kills: ${result.mp_kills} | BR Rank: ${result.br_rank || 'N/A'}`);

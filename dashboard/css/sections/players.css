@@ -206,3 +206,54 @@
   background: rgba(255,80,80,.12);
   border-color: rgba(255,80,80,.24);
 }
+/* ── MODAL AJOUT JOUEUR ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-add-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  width: 100%;
+  max-width: 480px;
+  padding: 0;
+  overflow: hidden;
+}
+.modal-add-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 2px;
+  color: var(--green);
+}
+.modal-add-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1rem;
+}
+.modal-add-close:hover { color: var(--red); }
+.modal-add-body {
+  padding: 1.25rem;
+}
+.players-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.players-search-wrapper {
+  flex: 1;
+}

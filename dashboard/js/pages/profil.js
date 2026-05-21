@@ -76,37 +76,46 @@ async function loadProfil() {
 
   // BR Rank badge hero
   if (snapshot?.br_rank) {
-    document.getElementById('p-br-rank').style.display     = 'flex';
-    document.getElementById('p-br-rank-value').textContent = snapshot.br_rank;
+    const brRankEl = document.getElementById('p-br-rank');
+    brRankEl.style.display = 'flex';
+    if (snapshot.br_rank_img) {
+      brRankEl.innerHTML = `<img src="${snapshot.br_rank_img}" style="width:20px;height:20px;object-fit:contain"> <span>${snapshot.br_rank}</span> <span class="br-rank-label">BR RANK</span>`;
+    } else {
+      document.getElementById('p-br-rank-value').textContent = snapshot.br_rank;
+    }
   }
 
   // Global
-  document.getElementById('p-kills').textContent   = snapshot?.kills   ? Number(snapshot.kills).toLocaleString('fr-FR')  : '—';
-  document.getElementById('p-deaths').textContent  = snapshot?.deaths  ? Number(snapshot.deaths).toLocaleString('fr-FR') : '—';
-  document.getElementById('p-kd').textContent      = snapshot?.kd      || '—';
-  document.getElementById('p-wins').textContent    = snapshot?.games ? Number(snapshot.games).toLocaleString('fr-FR') : '—';
-  document.getElementById('p-games').textContent   = snapshot?.games   || '—';
+  document.getElementById('p-kills').textContent   = snapshot?.kills  ? Number(snapshot.kills).toLocaleString('fr-FR')  : '—';
+  document.getElementById('p-deaths').textContent  = snapshot?.deaths ? Number(snapshot.deaths).toLocaleString('fr-FR') : '—';
+  document.getElementById('p-kd').textContent      = snapshot?.kd     || '—';
+  document.getElementById('p-wins').textContent    = snapshot?.games  ? Number(snapshot.games).toLocaleString('fr-FR')  : '—';
+  document.getElementById('p-games').textContent   = snapshot?.games  || '—';
   document.getElementById('p-winrate').textContent = snapshot?.winrate ? `${parseFloat(snapshot.winrate).toFixed(1)}%` : '—';
 
   // Multiplayer
   document.getElementById('p-mp-kills').textContent   = fmt(snapshot?.mp_kills);
   document.getElementById('p-mp-deaths').textContent  = fmt(snapshot?.mp_deaths);
-  document.getElementById('p-mp-kd').textContent      = snapshot?.mp_kd   || '—';
+  document.getElementById('p-mp-kd').textContent      = snapshot?.mp_kd    || '—';
   document.getElementById('p-mp-winrate').textContent = fmt(snapshot?.mp_winrate, true);
 
   // Battle Royale
   document.getElementById('p-br-kills').textContent   = fmt(snapshot?.br_kills);
   document.getElementById('p-br-deaths').textContent  = fmt(snapshot?.br_deaths);
-  document.getElementById('p-br-kd').textContent      = snapshot?.br_kd   || '—';
+  document.getElementById('p-br-kd').textContent      = snapshot?.br_kd    || '—';
   document.getElementById('p-br-winrate').textContent = fmt(snapshot?.br_winrate, true);
 
   // BR Rank banner dans onglet BR
   if (snapshot?.br_rank) {
-    document.getElementById('p-br-rank-banner').style.display       = 'flex';
-    document.getElementById('p-br-rank-banner-value').textContent   = snapshot.br_rank;
+    const banner = document.getElementById('p-br-rank-banner');
+    banner.style.display = 'flex';
+    if (snapshot.br_rank_img) {
+      banner.innerHTML = `<img src="${snapshot.br_rank_img}" style="width:32px;height:32px;object-fit:contain"> <span style="font-size:1.2rem;font-weight:700;letter-spacing:3px">${snapshot.br_rank.toUpperCase()}</span> <span class="br-rank-label">RANKED</span>`;
+    } else {
+      document.getElementById('p-br-rank-banner-value').textContent = snapshot.br_rank;
+    }
   }
 
-  // Tracker link
   if (player.tracker_url) {
     document.getElementById('p-tracker-link').href = player.tracker_url;
   } else {
@@ -126,7 +135,7 @@ async function loadProfil() {
 
 async function loadTournois(discordId) {
   const container = document.getElementById('p-tournois');
-  const entries = await fetchSupabase(`tournament_entries?discord_id=eq.${discordId}&select=*`);
+  const entries   = await fetchSupabase(`tournament_entries?discord_id=eq.${discordId}&select=*`);
   if (!entries?.length) {
     container.innerHTML = '<div class="profil-empty">Aucun tournoi participé pour l\'instant.</div>';
     return;
@@ -140,8 +149,7 @@ async function loadTournois(discordId) {
     const sub    = subs?.[0] || null;
     const scores = await fetchSupabase(`tournament_scores?tournament_id=eq.${entry.tournament_id}&order=score.desc`);
     const rank   = scores?.findIndex(s => s.discord_id === discordId) ?? -1;
-    const rankDisplay = rank >= 0 ? `#${rank + 1}` : '—';
-    return { tournoi, sub, rankDisplay, isMvp: rank === 0, isTop3: rank >= 0 && rank < 3 };
+    return { tournoi, sub, rankDisplay: rank >= 0 ? `#${rank + 1}` : '—', isMvp: rank === 0, isTop3: rank >= 0 && rank < 3 };
   }));
 
   const valid = rows.filter(Boolean);

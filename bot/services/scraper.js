@@ -53,30 +53,33 @@ async function scrapeTrackerGG(platform, trackerId) {
     const bs    = brSeg?.stats || {};
 
     // BR Rank depuis segment competitive
-    const brRank = segments.find(s => s.type === 'competitive')?.stats?.currentLevel?.metadata?.name || null;
+    const compSeg   = segments.find(s => s.type === 'competitive');
+    const brRank    = compSeg?.stats?.currentLevel?.metadata?.name     || null;
+    const brRankImg = compSeg?.stats?.currentLevel?.metadata?.imageUrl || null;
 
     const result = {
       trackerId,
-      kills   : get(gs, 'kills')         || 0,
-      deaths  : get(gs, 'deaths')        || 0,
-      kd      : get(gs, 'kdRatio')       || 0,
-      wins    : get(gs, 'wins')          || 0,
-      games   : get(gs, 'matchesPlayed') || 0,
-      playtime: getStr(gs, 'timePlayed') || '0h',
-      winrate : get(gs, 'wlPercentage')  || 0,
-      br_rank : brRank,
-      mp_kills  : get(ms, 'kills')        || 0,
-      mp_deaths : get(ms, 'deaths')       || 0,
-      mp_kd     : get(ms, 'kdRatio')      || 0,
-      mp_wins   : get(ms, 'wins')         || 0,
-      mp_losses : get(ms, 'losses')       || 0,
-      mp_winrate: get(ms, 'wlPercentage') || 0,
-      br_kills  : get(bs, 'kills')        || 0,
-      br_deaths : get(bs, 'deaths')       || 0,
-      br_kd     : get(bs, 'kdRatio')      || 0,
-      br_wins   : get(bs, 'wins')         || 0,
-      br_winrate: get(bs, 'wlPercentage') || 0,
-      source    : 'tracker.gg-api'
+      kills      : get(gs, 'kills')         || 0,
+      deaths     : get(gs, 'deaths')        || 0,
+      kd         : get(gs, 'kdRatio')       || 0,
+      wins       : get(gs, 'wins')          || 0,
+      games      : get(gs, 'matchesPlayed') || 0,
+      playtime   : getStr(gs, 'timePlayed') || '0h',
+      winrate    : get(gs, 'wlPercentage')  || 0,
+      br_rank    : brRank,
+      br_rank_img: brRankImg,
+      mp_kills   : get(ms, 'kills')        || 0,
+      mp_deaths  : get(ms, 'deaths')       || 0,
+      mp_kd      : get(ms, 'kdRatio')      || 0,
+      mp_wins    : get(ms, 'wins')         || 0,
+      mp_losses  : get(ms, 'losses')       || 0,
+      mp_winrate : get(ms, 'wlPercentage') || 0,
+      br_kills   : get(bs, 'kills')        || 0,
+      br_deaths  : get(bs, 'deaths')       || 0,
+      br_kd      : get(bs, 'kdRatio')      || 0,
+      br_wins    : get(bs, 'wins')         || 0,
+      br_winrate : get(bs, 'wlPercentage') || 0,
+      source     : 'tracker.gg-api'
     };
 
     console.log(`✅ K/D: ${result.kd} | MP Kills: ${result.mp_kills} | BR Rank: ${result.br_rank || 'N/A'}`);

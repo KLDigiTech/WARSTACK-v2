@@ -1,78 +1,96 @@
-require('dotenv').config();
-const { createClient }    = require('@supabase/supabase-js');
-const { scrapeTrackerGG } = require('../services/scraper');
+const puppeteer     = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+puppeteer.use(StealthPlugin());
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_KEY
-);
+async function scrapeTrackerGG(platform, trackerId) {
+  let browser;
+  try {
+    browser = await puppeteer.launch({
+      headless        : 'new',
+      protocolTimeout : 120000,
+      args            : ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+    });
 
-async function sleep(ms) {
-  return new Promise(r => setTimeout(r, ms));
-}
+    const page = await browser.newPage();
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
 
-async function runScraper() {
-  console.log('🚀 Démarrage du scraper WARSTACK...');
+    let apiData = null;
 
-  const { data: players, error } = await supabase
-    .from('players')
-    .select('discord_id, tracker_id, username')
-    .not('tracker_id', 'is', null);
+    page.on('response', async (response) => {
+      const url = response.url();
+      if (url.includes('/api/v2/bf6/') && url.includes(trackerId)) {
+        try {
+          const json = await response.json();
+          if (json?.data?.segments) apiData = json.data;
+        } catch (e) {}
+      }
+    });
 
-  if (error || !players?.length) {
-    console.log('❌ Aucun joueur trouvé ou erreur:', error);
-    return;
-  }
+    const url = `https://tracker.gg/bf6/profile/${trackerId}/overview`;
+    console.log(`🌐 Scraping: ${url}`);
 
-  console.log(`👥 ${players.length} joueur(s) à scraper`);
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await new Promise(r => setTimeout(r, 8000));
 
-  for (const player of players) {
-    console.log(`\n🎮 Scraping ${player.username || player.discord_id} (${player.tracker_id})`);
-
-    const stats = await scrapeTrackerGG('psn', player.tracker_id);
-
-    if (!stats) {
-      console.warn(`⚠️ Échec scraping pour ${player.tracker_id}`);
-      await sleep(5000);
-      continue;
+    if (!apiData) {
+      console.warn('⚠️ Pas de données API interceptées');
+      return null;
     }
 
-    const { error: snapError } = await supabase
-      .from('player_snapshots')
-      .insert({
-        tracker_id  : player.tracker_id,
-        kills       : stats.kills,
-        deaths      : stats.deaths,
-        kd          : stats.kd,
-        wins        : stats.wins,
-        winrate     : stats.winrate,
-        games       : stats.games,
-        playtime    : stats.playtime,
-        br_rank     : stats.br_rank,
-        mp_kills    : stats.mp_kills,
-        mp_deaths   : stats.mp_deaths,
-        mp_kd       : stats.mp_kd,
-        mp_wins     : stats.mp_wins,
-        mp_losses   : stats.mp_losses,
-        mp_winrate  : stats.mp_winrate,
-        br_kills    : stats.br_kills,
-        br_deaths   : stats.br_deaths,
-        br_kd       : stats.br_kd,
-        br_wins     : stats.br_wins,
-        br_winrate  : stats.br_winrate,
-        snapshot_at : new Date().toISOString(),
-      });
+    const segments = apiData.segments || [];
+    const get    = (obj, key) => obj?.[key]?.value        ?? null;
+    const getStr = (obj, key) => obj?.[key]?.displayValue ?? null;
 
-    if (snapError) {
-      console.error(`❌ Erreur snapshot pour ${player.tracker_id}:`, snapError);
-    } else {
-      console.log(`✅ Snapshot sauvegardé — K/D: ${stats.kd} | BR Rank: ${stats.br_rank || 'N/A'}`);
-    }
+    const overview = segments.find(s => s.type === 'overview');
+    const gs       = overview?.stats || {};
 
-    await sleep(10000);
+    const findMode = (name) => segments.find(s =>
+      s.metadata?.name?.toLowerCase().includes(name.toLowerCase())
+    );
+    const mpSeg = findMode('multiplayer') || findMode('multi');
+    const brSeg = findMode('battle royale') || findMode('br quads') || findMode('br');
+    const ms    = mpSeg?.stats || {};
+    const bs    = brSeg?.stats || {};
+
+    // BR Rank depuis segment competitive
+    const compSeg   = segments.find(s => s.type === 'competitive');
+    const brRank    = compSeg?.stats?.currentLevel?.metadata?.name     || null;
+    const brRankImg = compSeg?.stats?.currentLevel?.metadata?.imageUrl || null;
+
+    const result = {
+      trackerId,
+      kills      : get(gs, 'kills')         || 0,
+      deaths     : get(gs, 'deaths')        || 0,
+      kd         : get(gs, 'kdRatio')       || 0,
+      wins       : get(gs, 'wins')          || 0,
+      games      : get(gs, 'matchesPlayed') || 0,
+      playtime   : getStr(gs, 'timePlayed') || '0h',
+      winrate    : get(gs, 'wlPercentage')  || 0,
+      br_rank    : brRank,
+      br_rank_img: brRankImg,
+      mp_kills   : get(ms, 'kills')        || 0,
+      mp_deaths  : get(ms, 'deaths')       || 0,
+      mp_kd      : get(ms, 'kdRatio')      || 0,
+      mp_wins    : get(ms, 'wins')         || 0,
+      mp_losses  : get(ms, 'losses')       || 0,
+      mp_winrate : get(ms, 'wlPercentage') || 0,
+      br_kills   : get(bs, 'kills')        || 0,
+      br_deaths  : get(bs, 'deaths')       || 0,
+      br_kd      : get(bs, 'kdRatio')      || 0,
+      br_wins    : get(bs, 'wins')         || 0,
+      br_winrate : get(bs, 'wlPercentage') || 0,
+      source     : 'tracker.gg-api'
+    };
+
+    console.log(`✅ K/D: ${result.kd} | MP Kills: ${result.mp_kills} | BR Rank: ${result.br_rank || 'N/A'}`);
+    return result;
+
+  } catch (error) {
+    console.error('❌ Scraper error:', error.message);
+    return null;
+  } finally {
+    if (browser) await browser.close();
   }
-
-  console.log('\n✅ Scraper terminé !');
 }
 
-runScraper().catch(console.error);
+module.exports = { scrapeTrackerGG };

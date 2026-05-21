@@ -1,7 +1,7 @@
 // dashboard/js/sections/register.js
 
 import { supabase } from '../supabaseClient.js';
-
+console.log('register.js chargé');
 const TRACKER_REGEX = /tracker\.gg\/bf6\/profile\/(\d+)/;
 
 // =====================================================
@@ -9,13 +9,22 @@ const TRACKER_REGEX = /tracker\.gg\/bf6\/profile\/(\d+)/;
 // =====================================================
 
 async function init() {
+  console.log('init start');
   showState('loading');
 
-  const { data: { session } } = await supabase.auth.getSession();
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    console.log('session data:', data);
+    console.log('session error:', error);
 
-  if (session?.user) {
-    await handleLoggedIn(session.user);
-  } else {
+    if (data?.session?.user) {
+      await handleLoggedIn(data.session.user);
+    } else {
+      showState('discord');
+      initDiscordBtn();
+    }
+  } catch(e) {
+    console.error('init crash:', e);
     showState('discord');
     initDiscordBtn();
   }

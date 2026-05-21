@@ -3,6 +3,7 @@
 import { supabase } from '../supabaseClient.js';
 
 let _multipleTournois = false;
+let _allTournois = [];
 
 async function init() {
   showState('loading');
@@ -18,28 +19,38 @@ async function init() {
     return;
   }
 
+  _allTournois = tournois;
   _multipleTournois = tournois.length > 1;
+
+  // Bouton retour du state-choose → history.back()
+  document.getElementById('btn-back-choose')?.addEventListener('click', () => {
+    window.close();
+  });
 
   if (tournois.length === 1) {
     await setupTournoi(tournois[0]);
   } else {
-    showState('choose');
-    const list = document.getElementById('tournois-list');
-    list.innerHTML = tournois.map(t => `
-      <button class="tournoi-choice-btn" data-id="${t.id}">
-        <div class="tc-name">${t.name}</div>
-        <div class="tc-dates">${formatDate(t.start_date)} → ${formatDate(t.end_date)}</div>
-        ${t.phase ? `<div class="tc-phase">${t.phase}</div>` : ''}
-      </button>
-    `).join('');
-
-    list.querySelectorAll('.tournoi-choice-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const tournoi = tournois.find(t => t.id === btn.dataset.id);
-        if (tournoi) setupTournoi(tournoi);
-      });
-    });
+    showChoose(tournois);
   }
+}
+
+function showChoose(tournois) {
+  showState('choose');
+  const list = document.getElementById('tournois-list');
+  list.innerHTML = tournois.map(t => `
+    <button class="tournoi-choice-btn" data-id="${t.id}">
+      <div class="tc-name">${t.name}</div>
+      <div class="tc-dates">${formatDate(t.start_date)} → ${formatDate(t.end_date)}</div>
+      ${t.phase ? `<div class="tc-phase">${t.phase}</div>` : ''}
+    </button>
+  `).join('');
+
+  list.querySelectorAll('.tournoi-choice-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tournoi = tournois.find(t => t.id === btn.dataset.id);
+      if (tournoi) setupTournoi(tournoi);
+    });
+  });
 }
 
 async function setupTournoi(tournoi) {
@@ -64,15 +75,18 @@ function initForm(tournoi) {
   const platformBtns = document.querySelectorAll('.platform-btn');
   let selectedPlatform = null;
 
-  // BOUTON RETOUR — clone d'abord, style après
+  // Bouton retour du state-form
   const btnBackOld = document.getElementById('btn-back');
   if (btnBackOld) {
     const btnBack = btnBackOld.cloneNode(true);
     btnBackOld.replaceWith(btnBack);
-    btnBack.style.display = _multipleTournois ? 'inline-flex' : 'none';
     btnBack.addEventListener('click', () => {
       resetForm();
-      showState('choose');
+      if (_multipleTournois) {
+        showChoose(_allTournois);
+      } else {
+        window.close();
+      }
     });
   }
 

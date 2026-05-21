@@ -214,4 +214,22 @@ async function postTournamentLeaderboard(client, tournamentId) {
   console.log(`✅ Leaderboard tournoi ${tournoi.name} mis à jour dans #tournoi-live`);
 }
 
+
+// DISCORD USER INFO
+router.get("/user/:id", auth, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user   = await global.botClient.users.fetch(userId);
+    if (!user) return res.status(404).json({ error: "Utilisateur introuvable" });
+    res.json({
+      id       : user.id,
+      username : user.username,
+      avatar   : user.displayAvatarURL({ size: 128, extension: "png" }),
+      tag      : user.tag || user.username,
+    });
+  } catch (e) {
+    res.status(404).json({ error: "Utilisateur introuvable : " + e.message });
+  }
+});
+
 module.exports = router;

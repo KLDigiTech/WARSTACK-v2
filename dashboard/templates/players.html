@@ -9,9 +9,72 @@
         <i class="fas fa-search"></i>
         <input type="text" id="search-player" class="players-search" placeholder="Rechercher un joueur...">
       </div>
+      <button class="btn btn-primary" id="btn-add-player">
+        <i class="fas fa-user-plus"></i> Ajouter un joueur
+      </button>
     </div>
 
     <div id="players-grid"></div>
 
+  </div>
+</div>
+
+<!-- MODAL AJOUT JOUEUR -->
+<div class="modal-overlay" id="modal-add-player" style="display:none">
+  <div class="modal-add-box">
+    <div class="modal-add-header">
+      <span>⚔️ AJOUTER UN JOUEUR</span>
+      <button class="modal-add-close" id="modal-add-close">✕</button>
+    </div>
+    <div class="modal-add-body">
+
+      <!-- DISCORD ID EN PREMIER → auto-fill username + avatar -->
+      <div class="form-group">
+        <label class="form-label">DISCORD ID <span style="color:var(--text-muted);font-size:0.75rem">(colle l'ID → username auto)</span></label>
+        <div style="display:flex;gap:0.5rem">
+          <input type="text" class="form-input" id="add-discord-id" placeholder="ex: 123456789012345678" style="flex:1">
+          <button class="btn btn-secondary" id="btn-fetch-discord" style="white-space:nowrap">
+            <i class="fas fa-search"></i> Fetch
+          </button>
+        </div>
+        <div id="add-discord-preview" style="display:none;align-items:center;gap:0.75rem;margin-top:0.6rem;padding:0.6rem;background:var(--bg-dark);border-radius:6px">
+          <img id="add-discord-avatar" src="" style="width:36px;height:36px;border-radius:50%">
+          <span id="add-discord-username" style="font-weight:700;color:var(--green)"></span>
+        </div>
+        <div class="hint err" id="add-discord-error" style="display:none"></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">USERNAME *</label>
+        <input type="text" class="form-input" id="add-username" placeholder="Rempli auto ou saisis manuellement">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">PSEUDO BATTLEFIELD 6 *</label>
+        <input type="text" class="form-input" id="add-pseudo-bf6" placeholder="Pseudo exact en jeu">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">URL TRACKER.GG <span style="color:var(--text-muted);font-size:0.75rem">(optionnel)</span></label>
+        <input type="text" class="form-input" id="add-tracker-url" placeholder="https://tracker.gg/bf6/profile/psn/PSEUDO/1023163556057">
+        <div class="hint" id="add-tracker-hint" style="display:none"></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">PLATEFORME *</label>
+        <div class="platform-grid">
+          <button class="platform-btn" data-platform="psn"><i class="fab fa-playstation"></i> PlayStation</button>
+          <button class="platform-btn" data-platform="xbox"><i class="fab fa-xbox"></i> Xbox</button>
+          <button class="platform-btn" data-platform="pc"><i class="fas fa-desktop"></i> PC</button>
+        </div>
+      </div>
+
+      <div id="add-error" class="hint err" style="display:none"></div>
+
+      <button class="btn btn-primary" id="btn-add-confirm" style="width:100%;margin-top:1rem" disabled>
+        <i class="fas fa-plus"></i> INSCRIRE LE JOUEUR
+      </button>
+
+    </div>
   </div>
 </div>

@@ -799,3 +799,28 @@
   letter-spacing: 2px;
   margin-left: 0.25rem;
 }
+
+/* ── GRILLE 4 COLONNES ── */
+.profil-stats-grid.grid-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* ── BR RANK BANNER (onglet BR) ── */
+.profil-br-rank-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+  padding: 0.6rem 1.25rem;
+  background: linear-gradient(135deg, rgba(192,192,192,0.1), rgba(192,192,192,0.05));
+  border: 1px solid rgba(192,192,192,0.3);
+  border-radius: 8px;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 3px;
+  color: #C0C0C0;
+  text-transform: uppercase;
+}
+.profil-br-rank-banner i { font-size: 1rem; }

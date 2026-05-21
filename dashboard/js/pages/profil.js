@@ -32,12 +32,12 @@ function formatDate(d) {
   return new Date(d).toLocaleDateString('fr-FR');
 }
 
-function fmt(v) {
+function fmt(v, isPercent = false) {
   if (v === null || v === undefined || v === 0) return '—';
-  return typeof v === 'number' && v > 100 ? Number(v).toLocaleString('fr-FR') : v;
+  if (isPercent) return `${parseFloat(v).toFixed(1)}%`;
+  return typeof v === 'number' && v > 999 ? Number(v).toLocaleString('fr-FR') : v;
 }
 
-// ─── ONGLETS ────────────────────────────────────────────────────────────────
 function initTabs() {
   document.querySelectorAll('.profil-tab').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -49,7 +49,6 @@ function initTabs() {
   });
 }
 
-// ─── LOAD ────────────────────────────────────────────────────────────────────
 async function loadProfil() {
   if (!discordId) { showNotFound(); return; }
 
@@ -75,35 +74,37 @@ async function loadProfil() {
   document.getElementById('p-score').textContent          = score;
   document.documentElement.style.setProperty('--division-color', division.color);
 
-  // BR Rank badge
+  // BR Rank badge hero
   if (snapshot?.br_rank) {
-    document.getElementById('p-br-rank').style.display  = 'flex';
+    document.getElementById('p-br-rank').style.display     = 'flex';
     document.getElementById('p-br-rank-value').textContent = snapshot.br_rank;
   }
 
-  // Stats Global
-  document.getElementById('p-kills').textContent   = snapshot?.kills   ? Number(snapshot.kills).toLocaleString('fr-FR')   : '—';
-  document.getElementById('p-deaths').textContent  = snapshot?.deaths  ? Number(snapshot.deaths).toLocaleString('fr-FR')  : '—';
-  document.getElementById('p-kd').textContent      = snapshot?.kd      ?? '—';
-  document.getElementById('p-wins').textContent    = snapshot?.wins    ?? '—';
-  document.getElementById('p-games').textContent   = snapshot?.games   ?? '—';
-  document.getElementById('p-winrate').textContent = snapshot?.winrate ? `${snapshot.winrate}%` : '—';
+  // Global
+  document.getElementById('p-kills').textContent   = snapshot?.kills   ? Number(snapshot.kills).toLocaleString('fr-FR')  : '—';
+  document.getElementById('p-deaths').textContent  = snapshot?.deaths  ? Number(snapshot.deaths).toLocaleString('fr-FR') : '—';
+  document.getElementById('p-kd').textContent      = snapshot?.kd      || '—';
+  document.getElementById('p-wins').textContent    = snapshot?.wins    || '—';
+  document.getElementById('p-games').textContent   = snapshot?.games   || '—';
+  document.getElementById('p-winrate').textContent = snapshot?.winrate ? `${parseFloat(snapshot.winrate).toFixed(1)}%` : '—';
 
-  // Stats Multiplayer
+  // Multiplayer
   document.getElementById('p-mp-kills').textContent   = fmt(snapshot?.mp_kills);
   document.getElementById('p-mp-deaths').textContent  = fmt(snapshot?.mp_deaths);
-  document.getElementById('p-mp-kd').textContent      = snapshot?.mp_kd || '—';
-  document.getElementById('p-mp-wins').textContent    = fmt(snapshot?.mp_wins);
-  document.getElementById('p-mp-losses').textContent  = fmt(snapshot?.mp_losses);
-  document.getElementById('p-mp-winrate').textContent = snapshot?.mp_winrate ? `${snapshot.mp_winrate}%` : '—';
+  document.getElementById('p-mp-kd').textContent      = snapshot?.mp_kd   || '—';
+  document.getElementById('p-mp-winrate').textContent = fmt(snapshot?.mp_winrate, true);
 
-  // Stats Battle Royale
-  document.getElementById('p-br-kills').textContent    = fmt(snapshot?.br_kills);
-  document.getElementById('p-br-deaths').textContent   = fmt(snapshot?.br_deaths);
-  document.getElementById('p-br-kd').textContent       = snapshot?.br_kd || '—';
-  document.getElementById('p-br-wins').textContent     = fmt(snapshot?.br_wins);
-  document.getElementById('p-br-rank-stat').textContent = snapshot?.br_rank || '—';
-  document.getElementById('p-br-winrate').textContent  = snapshot?.br_winrate ? `${snapshot.br_winrate}%` : '—';
+  // Battle Royale
+  document.getElementById('p-br-kills').textContent   = fmt(snapshot?.br_kills);
+  document.getElementById('p-br-deaths').textContent  = fmt(snapshot?.br_deaths);
+  document.getElementById('p-br-kd').textContent      = snapshot?.br_kd   || '—';
+  document.getElementById('p-br-winrate').textContent = fmt(snapshot?.br_winrate, true);
+
+  // BR Rank banner dans onglet BR
+  if (snapshot?.br_rank) {
+    document.getElementById('p-br-rank-banner').style.display       = 'flex';
+    document.getElementById('p-br-rank-banner-value').textContent   = snapshot.br_rank;
+  }
 
   // Tracker link
   if (player.tracker_url) {
@@ -125,7 +126,6 @@ async function loadProfil() {
 
 async function loadTournois(discordId) {
   const container = document.getElementById('p-tournois');
-
   const entries = await fetchSupabase(`tournament_entries?discord_id=eq.${discordId}&select=*`);
   if (!entries?.length) {
     container.innerHTML = '<div class="profil-empty">Aucun tournoi participé pour l\'instant.</div>';
@@ -136,25 +136,16 @@ async function loadTournois(discordId) {
     const tournois = await fetchSupabase(`tournaments?id=eq.${entry.tournament_id}&select=*`);
     const tournoi  = tournois?.[0];
     if (!tournoi) return null;
-
-    const subs = await fetchSupabase(`tournament_submissions?tournament_id=eq.${entry.tournament_id}&discord_id=eq.${discordId}&order=submitted_at.desc&limit=1`);
-    const sub  = subs?.[0] || null;
-
+    const subs   = await fetchSupabase(`tournament_submissions?tournament_id=eq.${entry.tournament_id}&discord_id=eq.${discordId}&order=submitted_at.desc&limit=1`);
+    const sub    = subs?.[0] || null;
     const scores = await fetchSupabase(`tournament_scores?tournament_id=eq.${entry.tournament_id}&order=score.desc`);
     const rank   = scores?.findIndex(s => s.discord_id === discordId) ?? -1;
     const rankDisplay = rank >= 0 ? `#${rank + 1}` : '—';
-    const isMvp  = rank === 0;
-    const isTop3 = rank >= 0 && rank < 3;
-
-    return { tournoi, sub, rankDisplay, isMvp, isTop3 };
+    return { tournoi, sub, rankDisplay, isMvp: rank === 0, isTop3: rank >= 0 && rank < 3 };
   }));
 
   const valid = rows.filter(Boolean);
-
-  if (!valid.length) {
-    container.innerHTML = '<div class="profil-empty">Aucune donnée de tournoi disponible.</div>';
-    return;
-  }
+  if (!valid.length) { container.innerHTML = '<div class="profil-empty">Aucune donnée de tournoi.</div>'; return; }
 
   container.innerHTML = valid.map(({ tournoi, sub, rankDisplay, isMvp, isTop3 }) => `
     <div class="profil-tournoi-card">
@@ -164,35 +155,17 @@ async function loadTournois(discordId) {
         <div class="profil-tournoi-phase">${formatDate(tournoi.start_date)} → ${formatDate(tournoi.end_date)}</div>
       </div>
       <div class="profil-tournoi-stats">
-        <div class="profil-tournoi-stat">
-          <strong>${sub?.kd ?? '—'}</strong>
-          <span>K/D</span>
-        </div>
-        <div class="profil-tournoi-stat">
-          <strong>${sub?.kills ?? '—'}</strong>
-          <span>Kills</span>
-        </div>
-        <div class="profil-tournoi-stat">
-          <strong>${rankDisplay}</strong>
-          <span>Classement</span>
-        </div>
+        <div class="profil-tournoi-stat"><strong>${sub?.kd ?? '—'}</strong><span>K/D</span></div>
+        <div class="profil-tournoi-stat"><strong>${sub?.kills ?? '—'}</strong><span>Kills</span></div>
+        <div class="profil-tournoi-stat"><strong>${rankDisplay}</strong><span>Classement</span></div>
       </div>
-      ${isMvp  ? '<div class="profil-tournoi-badge mvp">⭐ MVP</div>'   : ''}
+      ${isMvp ? '<div class="profil-tournoi-badge mvp">⭐ MVP</div>' : ''}
       ${isTop3 && !isMvp ? '<div class="profil-tournoi-badge top3">🏆 Top 3</div>' : ''}
     </div>
   `).join('');
 }
 
-function showNotFound() {
-  loading.style.display  = 'none';
-  notfound.style.display = 'flex';
-  content.style.display  = 'none';
-}
-
-function showContent() {
-  loading.style.display  = 'none';
-  notfound.style.display = 'none';
-  content.style.display  = 'block';
-}
+function showNotFound() { loading.style.display='none'; notfound.style.display='flex'; content.style.display='none'; }
+function showContent()  { loading.style.display='none'; notfound.style.display='none'; content.style.display='block'; }
 
 loadProfil();

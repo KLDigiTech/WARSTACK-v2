@@ -16,9 +16,7 @@
   <main class="profil-page">
 
     <div class="profil-header">
-      <a href="index.html" class="profil-back">
-        <i class="fas fa-arrow-left"></i> Dashboard
-      </a>
+      <a href="index.html" class="profil-back"><i class="fas fa-arrow-left"></i> Dashboard</a>
       <div class="profil-brand">⚔️ WARSTACK</div>
     </div>
 
@@ -45,7 +43,6 @@
           <div class="profil-username" id="p-username"></div>
           <div class="profil-platform" id="p-platform"></div>
           <div class="profil-division" id="p-division"></div>
-          <!-- BR RANK BADGE -->
           <div class="profil-br-rank" id="p-br-rank" style="display:none">
             <i class="fas fa-shield-alt"></i>
             <span id="p-br-rank-value"></span>
@@ -58,14 +55,14 @@
         </div>
       </div>
 
-      <!-- ONGLETS STATS -->
+      <!-- ONGLETS -->
       <div class="profil-tabs">
         <button class="profil-tab active" data-tab="global">🌍 Global</button>
         <button class="profil-tab" data-tab="mp">🎯 Multiplayer</button>
         <button class="profil-tab" data-tab="br">🪂 Battle Royale</button>
       </div>
 
-      <!-- TAB GLOBAL -->
+      <!-- GLOBAL -->
       <div class="profil-tab-content active" id="tab-global">
         <div class="profil-stats-grid">
           <div class="profil-stat-card">
@@ -101,9 +98,9 @@
         </div>
       </div>
 
-      <!-- TAB MULTIPLAYER -->
+      <!-- MULTIPLAYER — Kills / Deaths / KD / Win Rate -->
       <div class="profil-tab-content" id="tab-mp" style="display:none">
-        <div class="profil-stats-grid">
+        <div class="profil-stats-grid grid-4">
           <div class="profil-stat-card">
             <div class="profil-stat-icon"><i class="fas fa-crosshairs"></i></div>
             <div class="profil-stat-value" id="p-mp-kills">—</div>
@@ -120,16 +117,6 @@
             <div class="profil-stat-label">K/D Ratio</div>
           </div>
           <div class="profil-stat-card">
-            <div class="profil-stat-icon"><i class="fas fa-trophy"></i></div>
-            <div class="profil-stat-value" id="p-mp-wins">—</div>
-            <div class="profil-stat-label">Wins</div>
-          </div>
-          <div class="profil-stat-card">
-            <div class="profil-stat-icon"><i class="fas fa-times-circle"></i></div>
-            <div class="profil-stat-value" id="p-mp-losses">—</div>
-            <div class="profil-stat-label">Losses</div>
-          </div>
-          <div class="profil-stat-card">
             <div class="profil-stat-icon"><i class="fas fa-flag"></i></div>
             <div class="profil-stat-value" id="p-mp-winrate">—</div>
             <div class="profil-stat-label">Win Rate</div>
@@ -137,9 +124,14 @@
         </div>
       </div>
 
-      <!-- TAB BATTLE ROYALE -->
+      <!-- BATTLE ROYALE — Kills / Deaths / KD / Win Rate + BR Rank badge -->
       <div class="profil-tab-content" id="tab-br" style="display:none">
-        <div class="profil-stats-grid">
+        <div class="profil-br-rank-banner" id="p-br-rank-banner" style="display:none">
+          <i class="fas fa-shield-alt"></i>
+          <span id="p-br-rank-banner-value"></span>
+          <span class="br-rank-label">RANKED</span>
+        </div>
+        <div class="profil-stats-grid grid-4">
           <div class="profil-stat-card">
             <div class="profil-stat-icon"><i class="fas fa-crosshairs"></i></div>
             <div class="profil-stat-value" id="p-br-kills">—</div>
@@ -154,16 +146,6 @@
             <div class="profil-stat-icon"><i class="fas fa-chart-line"></i></div>
             <div class="profil-stat-value" id="p-br-kd">—</div>
             <div class="profil-stat-label">K/D Ratio</div>
-          </div>
-          <div class="profil-stat-card">
-            <div class="profil-stat-icon"><i class="fas fa-trophy"></i></div>
-            <div class="profil-stat-value" id="p-br-wins">—</div>
-            <div class="profil-stat-label">Wins</div>
-          </div>
-          <div class="profil-stat-card">
-            <div class="profil-stat-icon"><i class="fas fa-shield-alt"></i></div>
-            <div class="profil-stat-value" id="p-br-rank-stat">—</div>
-            <div class="profil-stat-label">BR Rank</div>
           </div>
           <div class="profil-stat-card">
             <div class="profil-stat-icon"><i class="fas fa-flag"></i></div>
@@ -185,10 +167,8 @@
       </div>
 
     </div>
-
   </main>
 
   <script type="module" src="./js/pages/profil.js"></script>
-
 </body>
 </html>

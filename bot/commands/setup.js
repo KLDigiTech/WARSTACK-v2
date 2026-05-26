@@ -7,7 +7,7 @@ module.exports = {
 
   async execute(interaction) {
     const row = new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setLabel('🖥️ Dashboard Admin').setURL('https://warstack.netlify.app').setStyle(ButtonStyle.Link),
+      new ButtonBuilder().setLabel('🖥️ Dashboard Admin').setURL('https://warstack-v2.vercel.app/login').setStyle(ButtonStyle.Link),
       new ButtonBuilder().setLabel('🌐 Classement Live').setURL('https://kldigitech.github.io/pof-bf6/Pages/tournoi.html').setStyle(ButtonStyle.Link),
       new ButtonBuilder().setLabel('💬 Serveur Discord').setURL('https://discord.gg/tonlien').setStyle(ButtonStyle.Link),
     );

@@ -621,28 +621,27 @@ async function loadScoreboard() {
   const tournoi   = await getTournoiActif();
   if (!tournoi) { container.innerHTML = '<div class="empty-state"><i class="fas fa-trophy"></i>Aucun tournoi actif</div>'; return; }
 
-  // Scores joueurs + jointure players pour username/avatar
-  const scores  = await fetchSupabase(`tournament_scores?tournament_id=eq.${tournoi.id}&order=total_score.desc&select=*,players(username,avatar_url)`);
-  // Inscrits pour récupérer team_name/team_id par discord_id
+  const scores   = await fetchSupabase(`tournament_scores?tournament_id=eq.${tournoi.id}&order=total_score.desc`);
+  const players  = await fetchSupabase(`players?select=discord_id,username,avatar_url`);
   const inscrits = await fetchSupabase(`tournament_entries?tournament_id=eq.${tournoi.id}&select=discord_id,team_id,team_name`);
-  // Équipes du tournoi
-  const teams   = await fetchSupabase(`teams?tournament_id=eq.${tournoi.id}&select=*`);
 
   if (!scores?.length) { container.innerHTML = '<div class="empty-state"><i class="fas fa-chart-bar"></i>Aucun score</div>'; return; }
 
-  // Map discord_id → team
+  const playerMap = {};
+  (players || []).forEach(p => { playerMap[p.discord_id] = p; });
+
   const teamByPlayer = {};
   (inscrits || []).forEach(e => { teamByPlayer[e.discord_id] = { id: e.team_id, name: e.team_name }; });
 
-  // Grouper scores par équipe
   const teamScores = {};
   const soloScores = [];
+  const medals = ['🥇', '🥈', '🥉'];
 
   scores.forEach(s => {
-    const username = s.players?.username || s.discord_id;
-    const avatar   = s.players?.avatar_url || null;
+    const username = playerMap[s.discord_id]?.username || s.discord_id;
+    const avatar   = playerMap[s.discord_id]?.avatar_url || null;
     const team     = teamByPlayer[s.discord_id];
-    const entry    = { ...s, username, avatar, teamName: team?.name || null, teamId: team?.id || null };
+    const entry    = { ...s, username, avatar };
 
     if (team?.id) {
       if (!teamScores[team.id]) teamScores[team.id] = { name: team.name, total_score: 0, total_kills: 0, games_played: 0, players: [] };
@@ -656,24 +655,19 @@ async function loadScoreboard() {
   });
 
   const sortedTeams = Object.values(teamScores).sort((a, b) => b.total_score - a.total_score);
-  const medals = ['🥇', '🥈', '🥉'];
-  const topKiller = [...scores].sort((a, b) => (b.total_kills || 0) - (a.total_kills || 0))[0];
+  const topKiller   = [...scores].sort((a, b) => (b.total_kills || 0) - (a.total_kills || 0))[0];
 
-  let html = '';
-
-  // AWARDS
-  html += `
+  let html = `
     <div class="scoreboard-awards">
       <div class="award-card">
         <div class="award-icon">💀</div>
         <div class="award-label">TOP KILLER</div>
-        <div class="award-value">${topKiller.players?.username || topKiller.discord_id}</div>
+        <div class="award-value">${playerMap[topKiller.discord_id]?.username || topKiller.discord_id}</div>
         <div class="award-sub">${topKiller.total_kills} kills</div>
       </div>
     </div>
   `;
 
-  // CLASSEMENT PAR EQUIPE
   if (sortedTeams.length) {
     html += `<div class="scoreboard-section-title">🛡️ CLASSEMENT PAR ÉQUIPE</div>`;
     html += `<table class="data-table">
@@ -691,7 +685,6 @@ async function loadScoreboard() {
       </tbody>
     </table>`;
 
-    // DETAIL PAR EQUIPE
     sortedTeams.forEach((t, i) => {
       html += `
         <div class="scoreboard-team-block">
@@ -717,7 +710,6 @@ async function loadScoreboard() {
     });
   }
 
-  // JOUEURS SANS EQUIPE
   if (soloScores.length) {
     html += `<div class="scoreboard-section-title" style="margin-top:2rem">👤 JOUEURS SANS ÉQUIPE</div>`;
     html += `<table class="data-table">

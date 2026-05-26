@@ -33,21 +33,16 @@
       Aucun tournoi en cours.<br>Reviens plus tard.
     </div>
 
-    <!-- CHOIX TOURNOI si plusieurs -->
+    <!-- CHOIX TOURNOI -->
     <div id="state-choose" class="insc-state">
-      <button class="btn-back" id="btn-back-choose">
-        <i class="fas fa-chevron-left"></i> Retour
-      </button>
+      <button class="btn-back" id="btn-back-choose"><i class="fas fa-chevron-left"></i> Retour</button>
       <div class="tournoi-choose-title">🏆 CHOISIS TON TOURNOI</div>
       <div id="tournois-list" class="tournois-list"></div>
     </div>
 
     <!-- FORMULAIRE -->
     <div id="state-form" class="insc-state">
-
-      <button class="btn-back" id="btn-back">
-        <i class="fas fa-chevron-left"></i> Retour
-      </button>
+      <button class="btn-back" id="btn-back"><i class="fas fa-chevron-left"></i> Retour</button>
 
       <div class="tournoi-banner">
         <div class="tournoi-name" id="tournoi-name">—</div>
@@ -55,24 +50,44 @@
         <div class="badge-actif">● EN COURS</div>
       </div>
 
+      <!-- PSEUDO -->
       <div class="form-group">
         <label class="form-label">PSEUDO BATTLEFIELD 6 *</label>
         <input type="text" class="form-input" id="psn-input" placeholder="Ton pseudo exact en jeu" autocomplete="off">
         <div class="hint" id="psn-hint" style="display:none"></div>
       </div>
 
+      <!-- PLATEFORME -->
       <div class="form-group" style="margin-top:1.25rem">
         <label class="form-label">PLATEFORME *</label>
         <div class="platform-grid">
-          <button class="platform-btn" data-platform="psn">
-            <i class="fab fa-playstation"></i> PlayStation
+          <button class="platform-btn" data-platform="psn"><i class="fab fa-playstation"></i> PlayStation</button>
+          <button class="platform-btn" data-platform="xbox"><i class="fab fa-xbox"></i> Xbox</button>
+          <button class="platform-btn" data-platform="pc"><i class="fas fa-desktop"></i> PC</button>
+        </div>
+      </div>
+
+      <hr class="insc-sep">
+
+      <!-- EQUIPE -->
+      <div class="form-group">
+        <label class="form-label">ÉQUIPE *</label>
+        <div class="team-mode-grid">
+          <button class="team-mode-btn active" id="btn-join-team" data-mode="join">
+            <i class="fas fa-users"></i> Rejoindre
           </button>
-          <button class="platform-btn" data-platform="xbox">
-            <i class="fab fa-xbox"></i> Xbox
+          <button class="team-mode-btn" id="btn-create-team" data-mode="create">
+            <i class="fas fa-plus"></i> Créer
           </button>
-          <button class="platform-btn" data-platform="pc">
-            <i class="fas fa-desktop"></i> PC
-          </button>
+        </div>
+
+        <div id="team-join-section">
+          <div id="teams-list" class="teams-list"></div>
+        </div>
+
+        <div id="team-create-section" style="display:none">
+          <input type="text" class="form-input" id="team-name-input" placeholder="Nom de ton équipe" autocomplete="off" maxlength="30">
+          <div class="hint" id="team-name-hint" style="display:none"></div>
         </div>
       </div>
 
@@ -86,7 +101,6 @@
         Tu seras redirigé vers Discord pour confirmer ton identité.<br>
         Aucun message ne sera posté en ton nom.
       </div>
-
     </div>
 
     <!-- SUCCESS -->
@@ -94,7 +108,7 @@
       <div class="success-wrap">
         <div class="success-icon"><i class="fas fa-check-circle"></i></div>
         <div class="success-title">INSCRIT !</div>
-        <div class="success-sub">Tu es dans la liste. Good luck soldier.</div>
+        <div class="success-sub">Tu es dans la liste. Bonne Chance Soldat !.</div>
         <div class="success-recap" id="success-recap"></div>
       </div>
     </div>

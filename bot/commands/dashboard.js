@@ -23,7 +23,7 @@ module.exports = {
 
     await interaction.reply({
       embeds: [embed],
-      components: [new ActionRowBuilder().addComponents(new ButtonBuilder().setLabel('🖥️ Ouvrir le Dashboard').setURL('https://warstack-v2.vercel.app/login').setStyle(ButtonStyle.Link))],
+      components: [new ActionRowBuilder().addComponents(new ButtonBuilder().setLabel('🖥️ Ouvrir le Dashboard').setURL('https://warstack-v2.vercel.app/login.html').setStyle(ButtonStyle.Link))],
       ephemeral: true
     });
   }

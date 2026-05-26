@@ -111,7 +111,6 @@ function initForm(tournoi) {
   const teamNameHint  = document.getElementById('team-name-hint');
   _selectedPlatform   = null;
 
-  // Retour
   const btnBackOld = document.getElementById('btn-back');
   if (btnBackOld) {
     const btnBack = btnBackOld.cloneNode(true);
@@ -122,11 +121,9 @@ function initForm(tournoi) {
     });
   }
 
-  // Mode équipe
   document.getElementById('btn-join-team')?.addEventListener('click',   () => switchTeamMode('join'));
   document.getElementById('btn-create-team')?.addEventListener('click', () => switchTeamMode('create'));
 
-  // Pseudo
   bfInput.value = '';
   bfHint.style.display = 'none';
   bfInput.addEventListener('input', () => {
@@ -136,7 +133,6 @@ function initForm(tournoi) {
     checkReady();
   });
 
-  // Plateforme
   platformBtns.forEach(b => b.classList.remove('selected'));
   platformBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -147,7 +143,6 @@ function initForm(tournoi) {
     });
   });
 
-  // Nom équipe
   teamNameInput?.addEventListener('input', () => {
     const val = teamNameInput.value.trim();
     _selectedTeamName = val.length >= 2 ? val : null;
@@ -196,13 +191,16 @@ function checkReady() {
 }
 
 async function handleLoggedIn(user, tournoi) {
+  // Vrai Discord ID
+  const discordId = user.user_metadata?.provider_id || user.user_metadata?.sub || user.id;
+
   const saved = sessionStorage.getItem('ws_inscription');
   if (!saved) { showState('form'); await loadTeams(tournoi.id); initForm(tournoi); return; }
 
   const { pseudo, platform, tournament_id, team } = JSON.parse(saved);
 
   const { data: existing } = await supabase.from('tournament_entries').select('id')
-    .eq('tournament_id', tournament_id).eq('discord_id', user.id).maybeSingle();
+    .eq('tournament_id', tournament_id).eq('discord_id', discordId).maybeSingle();
 
   if (existing) {
     showSuccess({ pseudo, platform, username: user.user_metadata?.full_name || user.email, avatar: user.user_metadata?.avatar_url, already: true, teamName: team?.name });
@@ -210,7 +208,6 @@ async function handleLoggedIn(user, tournoi) {
     return;
   }
 
-  // Créer ou récupérer équipe
   let teamId   = team?.id || null;
   let teamName = team?.name || null;
 
@@ -221,30 +218,30 @@ async function handleLoggedIn(user, tournoi) {
       teamId = existingTeam.id;
     } else {
       const { data: newTeam } = await supabase.from('teams').insert({
-        tournament_id, name: team.name, created_by: user.id, created_at: new Date().toISOString()
+        tournament_id, name: team.name, created_by: discordId, created_at: new Date().toISOString()
       }).select().single();
       teamId = newTeam?.id;
     }
   }
 
   await supabase.from('tournament_entries').insert({
-    tournament_id, discord_id: user.id,
+    tournament_id, discord_id: discordId,
     username  : user.user_metadata?.full_name || user.email,
     tracker_id: null, team_id: teamId, team_name: teamName,
     status    : 'active', created_at: new Date().toISOString(),
   });
 
-  const { data: existingPlayer } = await supabase.from('players').select('id').eq('discord_id', user.id).maybeSingle();
+  const { data: existingPlayer } = await supabase.from('players').select('id').eq('discord_id', discordId).maybeSingle();
   if (!existingPlayer) {
     await supabase.from('players').insert({
-      discord_id: user.id, pseudo_bf6: pseudo, platform,
+      discord_id: discordId, pseudo_bf6: pseudo, platform,
       username  : user.user_metadata?.full_name || user.email,
       avatar_url: user.user_metadata?.avatar_url || null, created_at: new Date().toISOString(),
     });
   } else {
     await supabase.from('players').update({
       pseudo_bf6: pseudo, platform, avatar_url: user.user_metadata?.avatar_url || null,
-    }).eq('discord_id', user.id);
+    }).eq('discord_id', discordId);
   }
 
   sessionStorage.removeItem('ws_inscription');

@@ -401,3 +401,14 @@
   letter-spacing: 2px;
   margin-bottom: 0.75rem;
 }
+
+.sub-thumb {
+  width: 60px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.sub-thumb:hover { transform: scale(1.1); }

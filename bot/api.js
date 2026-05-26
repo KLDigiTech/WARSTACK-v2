@@ -65,6 +65,20 @@ router.get('/guild', async (req, res) => {
   res.json({ name: guild.name, icon: guild.iconURL({ dynamic: true, size: 256 }) });
 });
 
+// À ajouter dans bot/api.js après la route /guild
+
+// VÉRIF MEMBRE DU SERVEUR
+router.get('/member/:discordId', async (req, res) => {
+  try {
+    const guild  = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ isMember: false });
+    const member = await guild.members.fetch(req.params.discordId).catch(() => null);
+    res.json({ isMember: !!member, username: member?.user?.username || null });
+  } catch (err) {
+    res.json({ isMember: false });
+  }
+});
+
 // RÉSULTATS TOURNOI
 router.post('/tournament/results', auth, async (req, res) => {
   try {

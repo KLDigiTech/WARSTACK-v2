@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WARSTACK — Lier mon tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/core/variables.css">
+  <link rel="stylesheet" href="css/core/reset.css">
+  <link rel="stylesheet" href="css/core/base.css">
+  <link rel="stylesheet" href="css/sections/inscription.css">
+  <script type="module" src="js/pages/register-public.js"></script>
+</head>
+<body class="inscription-page">
+
+  <div class="inscription-logo">
+    <span class="logo-icon">🔗</span>
+    <span class="logo-text">WARSTACK</span>
+    <div class="logo-sub">LIER MON TRACKER</div>
+  </div>
+
+  <div class="pub-card">
+
+    <div id="state-loading" class="insc-state visible center-msg">
+      <span class="spinner"></span> Chargement...
+    </div>
+
+    <div id="state-no-auth" class="insc-state center-msg">
+      <i class="fab fa-discord" style="font-size:2.5rem;color:#5865F2;display:block;margin-bottom:1rem"></i>
+      Connecte-toi avec Discord pour continuer.
+      <button class="btn-discord btn-full" id="btn-login" style="margin-top:1.5rem">
+        <i class="fab fa-discord"></i> Se connecter avec Discord
+      </button>
+    </div>
+
+    <div id="state-not-member" class="insc-state">
+      <div class="not-member-box">
+        <i class="fas fa-ban"></i>
+        Tu n'es pas membre du serveur WARSTACK.<br>
+        Rejoins le serveur pour participer.
+        <a href="https://discord.gg/teampof" class="invite-btn" target="_blank">
+          <i class="fab fa-discord"></i> Rejoindre le serveur
+        </a>
+      </div>
+    </div>
+
+    <div id="state-form" class="insc-state">
+
+      <div class="user-bar">
+        <img id="user-avatar" src="">
+        <div>
+          <div class="user-bar-name" id="user-name"></div>
+          <div class="user-bar-sub" id="user-status"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">URL TRACKER.GG BATTLEFIELD 6 *</label>
+        <input type="text" class="form-input" id="tracker-url" placeholder="https://tracker.gg/bf6/profile/1234567890/overview" autocomplete="off">
+        <div class="hint" id="tracker-hint" style="display:none"></div>
+      </div>
+
+      <div class="tracker-help">
+        <strong>Comment trouver ton URL ?</strong><br>
+        1. Va sur <a href="https://tracker.gg/bf6" target="_blank">tracker.gg/bf6</a><br>
+        2. Cherche ton pseudo<br>
+        3. Copie l'URL de ta page profil
+      </div>
+
+      <button id="btn-save" class="btn btn-primary btn-full" disabled>
+        <i class="fas fa-link"></i> LIER MON TRACKER
+      </button>
+
+      <div id="save-error" class="error-box" style="display:none"></div>
+    </div>
+
+    <div id="state-success" class="insc-state">
+      <div class="success-wrap">
+        <div class="success-icon"><i class="fas fa-check-circle"></i></div>
+        <div class="success-title">LIÉ !</div>
+        <div class="success-sub">Ton tracker est enregistré.</div>
+        <a href="/inscription.html" class="btn btn-primary btn-full" style="display:block;text-align:center;text-decoration:none;margin-top:1.5rem">
+          🏆 S'inscrire au tournoi
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="inscription-footer">WARSTACK © 2026 — LES POTES Ö FEU</div>
+
+</body>
+</html>

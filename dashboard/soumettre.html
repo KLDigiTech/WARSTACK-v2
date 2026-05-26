@@ -3,15 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WARSTACK — Soumettre un résultat</title>
+  <title>WARSTACK — Soumettre</title>
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="css/core/variables.css">
   <link rel="stylesheet" href="css/core/reset.css">
   <link rel="stylesheet" href="css/core/base.css">
-  <link rel="stylesheet" href="css/components/forms.css">
-  <link rel="stylesheet" href="css/components/buttons.css">
   <link rel="stylesheet" href="css/sections/inscription.css">
+  <script type="module" src="js/pages/soumettre.js"></script>
 </head>
 <body class="inscription-page">
 
@@ -21,342 +20,100 @@
     <div class="logo-sub">SOUMETTRE UN RÉSULTAT</div>
   </div>
 
-  <div class="inscription-card">
+  <div class="pub-card">
 
     <div id="state-loading" class="insc-state visible center-msg">
       <span class="spinner"></span> Chargement...
     </div>
 
     <div id="state-no-auth" class="insc-state center-msg">
-      <i class="fas fa-lock" style="color:var(--orange)"></i>
-      Connecte-toi avec Discord pour soumettre.<br><br>
-      <button class="btn btn-discord" id="btn-login" style="margin:0 auto;display:flex;width:fit-content;padding:0.75rem 2rem">
-        <i class="fab fa-discord"></i> Se connecter
+      <i class="fab fa-discord" style="font-size:2.5rem;color:#5865F2;display:block;margin-bottom:1rem"></i>
+      Connecte-toi avec Discord pour continuer.
+      <button class="btn-discord btn-full" id="btn-login" style="margin-top:1.5rem">
+        <i class="fab fa-discord"></i> Se connecter avec Discord
       </button>
     </div>
 
+    <div id="state-not-member" class="insc-state">
+      <div class="not-member-box">
+        <i class="fas fa-ban"></i>
+        Tu n'es pas membre du serveur WARSTACK.<br>
+        Rejoins le serveur pour participer.
+        <a href="https://discord.gg/teampof" class="invite-btn" target="_blank">
+          <i class="fab fa-discord"></i> Rejoindre le serveur
+        </a>
+      </div>
+    </div>
+
     <div id="state-no-register" class="insc-state center-msg">
-      <i class="fas fa-exclamation-triangle" style="color:var(--orange)"></i>
-      Tu n'as pas de profil tracker.gg lié.<br>
-      Utilise <strong>/register</strong> sur Discord d'abord.
+      <i class="fas fa-link" style="color:var(--orange);font-size:2rem;display:block;margin-bottom:1rem"></i>
+      Tu n'as pas lié ton profil tracker.gg.<br><br>
+      <a href="/register-public.html" style="color:var(--green);font-weight:700">👉 Lier mon tracker</a>
     </div>
 
     <div id="state-no-tournoi" class="insc-state center-msg">
-      <i class="fas fa-ban" style="color:var(--red)"></i>
+      <i class="fas fa-ban" style="color:var(--red);font-size:2rem;display:block;margin-bottom:1rem"></i>
       Aucun tournoi en cours.<br>Reviens plus tard.
     </div>
 
     <div id="state-not-inscrit" class="insc-state center-msg">
-      <i class="fas fa-user-slash" style="color:var(--orange)"></i>
-      Tu n'es pas inscrit à ce tournoi.<br>
-      <a href="/inscription.html" style="color:var(--green);margin-top:1rem;display:inline-block">👉 S'inscrire</a>
+      <i class="fas fa-user-slash" style="color:var(--orange);font-size:2rem;display:block;margin-bottom:1rem"></i>
+      Tu n'es pas inscrit à ce tournoi.<br><br>
+      <a href="/inscription.html" style="color:var(--green);font-weight:700">👉 S'inscrire</a>
     </div>
 
-    <!-- FORMULAIRE -->
     <div id="state-form" class="insc-state">
-
       <div class="tournoi-banner">
         <div class="tournoi-name" id="tournoi-name">—</div>
         <div class="tournoi-dates" id="tournoi-dates">—</div>
         <div class="badge-actif">● EN COURS</div>
       </div>
 
-      <div id="user-info" style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;padding:0.75rem;background:var(--surface-2);border:1px solid var(--border)">
-        <img id="user-avatar" src="" style="width:36px;height:36px;border-radius:50%">
+      <div class="user-bar">
+        <img id="user-avatar" src="">
         <div>
-          <div id="user-name" style="font-weight:700;color:var(--green)"></div>
-          <div id="user-tracker" style="font-size:0.7rem;color:var(--text-muted)"></div>
+          <div class="user-bar-name" id="user-name"></div>
+          <div class="user-bar-sub" id="user-tracker"></div>
         </div>
       </div>
 
-      <div class="soumission-drop-zone" id="sub-drop-zone">
-        <div class="soumission-drop-icon">📁</div>
-        <div class="soumission-drop-text">Glisse ton screenshot ici</div>
-        <div class="soumission-drop-sub">ou clique pour sélectionner</div>
-        <input type="file" id="sub-file-input" accept="image/*" style="display:none">
+      <div class="drop-zone" id="drop-zone">
+        <div class="drop-zone-icon">📁</div>
+        <div class="drop-zone-text">Glisse ton screenshot ici</div>
+        <div class="drop-zone-sub">ou appuie pour sélectionner</div>
+        <input type="file" id="file-input" accept="image/*" style="display:none">
       </div>
 
-      <div id="sub-preview-wrap" style="display:none;margin-top:1rem">
-        <img id="sub-preview-img" alt="preview" style="max-width:100%;max-height:250px;border-radius:8px;border:1px solid var(--border)">
+      <img id="preview-img" class="preview-img" style="display:none">
+
+      <div id="checks" class="checks" style="display:none">
+        <div class="checks-title">🛡️ Vérifications</div>
+        <div id="check-resolution" class="check-item">⏳ Résolution...</div>
+        <div id="check-doublon"    class="check-item">⏳ Doublon...</div>
       </div>
 
-      <div id="sub-anti-cheat" class="anti-cheat-checks" style="display:none;margin-top:1rem">
-        <div class="anti-cheat-title">🛡️ VÉRIFICATIONS</div>
-        <div id="sub-check-resolution" class="check-item">⏳ Résolution...</div>
-        <div id="sub-check-doublon"    class="check-item">⏳ Doublon...</div>
-      </div>
-
-      <button id="sub-send-btn" style="display:none;margin-top:1rem;width:100%" class="btn btn-primary">
-        <span id="sub-btn-text">▶ ANALYSER ET SOUMETTRE</span>
+      <button id="send-btn" class="btn btn-primary btn-full" style="display:none">
+        <span id="send-btn-text">▶ ANALYSER ET SOUMETTRE</span>
       </button>
 
-      <div id="sub-error" style="display:none;margin-top:1rem" class="sub-error-box"></div>
+      <div id="error-box" class="error-box" style="display:none"></div>
     </div>
 
-    <!-- SUCCESS -->
     <div id="state-success" class="insc-state">
       <div class="success-wrap">
         <div class="success-icon"><i class="fas fa-check-circle"></i></div>
         <div class="success-title">SOUMIS !</div>
         <div class="success-sub">Résultat enregistré. Good luck soldier.</div>
-        <div class="success-recap" id="success-recap"></div>
-        <button onclick="location.reload()" style="margin-top:1.5rem" class="btn btn-primary">Soumettre une autre partie</button>
+        <div id="success-recap" class="success-recap"></div>
+        <button onclick="location.reload()" class="btn btn-primary btn-full" style="margin-top:1.5rem">
+          Soumettre une autre partie
+        </button>
       </div>
     </div>
 
   </div>
 
   <div class="inscription-footer">WARSTACK © 2026 — LES POTES Ö FEU</div>
-
-  <style>
-    .soumission-drop-zone {
-      border: 2px dashed var(--border);
-      border-radius: var(--radius);
-      padding: 2rem;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s;
-      margin-top: 1rem;
-    }
-    .soumission-drop-zone:hover, .soumission-drop-zone.drag-over {
-      border-color: var(--green);
-      background: var(--green-glow);
-    }
-    .soumission-drop-icon { font-size: 2rem; margin-bottom: 0.5rem; }
-    .soumission-drop-text { font-size: 0.9rem; color: var(--text); font-weight: 600; }
-    .soumission-drop-sub  { font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; }
-    .anti-cheat-checks { background: var(--surface-2); border: 1px solid var(--border); padding: 1rem; }
-    .anti-cheat-title  { font-size: 0.7rem; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 0.5rem; }
-    .check-item  { font-size: 0.8rem; padding: 3px 0; color: var(--text-muted); }
-    .check-ok    { color: var(--green); }
-    .check-fail  { color: var(--red); }
-    .sub-error-box { background: rgba(255,50,50,0.1); border: 1px solid var(--red); padding: 0.75rem; color: var(--red); font-size: 0.8rem; }
-    .btn-discord { background: #5865F2; border: none; color: #fff; font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 700; padding: 0.85rem; cursor: pointer; border-radius: var(--radius); display: flex; align-items: center; gap: 0.6rem; }
-  </style>
-
-  <script type="module">
-    import { createClient } from 'https://esm.sh/@supabase/supabase-js';
-
-    const OCR_URL = 'https://kldigitech-warstack-ocr.hf.space/ocr';
-
-    const supabase = createClient(
-      'https://eaiuibqpouwwkqdcwthl.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhaXVpYnFwb3V3d2txZGN3dGhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwODkyNzMsImV4cCI6MjA5MzY2NTI3M30.QHjd47M2ODKkYLvkCed5Ay4a5bPxxoBsk2aXeWlNk6M',
-      { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }
-    );
-
-    let _tournoi = null;
-    let _player  = null;
-    let _user    = null;
-
-    async function init() {
-      showState('loading');
-
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (!session) {
-        showState('no-auth');
-        document.getElementById('btn-login')?.addEventListener('click', async () => {
-          await supabase.auth.signInWithOAuth({
-            provider: 'discord',
-            options: { redirectTo: window.location.href }
-          });
-        });
-        return;
-      }
-
-      _user = session.user;
-
-      // Vérif tracker
-      const { data: player } = await supabase.from('players').select('*').eq('discord_id', _user.id).maybeSingle();
-      if (!player?.tracker_id) { showState('no-register'); return; }
-      _player = player;
-
-      // Vérif tournoi
-      const { data: tournois } = await supabase.from('tournaments').select('*').eq('status', 'active').limit(1);
-      if (!tournois?.length) { showState('no-tournoi'); return; }
-      _tournoi = tournois[0];
-
-      // Vérif inscription
-      const { data: entry } = await supabase.from('tournament_entries').select('id').eq('tournament_id', _tournoi.id).eq('discord_id', _user.id).maybeSingle();
-      if (!entry) { showState('not-inscrit'); return; }
-
-      // Afficher le formulaire
-      document.getElementById('tournoi-name').textContent  = _tournoi.name;
-      document.getElementById('tournoi-dates').textContent = `${fmt(_tournoi.start_date)} → ${fmt(_tournoi.end_date)}`;
-      document.getElementById('user-name').textContent     = _user.user_metadata?.full_name || _user.email;
-      document.getElementById('user-tracker').textContent  = `Tracker ID : ${player.tracker_id}`;
-      document.getElementById('user-avatar').src           = _user.user_metadata?.avatar_url || '';
-
-      showState('form');
-      initForm();
-    }
-
-    function initForm() {
-      const dropZone  = document.getElementById('sub-drop-zone');
-      const fileInput = document.getElementById('sub-file-input');
-      const sendBtn   = document.getElementById('sub-send-btn');
-      const btnText   = document.getElementById('sub-btn-text');
-      const preview   = document.getElementById('sub-preview-wrap');
-      const previewImg= document.getElementById('sub-preview-img');
-      const errorDiv  = document.getElementById('sub-error');
-      const antiCheat = document.getElementById('sub-anti-cheat');
-
-      let currentFile = null;
-
-      dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-      dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-      dropZone.addEventListener('drop', e => {
-        e.preventDefault(); dropZone.classList.remove('drag-over');
-        const file = e.dataTransfer.files[0];
-        if (file?.type.startsWith('image/')) loadPreview(file);
-      });
-      dropZone.addEventListener('click', () => fileInput.click());
-      fileInput.addEventListener('change', () => { if (fileInput.files[0]) loadPreview(fileInput.files[0]); });
-
-      function loadPreview(file) {
-        currentFile = file;
-        const reader = new FileReader();
-        reader.onload = e => {
-          previewImg.src = e.target.result;
-          preview.style.display = 'block';
-          sendBtn.style.display = 'block';
-          errorDiv.style.display  = 'none';
-          antiCheat.style.display = 'none';
-        };
-        reader.readAsDataURL(file);
-      }
-
-      sendBtn.addEventListener('click', async () => {
-        if (!currentFile) return;
-        try {
-          btnText.textContent = '⏳ ANALYSE EN COURS...';
-          sendBtn.disabled    = true;
-          errorDiv.style.display  = 'none';
-          antiCheat.style.display = 'block';
-
-          // Résolution
-          const img = new Image();
-          img.src = URL.createObjectURL(currentFile);
-          await new Promise(r => img.onload = r);
-          const w = img.naturalWidth, h = img.naturalHeight;
-          const validRes = [[1920,1080],[2560,1440],[3840,2160],[1280,720],[2560,1080]];
-          const resOk = validRes.some(([rw,rh]) => rw===w && rh===h);
-          setCheck('sub-check-resolution', resOk, `Résolution ${w}x${h} ${resOk?'✅':'❌ non reconnue'}`);
-          if (!resOk) throw new Error(`Résolution ${w}x${h} non reconnue.`);
-
-          // Hash doublon
-          const hashBuffer = await crypto.subtle.digest('SHA-256', await currentFile.arrayBuffer());
-          const imageHash  = Array.from(new Uint8Array(hashBuffer)).map(b=>b.toString(16).padStart(2,'0')).join('');
-          const { data: existingHash } = await supabase.from('tournament_submissions').select('id').eq('tournament_id', _tournoi.id).eq('image_hash', imageHash).maybeSingle();
-          const doublonOk = !existingHash;
-          setCheck('sub-check-doublon', doublonOk, `Doublon ${doublonOk?'aucun ✅':'détecté ❌'}`);
-          if (!doublonOk) throw new Error('Ce screenshot a déjà été soumis.');
-
-          // Upload Storage
-          const fileName = `${_tournoi.id}/${Date.now()}_${currentFile.name.replace(/\s/g,'_')}`;
-          let imageUrl = null;
-          const { error: uploadError } = await supabase.storage.from('screenshots').upload(fileName, currentFile, { contentType: currentFile.type });
-          if (!uploadError) {
-            const { data: urlData } = supabase.storage.from('screenshots').getPublicUrl(fileName);
-            imageUrl = urlData?.publicUrl || null;
-          }
-
-          // OCR
-          const formData = new FormData();
-          formData.append('image', currentFile);
-          const response = await fetch(OCR_URL, { method: 'POST', body: formData });
-          if (!response.ok) throw new Error(`OCR HTTP ${response.status}`);
-          const data = await response.json();
-          if (!data.success) throw new Error('OCR échoué');
-
-          // Calcul score
-          const ppk        = _tournoi.points_per_kill ?? 1;
-          const topPts     = [_tournoi.points_top1??10, _tournoi.points_top2??7, _tournoi.points_top3??5, _tournoi.points_top4??3, _tournoi.points_top5??1];
-          const placement  = data.placement ?? 0;
-          const squadKills = data.squad_kills ?? 0;
-          const placePts   = placement >= 1 && placement <= 5 ? topPts[placement-1] : 0;
-          const killsPts   = squadKills * ppk;
-          const totalScore = placePts + killsPts;
-
-          // Flag si placement non détecté
-          const autoStatus = placement === 0 ? 'pending' : 'approved';
-
-          // Insertion
-          await supabase.from('tournament_submissions').insert({
-            tournament_id : _tournoi.id,
-            discord_id    : _user.id,
-            pseudo        : _player.pseudo_bf6 || _user.user_metadata?.full_name,
-            kills         : squadKills,
-            placement     : placement,
-            score         : totalScore,
-            kd            : 0,
-            image_hash    : imageHash,
-            image_url     : imageUrl,
-            status        : autoStatus,
-            submitted_at  : new Date().toISOString(),
-            created_at    : new Date().toISOString(),
-          });
-
-          // MAJ scores si approuvé
-          if (autoStatus === 'approved') {
-            const { data: existing } = await supabase.from('tournament_scores').select('*').eq('tournament_id', _tournoi.id).eq('discord_id', _user.id).maybeSingle();
-            if (existing) {
-              await supabase.from('tournament_scores').update({
-                total_kills  : (existing.total_kills  || 0) + squadKills,
-                total_score  : (existing.total_score  || 0) + totalScore,
-                games_played : (existing.games_played || 0) + 1,
-                updated_at   : new Date().toISOString(),
-              }).eq('id', existing.id);
-            } else {
-              await supabase.from('tournament_scores').insert({
-                tournament_id: _tournoi.id, discord_id: _user.id,
-                total_kills: squadKills, total_score: totalScore, games_played: 1,
-                updated_at: new Date().toISOString(),
-              });
-            }
-          }
-
-          // Succès
-          document.getElementById('success-recap').innerHTML = `
-            Placement : <span>#${placement || '?'}</span><br>
-            Kills : <span>${squadKills}</span><br>
-            Score : <span>${totalScore} pts</span><br>
-            ${autoStatus === 'pending' ? '<div style="color:var(--orange);margin-top:0.5rem">⚠️ En attente de validation admin</div>' : ''}
-          `;
-          showState('success');
-
-        } catch (err) {
-          errorDiv.style.display = 'block';
-          errorDiv.textContent   = '❌ ' + err.message;
-        } finally {
-          btnText.textContent = '▶ ANALYSER ET SOUMETTRE';
-          sendBtn.disabled    = false;
-        }
-      });
-    }
-
-    function setCheck(id, ok, msg) {
-      const el = document.getElementById(id);
-      if (el) { el.textContent = msg; el.className = `check-item ${ok?'check-ok':'check-fail'}`; }
-    }
-
-    function showState(name) {
-      document.querySelectorAll('.insc-state').forEach(el => el.classList.remove('visible'));
-      document.getElementById(`state-${name}`)?.classList.add('visible');
-    }
-
-    function fmt(d) {
-      if (!d) return '—';
-      return new Date(d).toLocaleDateString('fr-FR');
-    }
-
-    init();
-
-    supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) init();
-    });
-  </script>
 
 </body>
 </html>

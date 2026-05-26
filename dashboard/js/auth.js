@@ -3,7 +3,7 @@ import { supabase } from './supabaseClient.js';
 const { data: { session } } = await supabase.auth.getSession();
 
 if (!session) {
-  window.location.href = '/dashboard/login.html';
+  window.location.href = '/login.html';
 }
 
 const user = session.user;
@@ -54,5 +54,5 @@ userDropdown.addEventListener('click', (e) => e.stopPropagation());
 document.getElementById('logout-btn').addEventListener('click', async (e) => {
   e.stopPropagation();
   await supabase.auth.signOut();
-  window.location.href = '/dashboard/login.html';
+  window.location.href = '/login.html';
 });

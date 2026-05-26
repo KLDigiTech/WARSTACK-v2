@@ -2,13 +2,17 @@
 <html lang="fr">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>WARSTACK — Connexion</title>
-  <link rel="stylesheet" href="./css/style.css">
-  <link rel="stylesheet" href="./css/pages/login.css">
-  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <link rel="stylesheet" href="./css/style.css" />
+  <link rel="stylesheet" href="./css/pages/login.css" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
 
 <body class="login-body">
@@ -16,37 +20,72 @@
   <div class="login-background"></div>
 
   <main class="login-page">
+
     <div class="login-card">
+
       <div class="login-logo">
-        <img id="login-server-logo" src="" alt="WARSTACK">
+        <img id="login-server-logo" src="" alt="WARSTACK" />
       </div>
+
       <h1>WARSTACK</h1>
+
       <p>Dashboard Discord Battlefield Competitive</p>
+
       <button id="discord-login-btn" class="discord-login-btn">
         <i class="fab fa-discord"></i>
         <span>Connexion Discord</span>
       </button>
+
     </div>
+
   </main>
 
   <script type="module">
+
     import { supabase } from './js/supabaseClient.js';
 
-    const guildResponse = await fetch('https://warstack-bot.onrender.com/api/guild');
-    const guild = await guildResponse.json();
+    try {
 
-    document.getElementById('login-server-logo').src = guild.icon || 'https://placehold.co/128x128';
+      const guildResponse = await fetch(
+        'https://warstack-bot.onrender.com/api/guild'
+      );
 
-    document.getElementById('discord-login-btn').addEventListener('click', async () => {
-      await supabase.auth.signInWithOAuth({
-        provider: 'discord',
-        options: {
-          redirectTo: window.location.hostname === '127.0.0.1'
-            ? 'http://127.0.0.1:3000/dashboard/index.html'
-            : 'https://warstack-v2.vercel.app/index.html'
+      const guild = await guildResponse.json();
+
+      document.getElementById('login-server-logo').src =
+        guild.icon || 'https://placehold.co/128x128';
+
+    } catch (err) {
+
+      console.error('Guild fetch error:', err);
+
+      document.getElementById('login-server-logo').src =
+        'https://placehold.co/128x128';
+
+    }
+
+    document
+      .getElementById('discord-login-btn')
+      .addEventListener('click', async () => {
+
+        const redirectUrl =
+          window.location.hostname === '127.0.0.1'
+            ? 'http://127.0.0.1:3000/dashboard/'
+            : 'https://warstack-v2.vercel.app/login';
+
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'discord',
+          options: {
+            redirectTo: redirectUrl
+          }
+        });
+
+        if (error) {
+          console.error('Discord OAuth error:', error);
         }
+
       });
-    });
+
   </script>
 
 </body>

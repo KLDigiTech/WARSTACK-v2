@@ -381,3 +381,23 @@
 .tab-content.hidden .tournament-topbar {
   display: none !important;
 }
+.scoreboard-section-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--green);
+  margin: 1.5rem 0 0.75rem;
+  text-transform: uppercase;
+}
+.scoreboard-team-block {
+  margin-top: 1.5rem;
+  border: 1px solid var(--border);
+  padding: 1rem;
+}
+.scoreboard-team-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--orange);
+  letter-spacing: 2px;
+  margin-bottom: 0.75rem;
+}

@@ -621,48 +621,126 @@ async function loadScoreboard() {
   const tournoi   = await getTournoiActif();
   if (!tournoi) { container.innerHTML = '<div class="empty-state"><i class="fas fa-trophy"></i>Aucun tournoi actif</div>'; return; }
 
-  const scores = await fetchSupabase(`tournament_scores?tournament_id=eq.${tournoi.id}&order=total_score.desc`);
+  // Scores joueurs + jointure players pour username/avatar
+  const scores  = await fetchSupabase(`tournament_scores?tournament_id=eq.${tournoi.id}&order=total_score.desc&select=*,players(username,avatar_url)`);
+  // Inscrits pour récupérer team_name/team_id par discord_id
+  const inscrits = await fetchSupabase(`tournament_entries?tournament_id=eq.${tournoi.id}&select=discord_id,team_id,team_name`);
+  // Équipes du tournoi
+  const teams   = await fetchSupabase(`teams?tournament_id=eq.${tournoi.id}&select=*`);
+
   if (!scores?.length) { container.innerHTML = '<div class="empty-state"><i class="fas fa-chart-bar"></i>Aucun score</div>'; return; }
 
-  const topKiller  = [...scores].sort((a, b) => (b.total_kills || 0) - (a.total_kills || 0))[0];
-  const babyKiller = [...scores].sort((a, b) => (a.total_kills || 0) - (b.total_kills || 0))[0];
-  const medals = ['🥇', '🥈', '🥉'];
+  // Map discord_id → team
+  const teamByPlayer = {};
+  (inscrits || []).forEach(e => { teamByPlayer[e.discord_id] = { id: e.team_id, name: e.team_name }; });
 
-  container.innerHTML = `
+  // Grouper scores par équipe
+  const teamScores = {};
+  const soloScores = [];
+
+  scores.forEach(s => {
+    const username = s.players?.username || s.discord_id;
+    const avatar   = s.players?.avatar_url || null;
+    const team     = teamByPlayer[s.discord_id];
+    const entry    = { ...s, username, avatar, teamName: team?.name || null, teamId: team?.id || null };
+
+    if (team?.id) {
+      if (!teamScores[team.id]) teamScores[team.id] = { name: team.name, total_score: 0, total_kills: 0, games_played: 0, players: [] };
+      teamScores[team.id].total_score  += s.total_score  || 0;
+      teamScores[team.id].total_kills  += s.total_kills  || 0;
+      teamScores[team.id].games_played += s.games_played || 0;
+      teamScores[team.id].players.push(entry);
+    } else {
+      soloScores.push(entry);
+    }
+  });
+
+  const sortedTeams = Object.values(teamScores).sort((a, b) => b.total_score - a.total_score);
+  const medals = ['🥇', '🥈', '🥉'];
+  const topKiller = [...scores].sort((a, b) => (b.total_kills || 0) - (a.total_kills || 0))[0];
+
+  let html = '';
+
+  // AWARDS
+  html += `
     <div class="scoreboard-awards">
       <div class="award-card">
         <div class="award-icon">💀</div>
         <div class="award-label">TOP KILLER</div>
-        <div class="award-value">${topKiller.discord_id}</div>
+        <div class="award-value">${topKiller.players?.username || topKiller.discord_id}</div>
         <div class="award-sub">${topKiller.total_kills} kills</div>
       </div>
-      <div class="award-card">
-        <div class="award-icon">👶</div>
-        <div class="award-label">BABY KILLER</div>
-        <div class="award-value">${babyKiller.discord_id}</div>
-        <div class="award-sub">${babyKiller.total_kills} kills</div>
-      </div>
     </div>
+  `;
 
-    <table class="data-table">
-      <thead>
-        <tr><th>#</th><th>Joueur</th><th>Score</th><th>Kills</th><th>Parties</th></tr>
-      </thead>
+  // CLASSEMENT PAR EQUIPE
+  if (sortedTeams.length) {
+    html += `<div class="scoreboard-section-title">🛡️ CLASSEMENT PAR ÉQUIPE</div>`;
+    html += `<table class="data-table">
+      <thead><tr><th>#</th><th>Équipe</th><th>Score</th><th>Kills</th><th>Parties</th></tr></thead>
       <tbody>
-        ${scores.map((s, i) => `
+        ${sortedTeams.map((t, i) => `
           <tr class="${i === 0 ? 'row-gold' : i === 1 ? 'row-silver' : i === 2 ? 'row-bronze' : ''}">
             <td>${medals[i] || i + 1}</td>
-            <td>${s.discord_id}</td>
+            <td><strong>${t.name}</strong></td>
+            <td><strong>${t.total_score}</strong></td>
+            <td>${t.total_kills}</td>
+            <td>${t.games_played}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`;
+
+    // DETAIL PAR EQUIPE
+    sortedTeams.forEach((t, i) => {
+      html += `
+        <div class="scoreboard-team-block">
+          <div class="scoreboard-team-title">${medals[i] || '🔹'} ${t.name}</div>
+          <table class="data-table">
+            <thead><tr><th>Joueur</th><th>Score</th><th>Kills</th><th>Parties</th></tr></thead>
+            <tbody>
+              ${t.players.sort((a, b) => (b.total_score || 0) - (a.total_score || 0)).map(p => `
+                <tr>
+                  <td>
+                    ${p.avatar ? `<img src="${p.avatar}" style="width:20px;height:20px;border-radius:50%;vertical-align:middle;margin-right:6px">` : ''}
+                    ${p.username}
+                  </td>
+                  <td><strong>${p.total_score}</strong></td>
+                  <td>${p.total_kills ?? 0}</td>
+                  <td>${p.games_played ?? 0}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    });
+  }
+
+  // JOUEURS SANS EQUIPE
+  if (soloScores.length) {
+    html += `<div class="scoreboard-section-title" style="margin-top:2rem">👤 JOUEURS SANS ÉQUIPE</div>`;
+    html += `<table class="data-table">
+      <thead><tr><th>#</th><th>Joueur</th><th>Score</th><th>Kills</th><th>Parties</th></tr></thead>
+      <tbody>
+        ${soloScores.map((s, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td>
+              ${s.avatar ? `<img src="${s.avatar}" style="width:20px;height:20px;border-radius:50%;vertical-align:middle;margin-right:6px">` : ''}
+              ${s.username}
+            </td>
             <td><strong>${s.total_score}</strong></td>
             <td>${s.total_kills ?? 0}</td>
             <td>${s.games_played ?? 0}</td>
           </tr>
         `).join('')}
       </tbody>
-    </table>
-  `;
-}
+    </table>`;
+  }
 
+  container.innerHTML = html;
+}
 // =====================================================
 // INSCRITS
 // =====================================================

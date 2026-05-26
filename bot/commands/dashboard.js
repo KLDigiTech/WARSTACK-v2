@@ -15,15 +15,15 @@ module.exports = {
       .setDescription('Accès au dashboard d\'administration WARSTACK.')
       .addFields(
         { name: '👥 Joueurs', value: 'Gérer les joueurs inscrits', inline: true },
-        { name: '🏆 Tournoi', value: 'Reset / forcer update',      inline: true },
-        { name: '📊 Stats',   value: 'Vue d\'ensemble live',       inline: true },
+        { name: '🏆 Tournoi', value: 'Reset / forcer update', inline: true },
+        { name: '📊 Stats', value: 'Vue d\'ensemble live', inline: true },
       )
       .setFooter({ text: 'WARSTACK • Admin Only • Ne partage pas ce lien' })
       .setTimestamp();
 
     await interaction.reply({
       embeds: [embed],
-      components: [new ActionRowBuilder().addComponents(new ButtonBuilder().setLabel('🖥️ Ouvrir le Dashboard').setURL('https://warstack-v2.vercel.app/login.html').setStyle(ButtonStyle.Link))],
+      components: [new ActionRowBuilder().addComponents(new ButtonBuilder().setLabel('🖥️ Ouvrir le Dashboard').setURL('https://warstack-v2.vercel.app/login').setStyle(ButtonStyle.Link))],
       ephemeral: true
     });
   }

@@ -4,7 +4,7 @@
     { "source": "/login", "destination": "/login.html" },
     { "source": "/register", "destination": "/register.html" },
     { "source": "/inscription", "destination": "/inscription.html" },
-    { "source": "/profil", "destination": "/profil.html" }
+    { "source": "/profil", "destination": "/profil.html" },
     { "source": "/soumettre", "destination": "/soumettre.html" }
   ]
 }

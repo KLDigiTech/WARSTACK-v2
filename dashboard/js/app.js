@@ -69,7 +69,7 @@ async function navigate(section) {
   content.innerHTML = '<div class="loading-screen">CHARGEMENT...</div>';
 
   try {
-    const res = await fetch(`./templates/${section}.html`);
+    const res = await fetch(`/templates/${section}.html`);
     const html = await res.text();
     content.innerHTML = html;
   } catch {

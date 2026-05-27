@@ -19,10 +19,11 @@ const STRUCTURE = [
   {
     name: '🏆 TOURNOI',
     channels: [
-      { name: '🔗│accès-dashboard', type: ChannelType.GuildText, locked: true, panel: true        },
+      { name: '🔗│accès-dashboard', type: ChannelType.GuildText, locked: true,  panel: true        },
+      { name: '📝│inscription',     type: ChannelType.GuildText, locked: true,  inscription: true  },
       { name: '📸│soumissions',     type: ChannelType.GuildText, locked: false, soumissions: true  },
-      { name: '🏅│classement',      type: ChannelType.GuildText, locked: true                     },
-      { name: '🔴│tournoi-live',    type: ChannelType.GuildText, locked: true                     },
+      { name: '🏅│classement',      type: ChannelType.GuildText, locked: true                      },
+      { name: '🔴│tournoi-live',    type: ChannelType.GuildText, locked: true                      },
     ]
   },
   {
@@ -88,9 +89,10 @@ async function setupStructure(guild) {
       });
     }
 
-    const everyone     = guild.roles.everyone;
-    let   panelChannel = null;
-    let   soumChannel  = null;
+    const everyone        = guild.roles.everyone;
+    let   panelChannel    = null;
+    let   inscriptChannel = null;
+    let   soumChannel     = null;
 
     for (const category of STRUCTURE) {
 
@@ -128,25 +130,50 @@ async function setupStructure(guild) {
           reason: 'WARSTACK setup'
         });
 
-        if (ch.panel)       panelChannel = created;
-        if (ch.soumissions) soumChannel  = created;
+        if (ch.panel)       panelChannel    = created;
+        if (ch.inscription) inscriptChannel = created;
+        if (ch.soumissions) soumChannel     = created;
       }
     }
+
+    // ✅ Bannière dynamique du serveur
+    const bannerURL = guild.bannerURL({ size: 1024 });
 
     // ✅ Embed accès-dashboard
     if (panelChannel) {
       const embed = new EmbedBuilder()
         .setColor(0x00FF66)
-        .setImage('https://raw.githubusercontent.com/KLDigiTech/WARSTACK-v2/main/dashboard/warstack-banner.png')
         .setFooter({ text: 'WARSTACK • Battlefield 6' });
 
-      const row1 = new ActionRowBuilder().addComponents(
+      if (bannerURL) embed.setImage(bannerURL);
+
+      const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder().setLabel('📊 Dashboard').setStyle(ButtonStyle.Link).setURL('https://warstack-v2.vercel.app/#overview'),
         new ButtonBuilder().setLabel('📝 S\'inscrire').setStyle(ButtonStyle.Link).setURL('https://warstack-v2.vercel.app/inscription.html'),
         new ButtonBuilder().setLabel('🏆 Classement').setStyle(ButtonStyle.Link).setURL('https://warstack-v2.vercel.app/')
       );
 
-      await panelChannel.send({ embeds: [embed], components: [row1] });
+      await panelChannel.send({ embeds: [embed], components: [row] });
+    }
+
+    // ✅ Embed inscription
+    if (inscriptChannel) {
+      const embed = new EmbedBuilder()
+        .setTitle('📝 INSCRIPTION AU TOURNOI')
+        .setColor(0x00FF66)
+        .setDescription(
+          '**Pour participer aux tournois WARSTACK, tu dois lier ton compte Battlefield 6.**\n\n' +
+          '> Utilise la commande `/register` dans <#' + (guild.channels.cache.find(c => c.name.includes('commandes-bot'))?.id || '') + '>\n' +
+          '> Ou clique sur le bouton ci-dessous pour t\'inscrire via le site.\n\n' +
+          '⚠️ **Sans inscription, tes soumissions ne seront pas comptabilisées.**'
+        )
+        .setFooter({ text: 'WARSTACK • Battlefield 6' });
+
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setLabel('📝 S\'inscrire').setStyle(ButtonStyle.Link).setURL('https://warstack-v2.vercel.app/inscription.html')
+      );
+
+      await inscriptChannel.send({ embeds: [embed], components: [row] });
     }
 
     // ✅ Embed soumissions
@@ -156,8 +183,8 @@ async function setupStructure(guild) {
         .setColor(0x00FF66)
         .setDescription(
           '**Poste ton screenshot directement dans ce salon.**\n\n' +
-          '> Le screenshot doit être pris **sur ta console** (PS5 / Xbox).\n' +
-          '> Pas de photos de TV ou d\'écran PC — la qualité doit être suffisante pour la lecture automatique.\n\n' +
+          '> Le screenshot doit être une **capture d\'écran** (console ou PC).\n' +
+          '> ❌ Les photos prises avec un smartphone ne sont pas acceptées.\n\n' +
           '**La capture doit obligatoirement afficher :**\n' +
           '> 📄 **Page 2 — Votre escouade**\n' +
           '> 🏅 Le classement de fin de partie\n' +

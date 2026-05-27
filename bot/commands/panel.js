@@ -31,18 +31,21 @@ module.exports = {
     const botMessages = messages.filter(m => m.author.id === interaction.client.user.id);
     await Promise.all(botMessages.map(m => m.delete()));
 
+    const bannerURL = interaction.guild.bannerURL({ size: 1024 });
+
     const embed = new EmbedBuilder()
       .setColor(0x00FF66)
-      .setImage('https://raw.githubusercontent.com/KLDigiTech/WARSTACK-v2/main/dashboard/warstack-banner.png')
       .setFooter({ text: 'WARSTACK • Battlefield 6' });
 
-    const row1 = new ActionRowBuilder().addComponents(
+    if (bannerURL) embed.setImage(bannerURL);
+
+    const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder().setLabel('📊 Dashboard').setStyle(ButtonStyle.Link).setURL('https://warstack-v2.vercel.app/#overview'),
       new ButtonBuilder().setLabel('📝 S\'inscrire').setStyle(ButtonStyle.Link).setURL('https://warstack-v2.vercel.app/inscription.html'),
       new ButtonBuilder().setLabel('🏆 Classement').setStyle(ButtonStyle.Link).setURL('https://warstack-v2.vercel.app/')
     );
 
-    await panelChannel.send({ embeds: [embed], components: [row1] });
+    await panelChannel.send({ embeds: [embed], components: [row] });
 
     return interaction.editReply({ content: '✅ Panneau reposté dans #accès-dashboard !' });
   }

@@ -1,6 +1,6 @@
 const cron = require('node-cron');
 const { updateLeaderboard } = require('../jobs/leaderboard');
-const { postMVP }           = require('../jobs/mvp');
+const { postMVP } = require('../jobs/mvp');
 
 module.exports = {
   name: 'clientReady',
@@ -22,8 +22,6 @@ module.exports = {
       console.log('⏰ Post MVP hebdomadaire...');
       postMVP(client);
     });
-
-    updateLeaderboard(client);
 
     console.log('✅ Cron jobs démarrés');
   }

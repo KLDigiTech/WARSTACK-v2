@@ -6,6 +6,7 @@ module.exports = {
 
   async execute(guild) {
     console.log(`✅ WARSTACK rejoint le serveur : ${guild.name}`);
+    await new Promise(resolve => setTimeout(resolve, 3000));
     await setupStructure(guild);
   }
 };

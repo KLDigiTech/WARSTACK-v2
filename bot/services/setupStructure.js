@@ -50,26 +50,37 @@ const STRUCTURE = [
     }
 ];
 
-/**
- * Crée toute la structure WARSTACK sur un serveur.
- * Retourne { success, panelChannel, error }
- */
+// Flag en mémoire pour éviter les doubles exécutions simultanées
+const setupInProgress = new Set();
+
 async function setupStructure(guild) {
 
-    // ✅ Force le fetch du cache des salons (souvent vide sur guildCreate)
-    await guild.channels.fetch();
-
-    // ✅ Anti doublon — cherche la catégorie par nom ET type
-    const alreadySetup = guild.channels.cache.find(
-        c => c.name === '⚔️ WARSTACK' && c.type === ChannelType.GuildCategory
-    );
-
-    if (alreadySetup) {
-        console.log(`⚠️ WARSTACK déjà installé sur ${guild.name}, setup ignoré.`);
+    // ✅ Verrou en mémoire — bloque si déjà en cours sur ce guild
+    if (setupInProgress.has(guild.id)) {
+        console.log(`⚠️ Setup déjà en cours sur ${guild.name}, ignoré.`);
         return { success: false, reason: 'already_setup' };
     }
 
+    setupInProgress.add(guild.id);
+
     try {
+
+        // ✅ Force le fetch + délai pour laisser Discord peupler le cache
+        await guild.channels.fetch();
+        await guild.roles.fetch();
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        // ✅ Anti doublon — catégorie par nom ET type
+        const alreadySetup = guild.channels.cache.find(
+            c => c.name === '⚔️ WARSTACK' && c.type === ChannelType.GuildCategory
+        );
+
+        if (alreadySetup) {
+            console.log(`⚠️ WARSTACK déjà installé sur ${guild.name}, setup ignoré.`);
+            return { success: false, reason: 'already_setup' };
+        }
+
+        console.log(`🔧 Installation WARSTACK sur ${guild.name}...`);
 
         // ✅ Rôle Admin
         let adminRole = guild.roles.cache.find(r => r.name === 'Admin');
@@ -86,7 +97,7 @@ async function setupStructure(guild) {
         const everyone = guild.roles.everyone;
         let panelChannel = null;
 
-        // ✅ Création de la structure
+        // ✅ Création structure
         for (const category of STRUCTURE) {
 
             const catOverwrites = category.adminOnly
@@ -129,10 +140,11 @@ async function setupStructure(guild) {
 
         // ✅ Panneau de contrôle
         if (panelChannel) {
+
             const embed = new EmbedBuilder()
                 .setTitle('⚔️ WARSTACK — PANNEAU DE CONTRÔLE')
                 .setColor(0x00FF66)
-                .setImage('https://raw.githubusercontent.com/KLDigiTech/WARSTACK/main/dashboard/warstack-banner.png')
+                .setImage('https://raw.githubusercontent.com/KLDigiTech/WARSTACK-v2/main/dashboard/warstack-banner.png')
                 .setDescription('Bienvenue sur le serveur WARSTACK.\nUtilise les boutons ci-dessous pour participer aux tournois.')
                 .addFields(
                     { name: '🎮 S\'inscrire', value: 'Rejoins le tournoi en cours', inline: true },
@@ -162,6 +174,10 @@ async function setupStructure(guild) {
     } catch (err) {
         console.error(`❌ Erreur setupStructure sur ${guild.name}:`, err);
         return { success: false, reason: 'error', error: err };
+
+    } finally {
+        // ✅ Libère le verrou dans tous les cas
+        setupInProgress.delete(guild.id);
     }
 }
 

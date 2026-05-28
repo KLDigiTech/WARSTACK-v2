@@ -2,22 +2,6 @@
 
 import { fetchSupabase } from '../api.js';
 
-const COUNTRY_COORDS = {
-  FR:[48.8566,2.3522], BE:[50.8503,4.3517], CH:[46.9481,7.4474],
-  CA:[45.4215,-75.6972], MA:[33.9716,-6.8498], DZ:[36.7372,3.0865],
-  TN:[36.8065,10.1815], US:[38.8951,-77.0364], GB:[51.5074,-0.1278],
-  DE:[52.5200,13.4050], ES:[40.4168,-3.7038], IT:[41.9028,12.4964],
-  PT:[38.7169,-9.1399], NL:[52.3676,4.9041], AU:[-35.2809,149.1300],
-  BR:[-15.7801,-47.9292], MX:[19.4326,-99.1332], JP:[35.6762,139.6503],
-  SN:[14.7167,-17.4677], CI:[5.3484,-4.0083], RU:[55.7558,37.6176],
-  CN:[39.9042,116.4074], IN:[28.6139,77.2090], ZA:[-25.7461,28.1881],
-  EG:[30.0444,31.2357], NG:[9.0579,7.4951], KE:[-1.2921,36.8219],
-  SA:[24.6877,46.7219], TR:[39.9334,32.8597], PL:[52.2297,21.0122],
-  SE:[59.3293,18.0686], NO:[59.9139,10.7522], DK:[55.6761,12.5683],
-  FI:[60.1699,24.9384], AT:[48.2082,16.3738], CZ:[50.0755,14.4378],
-  XX:[20,0],
-};
-
 const ISO_NUM = {
   '250':'FR','056':'BE','756':'CH','124':'CA','504':'MA','012':'DZ',
   '788':'TN','840':'US','826':'GB','276':'DE','724':'ES','380':'IT',
@@ -41,7 +25,7 @@ function getFlag(code) {
 export async function initOrigine() {
 
   const players = await fetchSupabase(
-    'players?select=discord_id,username,pseudo_bf6,avatar_url,country,country_code,region,city&country_code=not.is.null'
+    'players?select=discord_id,username,pseudo_bf6,avatar_url,country,country_code,region,city,latitude,longitude&country_code=not.is.null'
   );
 
   _allPlayers = Array.isArray(players)
@@ -114,23 +98,10 @@ async function renderMap() {
 
   if (!container) return;
 
-  const byCountry = {};
-
-  _allPlayers.forEach(player => {
-
-    if (!player.country_code) return;
-
-    if (!byCountry[player.country_code]) {
-      byCountry[player.country_code] = [];
-    }
-
-    byCountry[player.country_code].push(player);
-  });
-
   const tooltip = document.getElementById('origine-tooltip');
 
   const W = container.offsetWidth || 1200;
-  const H = Math.round(W * 0.5);
+  const H = Math.round(W * 0.55);
 
   container.innerHTML = `
     <div id="map-loading"
@@ -196,17 +167,21 @@ async function renderMap() {
     .append('svg')
     .attr('width', '100%')
     .attr('viewBox', `0 0 ${W} ${H}`)
-    .style('background', 'rgba(0,20,10,.85)')
+    .style('background', 'rgba(0,20,10,.9)')
     .style('border-radius', '14px');
 
   // ======================================
-  // MAP GROUP + ZOOM
+  // MAP GROUP
   // ======================================
 
   const mapGroup = svg.append('g');
 
+  // ======================================
+  // ZOOM
+  // ======================================
+
   const zoom = d3.zoom()
-    .scaleExtent([1, 20])
+    .scaleExtent([1, 25])
     .on('zoom', (event) => {
       mapGroup.attr('transform', event.transform);
     });
@@ -227,8 +202,6 @@ async function renderMap() {
     world,
     world.objects.countries
   );
-
-  const hasMembers = new Set(Object.keys(byCountry));
 
   // ======================================
   // GROUPS
@@ -254,7 +227,7 @@ async function renderMap() {
 
     const scale = Math.max(
       1,
-      Math.min(20, 0.9 / Math.max(dx / W, dy / H))
+      Math.min(25, 0.9 / Math.max(dx / W, dy / H))
     );
 
     const translate = [
@@ -295,7 +268,7 @@ async function renderMap() {
     ?.addEventListener('click', resetMap);
 
   // ======================================
-  // REGIONS FRANCE
+  // FRANCE REGIONS
   // ======================================
 
   function renderFranceRegions() {
@@ -309,11 +282,11 @@ async function renderMap() {
 
       .attr('d', path)
 
-      .attr('fill', 'rgba(0,255,120,.06)')
+      .attr('fill', 'rgba(0,255,120,.05)')
 
-      .attr('stroke', 'rgba(0,255,120,.45)')
+      .attr('stroke', 'rgba(0,255,120,.4)')
 
-      .attr('stroke-width', 0.7)
+      .attr('stroke-width', 0.8)
 
       .style(
         'filter',
@@ -329,7 +302,7 @@ async function renderMap() {
       .on('mouseleave', function() {
 
         d3.select(this)
-          .attr('fill', 'rgba(0,255,120,.06)');
+          .attr('fill', 'rgba(0,255,120,.05)');
       });
   }
 
@@ -348,67 +321,34 @@ async function renderMap() {
 
       const alpha2 = ISO_NUM[String(d.id).padStart(3,'0')];
 
-      return hasMembers.has(alpha2)
-        ? 'rgba(0,255,120,.22)'
-        : 'rgba(255,255,255,.03)';
+      return alpha2
+        ? 'rgba(255,255,255,.03)'
+        : 'rgba(255,255,255,.02)';
     })
 
     .attr('stroke', 'rgba(255,255,255,.08)')
 
     .attr('stroke-width', 0.5)
 
-    .style('cursor', d => {
+    .style('cursor', 'pointer')
 
-      const alpha2 = ISO_NUM[String(d.id).padStart(3,'0')];
-
-      return hasMembers.has(alpha2)
-        ? 'pointer'
-        : 'default';
-    })
-
-    .on('mouseenter', function(event, d) {
-
-      const alpha2 = ISO_NUM[String(d.id).padStart(3,'0')];
-
-      if (!hasMembers.has(alpha2)) return;
+    .on('mouseenter', function() {
 
       d3.select(this)
-        .attr('fill', 'rgba(0,255,120,.42)');
-
-      showTooltip(
-        event,
-        alpha2,
-        byCountry[alpha2] || [],
-        tooltip
-      );
+        .attr('fill', 'rgba(0,255,120,.12)');
     })
 
-    .on('mousemove', function(event) {
-
-      tooltip.style.left = `${event.clientX + 14}px`;
-      tooltip.style.top = `${event.clientY - 10}px`;
-    })
-
-    .on('mouseleave', function(event, d) {
-
-      const alpha2 = ISO_NUM[String(d.id).padStart(3,'0')];
+    .on('mouseleave', function() {
 
       d3.select(this)
-        .attr(
-          'fill',
-          hasMembers.has(alpha2)
-            ? 'rgba(0,255,120,.22)'
-            : 'rgba(255,255,255,.03)'
-        );
-
-      tooltip.classList.remove('visible');
+        .attr('fill', 'rgba(255,255,255,.03)');
     })
 
     .on('click', function(event, d) {
 
       const alpha2 = ISO_NUM[String(d.id).padStart(3,'0')];
 
-      if (!hasMembers.has(alpha2)) return;
+      if (!alpha2) return;
 
       zoomToFeature(d);
 
@@ -420,16 +360,25 @@ async function renderMap() {
     });
 
   // ======================================
-  // PINS
+  // REAL GPS PINS
   // ======================================
 
-  Object.entries(byCountry).forEach(([code, members]) => {
+  _allPlayers.forEach(player => {
 
-    const coords = COUNTRY_COORDS[code];
+    if (
+      !player.latitude ||
+      !player.longitude
+    ) return;
 
-    if (!coords) return;
+    const latitude = parseFloat(player.latitude);
+    const longitude = parseFloat(player.longitude);
 
-    const [x, y] = projection([coords[1], coords[0]]);
+    if (!latitude || !longitude) return;
+
+    const [x, y] = projection([
+      longitude,
+      latitude
+    ]);
 
     if (!x || !y) return;
 
@@ -437,47 +386,74 @@ async function renderMap() {
       .attr('transform', `translate(${x},${y})`)
       .style('cursor', 'pointer');
 
-    // Pulse ring
+    // Pulse
     g.append('circle')
-      .attr('r', 8)
+      .attr('r', 10)
       .attr('fill', 'none')
-      .attr('stroke', 'rgba(0,255,120,.45)')
+      .attr('stroke', 'rgba(0,255,120,.35)')
       .attr('stroke-width', 1.5)
       .append('animate')
       .attr('attributeName', 'r')
-      .attr('values', '6;14;6')
+      .attr('values', '5;14;5')
       .attr('dur', '2s')
       .attr('repeatCount', 'indefinite');
 
-    // Main point
+    // Dot
     g.append('circle')
-      .attr('r', members.length > 3 ? 7 : 5)
+      .attr('r', 5)
       .attr('fill', '#00ff66')
       .style(
         'filter',
-        'drop-shadow(0 0 6px rgba(0,255,120,.9))'
+        'drop-shadow(0 0 8px rgba(0,255,120,.9))'
       );
 
-    // Counter
-    if (members.length > 1) {
-
-      g.append('text')
-        .attr('text-anchor', 'middle')
-        .attr('dominant-baseline', 'central')
-        .attr('font-size', members.length > 9 ? '7' : '8')
-        .attr('font-weight', '700')
-        .attr('fill', '#000')
-        .text(members.length);
-    }
-
+    // Hover
     g.on('mouseenter', (event) => {
 
-      showTooltip(
-        event,
-        code,
-        members,
-        tooltip
-      );
+      tooltip.innerHTML = `
+        <div class="tooltip-country">
+          ${getFlag(player.country_code)}
+          ${player.country || 'Unknown'}
+        </div>
+
+        <div class="tooltip-member">
+
+          ${player.avatar_url
+            ? `<img src="${player.avatar_url}" alt="">`
+            : `<i class="fas fa-user"
+                style="
+                  width:20px;
+                  text-align:center;
+                  color:var(--green-dim)
+                "></i>`}
+
+          <span>
+            ${player.username || player.discord_id}
+          </span>
+
+        </div>
+
+        <div
+          style="
+            margin-top:6px;
+            color:var(--text-muted);
+            font-size:11px
+          "
+        >
+          ${[
+            player.city,
+            player.region,
+            player.country
+          ]
+          .filter(Boolean)
+          .join(', ')}
+        </div>
+      `;
+
+      tooltip.style.left = `${event.clientX + 14}px`;
+      tooltip.style.top = `${event.clientY - 10}px`;
+
+      tooltip.classList.add('visible');
     })
 
     .on('mousemove', (event) => {
@@ -516,49 +492,6 @@ function showTooltip(event, code, members, tooltip) {
       ${flag} ${country}
       — ${members.length} membre${members.length > 1 ? 's' : ''}
     </div>
-
-    ${members.slice(0, 5).map(m => `
-      <div class="tooltip-member">
-
-        ${m.avatar_url
-          ? `<img src="${m.avatar_url}" alt="">`
-          : `<i class="fas fa-user"
-                style="
-                  width:20px;
-                  text-align:center;
-                  color:var(--green-dim)
-                "></i>`}
-
-        <span>
-          ${m.username || m.discord_id}
-        </span>
-
-        ${m.city
-          ? `<span
-              style="
-                color:var(--text-muted);
-                font-size:9px;
-                margin-left:4px
-              ">
-                — ${m.city}
-             </span>`
-          : ''}
-
-      </div>
-    `).join('')}
-
-    ${members.length > 5
-      ? `
-        <div
-          style="
-            font-size:10px;
-            color:var(--text-muted);
-            margin-top:4px
-          ">
-          +${members.length - 5} autres
-        </div>
-      `
-      : ''}
   `;
 
   tooltip.style.left = `${event.clientX + 14}px`;
@@ -616,17 +549,6 @@ function renderCountriesList() {
 
   const max = sorted[0]?.count || 1;
 
-  if (!sorted.length) {
-
-    container.innerHTML = `
-      <div class="origine-loading">
-        Aucun membre localisé.
-      </div>
-    `;
-
-    return;
-  }
-
   container.innerHTML = sorted.map(c => `
     <div class="origine-country-row">
 
@@ -665,17 +587,6 @@ function renderMembersList(players) {
     document.getElementById('origine-members-list');
 
   if (!container) return;
-
-  if (!players?.length) {
-
-    container.innerHTML = `
-      <div class="origine-loading">
-        Aucun membre localisé.
-      </div>
-    `;
-
-    return;
-  }
 
   container.innerHTML = players.map(p => {
 

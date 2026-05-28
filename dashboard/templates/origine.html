@@ -1,0 +1,60 @@
+<div class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>🌍 Carte des Membres</h2>
+      <p>D'où vient la communauté WARSTACK</p>
+    </div>
+    <div id="origine-stats-header"></div>
+  </div>
+  <div class="panel-body">
+
+    <!-- STATS RAPIDES -->
+    <div class="origine-stats-row" id="origine-stats-row"></div>
+
+    <!-- TABS -->
+    <div class="origine-tabs">
+      <button class="origine-tab active" data-tab="carte">
+        <i class="fas fa-map-marked-alt"></i> Carte
+      </button>
+      <button class="origine-tab" data-tab="liste">
+        <i class="fas fa-list"></i> Par pays
+      </button>
+      <button class="origine-tab" data-tab="membres">
+        <i class="fas fa-users"></i> Membres
+      </button>
+    </div>
+
+    <!-- TAB CARTE -->
+    <div class="origine-tab-content active" id="tab-carte">
+      <div class="origine-map-container">
+        <div class="origine-map-hint">
+          <i class="fas fa-info-circle"></i>
+          Survole un point pour voir les membres. Clique pour zoomer.
+        </div>
+        <div id="world-map"></div>
+      </div>
+    </div>
+
+    <!-- TAB LISTE PAR PAYS -->
+    <div class="origine-tab-content" id="tab-liste">
+      <div class="origine-countries-list" id="countries-list">
+        <div class="origine-loading"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
+      </div>
+    </div>
+
+    <!-- TAB MEMBRES -->
+    <div class="origine-tab-content" id="tab-membres">
+      <div class="origine-search-bar">
+        <i class="fas fa-search"></i>
+        <input type="text" id="origine-member-search" placeholder="Rechercher un membre..." class="form-input">
+      </div>
+      <div class="origine-members-list" id="origine-members-list">
+        <div class="origine-loading"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOOLTIP -->
+<div class="origine-tooltip" id="origine-tooltip"></div>

@@ -1,0 +1,341 @@
+/* ============================================================
+   WARSTACK — Origine / Carte des membres CSS
+   ============================================================ */
+
+/* ── STATS ROW ── */
+.origine-stats-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.origine-stat-card {
+  flex: 1;
+  min-width: 120px;
+  padding: 14px 16px;
+  background: linear-gradient(180deg, rgba(10,16,13,.94), rgba(7,10,9,.98));
+  border: 1px solid rgba(0,255,120,.08);
+  border-radius: 14px;
+  text-align: center;
+}
+
+.origine-stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: 2px;
+}
+
+.origine-stat-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* ── TABS ── */
+.origine-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(0,255,120,.08);
+}
+
+.origine-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color .18s, border-color .18s;
+  margin-bottom: -1px;
+}
+
+.origine-tab:hover { color: var(--green-bright); }
+.origine-tab.active { color: var(--green); border-bottom-color: var(--green); }
+.origine-tab-content { display: none; }
+.origine-tab-content.active { display: block; }
+
+/* ── LOADING ── */
+.origine-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 24px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* ── MAP CONTAINER ── */
+.origine-map-container {
+  position: relative;
+  background: linear-gradient(180deg, rgba(0,8,4,.95), rgba(0,5,2,.98));
+  border: 1px solid rgba(0,255,120,.08);
+  border-radius: 16px;
+  overflow: hidden;
+  min-height: 420px;
+}
+
+.origine-map-hint {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: .5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 10;
+  background: rgba(0,0,0,.5);
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+
+#world-map {
+  width: 100%;
+  min-height: 420px;
+}
+
+#world-map svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Pays sur la carte */
+#world-map .country {
+  fill: rgba(0,255,120,.06);
+  stroke: rgba(0,255,120,.12);
+  stroke-width: 0.5;
+  transition: fill .2s;
+  cursor: default;
+}
+
+#world-map .country.has-members {
+  fill: rgba(0,255,120,.2);
+  cursor: pointer;
+}
+
+#world-map .country.has-members:hover {
+  fill: rgba(0,255,120,.4);
+}
+
+/* Pins membres */
+.map-pin {
+  cursor: pointer;
+  transition: transform .15s;
+  transform-origin: center;
+}
+
+.map-pin:hover { transform: scale(1.3); }
+
+.map-pin-dot {
+  fill: var(--green);
+  filter: drop-shadow(0 0 4px rgba(0,255,120,.8));
+  animation: pinPulse 2s ease-in-out infinite;
+}
+
+.map-pin-ring {
+  fill: none;
+  stroke: rgba(0,255,120,.4);
+  stroke-width: 1.5;
+  animation: pinRing 2s ease-in-out infinite;
+}
+
+@keyframes pinPulse {
+  0%, 100% { opacity: 1; r: 4; }
+  50%       { opacity: .7; r: 3.5; }
+}
+
+@keyframes pinRing {
+  0%   { r: 6; opacity: .6; }
+  100% { r: 12; opacity: 0; }
+}
+
+/* ── TOOLTIP ── */
+.origine-tooltip {
+  position: fixed;
+  z-index: 2000;
+  background: linear-gradient(180deg, #0a0f0a, #060b06);
+  border: 1px solid rgba(0,255,120,.2);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--text);
+  pointer-events: none;
+  display: none;
+  max-width: 200px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.5);
+}
+
+.origine-tooltip.visible { display: block; }
+
+.tooltip-country {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--green);
+  margin-bottom: 6px;
+}
+
+.tooltip-member {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.tooltip-member img {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,255,120,.2);
+}
+
+/* ── COUNTRIES LIST ── */
+.origine-countries-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.origine-country-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: linear-gradient(180deg, rgba(10,16,13,.94), rgba(7,10,9,.98));
+  border: 1px solid rgba(0,255,120,.07);
+  border-radius: 12px;
+}
+
+.origine-country-flag { font-size: 24px; flex-shrink: 0; }
+
+.origine-country-info { flex: 1; }
+
+.origine-country-name {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--text);
+}
+
+.origine-country-members {
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+
+.origine-country-bar-wrap {
+  width: 120px;
+  height: 4px;
+  background: rgba(0,255,120,.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.origine-country-bar {
+  height: 100%;
+  background: var(--green);
+  border-radius: 2px;
+  transition: width .4s ease;
+}
+
+.origine-country-count {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: 1px;
+  min-width: 30px;
+  text-align: right;
+}
+
+/* ── MEMBRES LIST ── */
+.origine-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 0 14px;
+  background: rgba(0,255,120,.03);
+  border: 1px solid rgba(0,255,120,.08);
+  border-radius: 12px;
+}
+
+.origine-search-bar i { color: var(--text-muted); font-size: 13px; }
+.origine-search-bar .form-input { border: none; background: transparent; padding-left: 0; height: 44px; }
+
+.origine-members-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 8px;
+}
+
+.origine-member-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: linear-gradient(180deg, rgba(10,16,13,.94), rgba(7,10,9,.98));
+  border: 1px solid rgba(0,255,120,.07);
+  border-radius: 12px;
+}
+
+.origine-member-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 2px solid rgba(0,255,120,.15);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.origine-member-avatar-placeholder {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: rgba(0,255,120,.08);
+  border: 2px solid rgba(0,255,120,.15);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--green-dim); font-size: 13px; flex-shrink: 0;
+}
+
+.origine-member-info { flex: 1; min-width: 0; }
+
+.origine-member-name {
+  font-size: 13px; font-weight: 700;
+  color: var(--text); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+
+.origine-member-location {
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: .5px;
+  margin-top: 2px;
+}
+
+.origine-member-flag { font-size: 18px; flex-shrink: 0; }
+
+/* ── MOBILE ── */
+@media (max-width: 768px) {
+  .origine-stats-row { gap: 6px; }
+  .origine-stat-card { min-width: 80px; padding: 10px; }
+  .origine-stat-value { font-size: 18px; }
+  .origine-members-list { grid-template-columns: 1fr; }
+  .origine-country-bar-wrap { width: 70px; }
+  .origine-map-container { min-height: 280px; }
+  #world-map { min-height: 280px; }
+}

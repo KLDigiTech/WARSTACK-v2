@@ -55,6 +55,7 @@ const sections = {
   access:     () => import('./sections/access.js').then(m => m.initAccess()),
   settings:   () => import('./sections/settings.js').then(m => m.initSettings()),
   'ocr-test': () => import('./sections/ocr-test.js').then(m => m.initOcrTest()),
+  origine:    () => import('./sections/origine.js').then(m => m.initOrigine()),
 };
 
 // ROUTER

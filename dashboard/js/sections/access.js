@@ -1,5 +1,5 @@
-// dashboard/js/sections/access.js
-// Gestion complète des rôles et accès — Fondateur/Admin seulement
+// dashboard/js/sections/access.js v2
+// Modal centré, tout cocher, protection Fondateur
 
 import {
   getDashboardRoles,
@@ -16,35 +16,38 @@ import {
   getDiscordChannels
 } from '../services/accessService.js';
 
-import { showToast }             from '../ui/toast.js';
-import { getCurrentDiscordId, isFounder } from '../services/permissionService.js';
+import { showToast } from '../ui/toast.js';
+import { getCurrentDiscordId } from '../services/permissionService.js';
 
 // ─── CONSTANTES ──────────────────────────────────────────────
 
+const FOUNDER_ID = '1233271006236377180';
+
 const ALL_MODULES = [
-  { key: 'overview',    label: 'Vue générale',    icon: 'fa-chart-line'  },
-  { key: 'players',     label: 'Joueurs',          icon: 'fa-users'       },
-  { key: 'tournament',  label: 'Tournoi',          icon: 'fa-trophy'      },
-  { key: 'moderation',  label: 'Modération',       icon: 'fa-shield-alt'  },
-  { key: 'automod',     label: 'Auto-mod',         icon: 'fa-robot'       },
-  { key: 'logs',        label: 'Logs',             icon: 'fa-list-alt'    },
-  { key: 'tickets',     label: 'Tickets',          icon: 'fa-ticket-alt'  },
-  { key: 'channels',    label: 'Salons',           icon: 'fa-hashtag'     },
-  { key: 'roles',       label: 'Rôles auto',       icon: 'fa-tags'        },
-  { key: 'welcome',     label: 'Arrivées',         icon: 'fa-door-open'   },
-  { key: 'messages',    label: 'Messages récur.',  icon: 'fa-clock'       },
-  { key: 'reactions',   label: 'Rôles-réactions',  icon: 'fa-smile'       },
-  { key: 'birthdays',   label: 'Anniversaires',    icon: 'fa-birthday-cake'},
-  { key: 'suggestions', label: 'Suggestions',      icon: 'fa-lightbulb'   },
-  { key: 'access',      label: 'Accès Dashboard',  icon: 'fa-user-shield' },
-  { key: 'settings',    label: 'Paramètres',       icon: 'fa-cog'         },
-  { key: 'ocr-test',    label: 'Test OCR',         icon: 'fa-microscope'  },
+  { key: 'overview',    label: 'Vue générale'    },
+  { key: 'players',     label: 'Joueurs'          },
+  { key: 'tournament',  label: 'Tournoi'          },
+  { key: 'moderation',  label: 'Modération'       },
+  { key: 'automod',     label: 'Auto-mod'         },
+  { key: 'logs',        label: 'Logs'             },
+  { key: 'tickets',     label: 'Tickets'          },
+  { key: 'channels',    label: 'Salons'           },
+  { key: 'roles',       label: 'Rôles auto'       },
+  { key: 'welcome',     label: 'Arrivées'         },
+  { key: 'messages',    label: 'Messages récur.'  },
+  { key: 'reactions',   label: 'Rôles-réactions'  },
+  { key: 'birthdays',   label: 'Anniversaires'    },
+  { key: 'suggestions', label: 'Suggestions'      },
+  { key: 'access',      label: 'Accès Dashboard'  },
+  { key: 'settings',    label: 'Paramètres'       },
+  { key: 'ocr-test',    label: 'Test OCR'         },
 ];
 
 const COLORS = [
   '#FFD700','#00FF66','#00D1FF','#9B59B6','#ED4245',
   '#FAA61A','#EB459E','#57F287','#5865F2','#95A5A6',
   '#FF6B35','#00B894','#FD79A8','#6C5CE7','#FDCB6E',
+  '#ffffff','#e74c3c','#2ecc71','#3498db','#f39c12',
 ];
 
 // ─── STATE ───────────────────────────────────────────────────
@@ -56,14 +59,10 @@ let _editingRoleId = null;
 let _editingMember = null;
 let _selectedColor = '#00FF66';
 let _selectedRoleId= null;
-let _isMemberSearch= false;
 
 // ─── INIT ────────────────────────────────────────────────────
 
 export async function initAccess() {
-  const discordId = await getCurrentDiscordId();
-
-  // Charge données en parallèle
   [_roles, _members] = await Promise.all([
     getDashboardRoles(),
     getGuildMembers()
@@ -72,9 +71,12 @@ export async function initAccess() {
   renderRoles();
   renderMembers(_members);
   initTabs();
-  initDrawerEvents();
-  initMemberDrawerEvents();
+  initRoleModalEvents();
+  initMemberModalEvents();
   initSearch();
+
+  document.getElementById('btn-new-role')
+    ?.addEventListener('click', () => openRoleModal(null));
 }
 
 // ─── TABS ─────────────────────────────────────────────────────
@@ -97,7 +99,7 @@ function renderRoles() {
   if (!list) return;
 
   if (!_roles?.length) {
-    list.innerHTML = `<div class="access-loading"><i class="fas fa-info-circle"></i> Aucun rôle créé.</div>`;
+    list.innerHTML = `<div class="access-loading">Aucun rôle créé.</div>`;
     return;
   }
 
@@ -107,24 +109,16 @@ function renderRoles() {
       <div class="access-role-dot" style="background:${role.color || '#00ff66'}"></div>
       <div class="access-role-info">
         <div class="access-role-name" style="color:${role.color || '#00ff66'}">${role.name}</div>
-        <div class="access-role-meta">
-          ${_members.filter(m => m.role_id == role.id).length} membre(s)
-        </div>
+        <div class="access-role-meta">${_members.filter(m => m.role_id == role.id).length} membre(s)</div>
       </div>
-      <div class="access-role-badges">
-        ${role.is_system ? '<span class="access-badge access-badge-system">SYSTÈME</span>' : ''}
-      </div>
+      ${role.is_system ? '<span class="access-badge access-badge-system">SYSTÈME</span>' : ''}
       <i class="fas fa-chevron-right access-role-arrow"></i>
     </div>
   `).join('');
 
-  // Click → ouvrir drawer rôle
   list.querySelectorAll('.access-role-row').forEach(row => {
-    row.addEventListener('click', () => openRoleDrawer(row.dataset.roleId));
+    row.addEventListener('click', () => openRoleModal(row.dataset.roleId));
   });
-
-  // Bouton nouveau rôle
-  document.getElementById('btn-new-role')?.addEventListener('click', () => openRoleDrawer(null));
 }
 
 // ─── RENDER MEMBRES ───────────────────────────────────────────
@@ -137,7 +131,7 @@ function renderMembers(members) {
   (_roles || []).forEach(r => { roleMap[r.id] = r; });
 
   if (!members?.length) {
-    list.innerHTML = `<div class="access-loading"><i class="fas fa-info-circle"></i> Aucun joueur inscrit.</div>`;
+    list.innerHTML = `<div class="access-loading">Aucun joueur inscrit.</div>`;
     return;
   }
 
@@ -155,7 +149,7 @@ function renderMembers(members) {
         </div>
         ${role
           ? `<span class="access-member-role-badge"
-               style="color:${role.color};border-color:${role.color}22;background:${role.color}11">
+               style="color:${role.color};border-color:${role.color}33;background:${role.color}11">
                ${role.name}
              </span>`
           : `<span class="access-member-no-role">— Aucun rôle</span>`
@@ -167,77 +161,73 @@ function renderMembers(members) {
   list.querySelectorAll('.access-member-row').forEach(row => {
     row.addEventListener('click', () => {
       const member = members.find(m => m.discord_id === row.dataset.discordId);
-      if (member) openMemberDrawer(member);
+      if (member) openMemberModal(member);
     });
   });
 }
 
-// ─── SEARCH MEMBRES ───────────────────────────────────────────
+// ─── SEARCH ───────────────────────────────────────────────────
 
 function initSearch() {
-  const input = document.getElementById('member-search');
-  if (!input) return;
-  input.addEventListener('input', e => {
+  document.getElementById('member-search')?.addEventListener('input', e => {
     const q = e.target.value.toLowerCase().trim();
     if (!q) { renderMembers(_members); return; }
-    const filtered = _members.filter(m =>
+    renderMembers(_members.filter(m =>
       (m.username || '').toLowerCase().includes(q) ||
       (m.pseudo_bf6 || '').toLowerCase().includes(q)
-    );
-    renderMembers(filtered);
+    ));
   });
 }
 
-// ─── DRAWER RÔLE ─────────────────────────────────────────────
+// ─── MODAL RÔLE ───────────────────────────────────────────────
 
-async function openRoleDrawer(roleId) {
+async function openRoleModal(roleId) {
   _editingRoleId = roleId;
-  const drawer   = document.getElementById('role-drawer');
-  const title    = document.getElementById('drawer-title');
-  const nameInput= document.getElementById('role-name-input');
+
+  const modal    = document.getElementById('role-modal');
+  const title    = document.getElementById('role-modal-title');
+  const nameInp  = document.getElementById('role-name-input');
   const deleteBtn= document.getElementById('btn-delete-role');
 
-  drawer.classList.add('open');
-
-  let currentPerms    = [];
-  let currentChannels = [];
-  let role            = null;
+  let currentPerms = [], currentChannels = [], role = null;
 
   if (roleId) {
     role = _roles.find(r => r.id == roleId);
     title.textContent = `Modifier — ${role?.name || ''}`;
-    nameInput.value   = role?.name || '';
+    nameInp.value     = role?.name || '';
     _selectedColor    = role?.color || '#00FF66';
-    deleteBtn.style.display = role?.is_system ? 'none' : 'flex';
+    deleteBtn.style.display = role?.is_system ? 'none' : 'inline-flex';
 
     const [perms, chans] = await Promise.all([
       getRolePermissions(roleId),
       getRoleChannels(roleId)
     ]);
-    currentPerms    = (perms    || []).map(p => p.module_key);
-    currentChannels = (chans    || []).map(c => c.channel_id);
+    currentPerms    = (perms  || []).map(p => p.module_key);
+    currentChannels = (chans  || []).map(c => c.channel_id);
   } else {
     title.textContent       = 'Nouveau rôle';
-    nameInput.value         = '';
+    nameInp.value           = '';
     _selectedColor          = '#00FF66';
     deleteBtn.style.display = 'none';
   }
 
   renderColorPicker();
-  renderModulesGrid(currentPerms);
+  renderModulesGrid(currentPerms, role?.is_system);
   await renderChannelsList(currentChannels);
+
+  modal.classList.add('open');
 }
 
-function initDrawerEvents() {
-  const overlay  = document.getElementById('drawer-overlay');
-  const closeBtn = document.getElementById('btn-close-drawer');
-  const cancelBtn= document.getElementById('btn-cancel-drawer');
-  const saveBtn  = document.getElementById('btn-save-role');
-  const deleteBtn= document.getElementById('btn-delete-role');
-  const hexInput = document.getElementById('color-hex-input');
+function initRoleModalEvents() {
+  const overlay   = document.getElementById('role-modal-overlay');
+  const closeBtn  = document.getElementById('btn-close-role-modal');
+  const cancelBtn = document.getElementById('btn-cancel-role-modal');
+  const saveBtn   = document.getElementById('btn-save-role');
+  const deleteBtn = document.getElementById('btn-delete-role');
+  const hexInput  = document.getElementById('color-hex-input');
 
   [overlay, closeBtn, cancelBtn].forEach(el =>
-    el?.addEventListener('click', closeRoleDrawer)
+    el?.addEventListener('click', closeRoleModal)
   );
 
   hexInput?.addEventListener('input', e => {
@@ -245,18 +235,36 @@ function initDrawerEvents() {
     if (/^#[0-9a-fA-F]{6}$/.test(val)) {
       _selectedColor = val;
       document.getElementById('color-preview').style.background = val;
-      document.querySelectorAll('.access-color-swatch').forEach(s => {
-        s.classList.toggle('active', s.dataset.color === val);
-      });
+      document.querySelectorAll('.access-color-swatch').forEach(s =>
+        s.classList.toggle('active', s.dataset.color === val)
+      );
     }
+  });
+
+  // Tout cocher modules
+  document.getElementById('btn-check-all-modules')?.addEventListener('click', () => {
+    const all    = document.querySelectorAll('.access-module-toggle');
+    const allOn  = [...all].every(t => t.classList.contains('active'));
+    all.forEach(t => t.classList.toggle('active', !allOn));
+    document.getElementById('btn-check-all-modules').textContent =
+      allOn ? 'Tout cocher' : 'Tout décocher';
+  });
+
+  // Tout cocher salons
+  document.getElementById('btn-check-all-channels')?.addEventListener('click', () => {
+    const all   = document.querySelectorAll('.access-channel-toggle');
+    const allOn = [...all].every(t => t.classList.contains('active'));
+    all.forEach(t => t.classList.toggle('active', !allOn));
+    document.getElementById('btn-check-all-channels').textContent =
+      allOn ? 'Tout cocher' : 'Tout décocher';
   });
 
   saveBtn?.addEventListener('click', saveRole);
   deleteBtn?.addEventListener('click', deleteRole);
 }
 
-function closeRoleDrawer() {
-  document.getElementById('role-drawer').classList.remove('open');
+function closeRoleModal() {
+  document.getElementById('role-modal').classList.remove('open');
   _editingRoleId = null;
 }
 
@@ -268,8 +276,7 @@ function renderColorPicker() {
 
   grid.innerHTML = COLORS.map(c => `
     <div class="access-color-swatch ${c === _selectedColor ? 'active' : ''}"
-         data-color="${c}"
-         style="background:${c}">
+         data-color="${c}" style="background:${c}${c==='#ffffff'?';border:1px solid #333':''}">
     </div>
   `).join('');
 
@@ -280,32 +287,34 @@ function renderColorPicker() {
     swatch.addEventListener('click', () => {
       grid.querySelectorAll('.access-color-swatch').forEach(s => s.classList.remove('active'));
       swatch.classList.add('active');
-      _selectedColor               = swatch.dataset.color;
-      preview.style.background     = _selectedColor;
-      hexInp.value                 = _selectedColor;
+      _selectedColor           = swatch.dataset.color;
+      preview.style.background = _selectedColor;
+      hexInp.value             = _selectedColor;
     });
   });
 }
 
-function renderModulesGrid(activeModules) {
+function renderModulesGrid(activeModules, isSystem) {
   const grid = document.getElementById('modules-grid');
   if (!grid) return;
 
   grid.innerHTML = ALL_MODULES.map(m => `
     <label class="access-module-toggle ${activeModules.includes(m.key) ? 'active' : ''}"
-           data-key="${m.key}">
-      <span class="access-module-label"><i class="fas ${m.icon}"></i> ${m.label}</span>
+           data-key="${m.key}" ${isSystem ? 'style="pointer-events:none;opacity:.5"' : ''}>
+      <span class="access-module-label">${m.label}</span>
       <div class="access-module-check"></div>
     </label>
   `).join('');
 
-  grid.querySelectorAll('.access-module-toggle').forEach(toggle => {
-    toggle.addEventListener('click', () => toggle.classList.toggle('active'));
-  });
+  if (!isSystem) {
+    grid.querySelectorAll('.access-module-toggle').forEach(toggle =>
+      toggle.addEventListener('click', () => toggle.classList.toggle('active'))
+    );
+  }
 }
 
 async function renderChannelsList(activeChannelIds) {
-  const container = document.getElementById('channels-list-drawer');
+  const container = document.getElementById('channels-list-modal');
   if (!container) return;
 
   container.innerHTML = `<div class="access-loading"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>`;
@@ -313,39 +322,39 @@ async function renderChannelsList(activeChannelIds) {
   try {
     if (!_channels.length) {
       const res = await getDiscordChannels();
-      _channels = res?.channels || [];
+      _channels  = res?.channels || [];
     }
 
     // Grouper par catégorie
     const categories = {};
-    _channels.filter(c => c.type === 'category').forEach(c => {
-      categories[c.name] = [];
-    });
+    _channels.filter(c => c.type === 'category').forEach(c => { categories[c.name] = []; });
     _channels.filter(c => c.type !== 'category').forEach(c => {
       const cat = c.category || 'Sans catégorie';
       if (!categories[cat]) categories[cat] = [];
       categories[cat].push(c);
     });
 
-    container.innerHTML = Object.entries(categories).map(([catName, chans]) => `
-      <div class="access-channels-category">
-        <div class="access-channels-cat-title">${catName}</div>
-        ${chans.map(ch => `
-          <div class="access-channel-toggle ${activeChannelIds.includes(ch.id) ? 'active' : ''}"
-               data-channel-id="${ch.id}">
-            <i class="fas ${ch.type === 'voice' ? 'fa-volume-up' : 'fa-hashtag'} access-channel-icon"></i>
-            <span class="access-channel-name">${ch.name}</span>
-            <div class="access-channel-check"></div>
-          </div>
-        `).join('')}
-      </div>
-    `).join('');
+    container.innerHTML = Object.entries(categories)
+      .filter(([, chans]) => chans.length > 0)
+      .map(([catName, chans]) => `
+        <div class="access-channels-category">
+          <div class="access-channels-cat-title">${catName}</div>
+          ${chans.map(ch => `
+            <div class="access-channel-toggle ${activeChannelIds.includes(ch.id) ? 'active' : ''}"
+                 data-channel-id="${ch.id}">
+              <i class="fas ${ch.type === 'voice' ? 'fa-volume-up' : 'fa-hashtag'} access-channel-icon"></i>
+              <span class="access-channel-name">${ch.name}</span>
+              <div class="access-channel-check"></div>
+            </div>
+          `).join('')}
+        </div>
+      `).join('');
 
-    container.querySelectorAll('.access-channel-toggle').forEach(toggle => {
-      toggle.addEventListener('click', () => toggle.classList.toggle('active'));
-    });
+    container.querySelectorAll('.access-channel-toggle').forEach(toggle =>
+      toggle.addEventListener('click', () => toggle.classList.toggle('active'))
+    );
 
-  } catch (err) {
+  } catch {
     container.innerHTML = `<div class="access-loading" style="color:var(--red)">Erreur chargement salons</div>`;
   }
 }
@@ -354,15 +363,11 @@ async function saveRole() {
   const name = document.getElementById('role-name-input')?.value.trim();
   if (!name) { showToast('Le nom du rôle est requis.', 'error'); return; }
 
-  const selectedModules = [];
-  document.querySelectorAll('.access-module-toggle.active').forEach(t => {
-    selectedModules.push(t.dataset.key);
-  });
+  const selectedModules = [...document.querySelectorAll('.access-module-toggle.active')]
+    .map(t => t.dataset.key);
 
-  const selectedChannels = [];
-  document.querySelectorAll('.access-channel-toggle.active').forEach(t => {
-    selectedChannels.push(t.dataset.channelId);
-  });
+  const selectedChannels = [...document.querySelectorAll('.access-channel-toggle.active')]
+    .map(t => t.dataset.channelId);
 
   try {
     let roleId = _editingRoleId;
@@ -380,9 +385,7 @@ async function saveRole() {
     ]);
 
     showToast(`Rôle "${name}" sauvegardé.`, 'success');
-    closeRoleDrawer();
-
-    // Recharge
+    closeRoleModal();
     _roles = await getDashboardRoles();
     renderRoles();
 
@@ -394,31 +397,27 @@ async function saveRole() {
 async function deleteRole() {
   const role = _roles.find(r => r.id == _editingRoleId);
   if (!role || role.is_system) return;
-  if (!confirm(`Supprimer le rôle "${role.name}" ? Cette action est irréversible.`)) return;
+  if (!confirm(`Supprimer le rôle "${role.name}" ?`)) return;
   try {
     await deleteDashboardRole(_editingRoleId);
     showToast(`Rôle "${role.name}" supprimé.`, 'success');
-    closeRoleDrawer();
+    closeRoleModal();
     _roles = await getDashboardRoles();
     renderRoles();
   } catch (err) {
-    showToast(err.message || 'Erreur lors de la suppression.', 'error');
+    showToast(err.message || 'Erreur.', 'error');
   }
 }
 
-// ─── DRAWER MEMBRE ────────────────────────────────────────────
+// ─── MODAL MEMBRE ─────────────────────────────────────────────
 
-function openMemberDrawer(member) {
-  _editingMember = member;
-  _selectedRoleId= member.role_id || null;
+function openMemberModal(member) {
+  _editingMember  = member;
+  _selectedRoleId = member.role_id || null;
 
-  const drawer = document.getElementById('member-drawer');
-  drawer.classList.add('open');
-
-  document.getElementById('member-drawer-title').textContent =
+  document.getElementById('member-modal-title').textContent =
     `Rôle de ${member.username || member.discord_id}`;
 
-  // Info membre
   document.getElementById('member-info-block').innerHTML = `
     <div class="access-member-info-block">
       ${member.avatar_url
@@ -432,7 +431,6 @@ function openMemberDrawer(member) {
     </div>
   `;
 
-  // Liste des rôles à choisir
   const radioList = document.getElementById('roles-radio-list');
   radioList.innerHTML = _roles.map(role => `
     <div class="access-role-option ${_selectedRoleId == role.id ? 'selected' : ''}"
@@ -451,57 +449,53 @@ function openMemberDrawer(member) {
       _selectedRoleId = opt.dataset.roleId;
     });
   });
+
+  document.getElementById('member-modal').classList.add('open');
 }
 
-function initMemberDrawerEvents() {
-  const overlay  = document.getElementById('member-drawer-overlay');
-  const closeBtn = document.getElementById('btn-close-member-drawer');
-  const cancelBtn= document.getElementById('btn-cancel-member-drawer');
-  const saveBtn  = document.getElementById('btn-save-member-role');
-  const removeBtn= document.getElementById('btn-remove-member-role');
+function initMemberModalEvents() {
+  [
+    document.getElementById('member-modal-overlay'),
+    document.getElementById('btn-close-member-modal'),
+    document.getElementById('btn-cancel-member-modal'),
+  ].forEach(el => el?.addEventListener('click', closeMemberModal));
 
-  [overlay, closeBtn, cancelBtn].forEach(el =>
-    el?.addEventListener('click', closeMemberDrawer)
-  );
-
-  saveBtn?.addEventListener('click', saveMemberRole);
-  removeBtn?.addEventListener('click', removeMemberRole);
+  document.getElementById('btn-save-member-role')?.addEventListener('click', saveMemberRole);
+  document.getElementById('btn-remove-member-role')?.addEventListener('click', removeMemberRole);
 }
 
-function closeMemberDrawer() {
-  document.getElementById('member-drawer').classList.remove('open');
+function closeMemberModal() {
+  document.getElementById('member-modal').classList.remove('open');
   _editingMember  = null;
   _selectedRoleId = null;
 }
 
 async function saveMemberRole() {
   if (!_editingMember || !_selectedRoleId) {
-    showToast('Sélectionne un rôle.', 'error');
-    return;
+    showToast('Sélectionne un rôle.', 'error'); return;
   }
   try {
     await assignRoleToMember(_editingMember.discord_id, _selectedRoleId);
     const role = _roles.find(r => r.id == _selectedRoleId);
     showToast(`Rôle "${role?.name}" assigné à ${_editingMember.username}.`, 'success');
-    closeMemberDrawer();
+    closeMemberModal();
     _members = await getGuildMembers();
     renderMembers(_members);
   } catch (err) {
-    showToast(err.message || 'Erreur lors de l\'assignation.', 'error');
+    showToast(err.message || 'Erreur.', 'error');
   }
 }
 
 async function removeMemberRole() {
   if (!_editingMember) return;
-  if (_editingMember.discord_id === '1233271006236377180') {
-    showToast('Impossible de modifier le Fondateur.', 'error');
-    return;
+  if (_editingMember.discord_id === FOUNDER_ID) {
+    showToast('Impossible de modifier le Fondateur.', 'error'); return;
   }
   if (!confirm(`Retirer le rôle de ${_editingMember.username} ?`)) return;
   try {
     await removeRoleFromMember(_editingMember.discord_id);
     showToast('Rôle retiré.', 'success');
-    closeMemberDrawer();
+    closeMemberModal();
     _members = await getGuildMembers();
     renderMembers(_members);
   } catch (err) {

@@ -1,16 +1,22 @@
-// dashboard/js/sections/origine.js
-// Carte mondiale interactive des membres WARSTACK
+// dashboard/js/sections/origine.js v2
+// Vraie carte monde D3.js + GeoJSON
 
 import { fetchSupabase } from '../api.js';
 
 const COUNTRY_COORDS = {
-  FR: [46.2276, 2.2137],   BE: [50.5039, 4.4699],   CH: [46.8182, 8.2275],
-  CA: [56.1304, -106.347], MA: [31.7917, -7.0926],  DZ: [28.0339, 1.6596],
-  TN: [33.8869, 9.5375],   US: [37.0902, -95.7129], GB: [55.3781, -3.4360],
-  DE: [51.1657, 10.4515],  ES: [40.4637, -3.7492],  IT: [41.8719, 12.5674],
-  PT: [39.3999, -8.2245],  NL: [52.1326, 5.2913],   AU: [-25.274, 133.775],
-  BR: [-14.235, -51.925],  MX: [23.6345, -102.552], JP: [36.2048, 138.253],
-  SN: [14.4974, -14.4524], CI: [7.5400, -5.5471],   XX: [20, 0],
+  FR:[48.8566,2.3522], BE:[50.8503,4.3517], CH:[46.9481,7.4474],
+  CA:[45.4215,-75.6972], MA:[33.9716,-6.8498], DZ:[36.7372,3.0865],
+  TN:[36.8065,10.1815], US:[38.8951,-77.0364], GB:[51.5074,-0.1278],
+  DE:[52.5200,13.4050], ES:[40.4168,-3.7038], IT:[41.9028,12.4964],
+  PT:[38.7169,-9.1399], NL:[52.3676,4.9041], AU:[-35.2809,149.1300],
+  BR:[-15.7801,-47.9292], MX:[19.4326,-99.1332], JP:[35.6762,139.6503],
+  SN:[14.7167,-17.4677], CI:[5.3484,-4.0083], RU:[55.7558,37.6176],
+  CN:[39.9042,116.4074], IN:[28.6139,77.2090], ZA:[-25.7461,28.1881],
+  EG:[30.0444,31.2357], NG:[9.0579,7.4951], KE:[-1.2921,36.8219],
+  SA:[24.6877,46.7219], TR:[39.9334,32.8597], PL:[52.2297,21.0122],
+  SE:[59.3293,18.0686], NO:[59.9139,10.7522], DK:[55.6761,12.5683],
+  FI:[60.1699,24.9384], AT:[48.2082,16.3738], CZ:[50.0755,14.4378],
+  XX:[20,0],
 };
 
 function getFlag(code) {
@@ -70,6 +76,7 @@ async function renderMap() {
   const container = document.getElementById('world-map');
   if (!container) return;
 
+  // Grouper membres par pays
   const byCountry = {};
   _allPlayers.forEach(p => {
     if (!p.country_code) return;
@@ -78,95 +85,216 @@ async function renderMap() {
   });
 
   const tooltip = document.getElementById('origine-tooltip');
-  const W = 800, H = 420;
+  const W = container.offsetWidth || 800;
+  const H = Math.round(W * 0.5);
 
-  function toXY(lat, lon) {
-    return [((lon + 180) / 360) * W, ((90 - lat) / 180) * H];
+  container.innerHTML = `<div id="map-loading" style="display:flex;align-items:center;justify-content:center;height:${H}px;color:var(--text-muted);gap:10px;font-size:13px"><i class="fas fa-spinner fa-spin"></i> Chargement de la carte...</div>`;
+
+  // Charger D3 et le GeoJSON en parallèle
+  await Promise.all([
+    loadScript('https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js'),
+    loadScript('https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js')
+  ]);
+
+  // GeoJSON monde simplifié
+  let world;
+  try {
+    const res = await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+    world = await res.json();
+  } catch(e) {
+    container.innerHTML = `<div style="padding:24px;color:var(--text-muted)">Impossible de charger la carte. Vérifiez votre connexion.</div>`;
+    return;
   }
 
-  const pins = Object.entries(byCountry).map(([code, members]) => {
-    const coords = COUNTRY_COORDS[code];
-    if (!coords) return '';
-    const [x, y] = toXY(coords[0], coords[1]);
-    return `
-      <g class="map-pin" data-code="${code}" transform="translate(${x},${y})">
-        <circle class="map-pin-ring" r="10"/>
-        <circle class="map-pin-dot" r="5"/>
-        ${members.length > 1 ? `<text x="0" y="-10" text-anchor="middle" font-size="10" fill="rgba(0,255,120,.9)" font-weight="700" style="pointer-events:none">${members.length}</text>` : ''}
-      </g>
-    `;
-  }).join('');
+  container.innerHTML = '';
 
-  container.innerHTML = `
-    <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block">
-      <rect width="${W}" height="${H}" fill="rgba(0,20,10,.8)"/>
-      ${Array.from({length:7},(_,i)=>`<line x1="0" y1="${(i+1)*H/8}" x2="${W}" y2="${(i+1)*H/8}" stroke="rgba(0,255,120,.04)" stroke-width="0.5"/>`).join('')}
-      ${Array.from({length:11},(_,i)=>`<line x1="${(i+1)*W/12}" y1="0" x2="${(i+1)*W/12}" y2="${H}" stroke="rgba(0,255,120,.04)" stroke-width="0.5"/>`).join('')}
-      <line x1="0" y1="${H/2}" x2="${W}" y2="${H/2}" stroke="rgba(0,255,120,.08)" stroke-width="1" stroke-dasharray="4 4"/>
-      <path d="M370,80 L420,70 L440,90 L430,120 L400,130 L375,115 Z" fill="rgba(0,255,120,.08)" stroke="rgba(0,255,120,.12)" stroke-width="0.5"/>
-      <path d="M390,140 L430,135 L450,180 L430,250 L395,255 L375,210 L380,165 Z" fill="rgba(0,255,120,.07)" stroke="rgba(0,255,120,.1)" stroke-width="0.5"/>
-      <path d="M100,60 L200,50 L220,100 L180,150 L120,160 L80,120 Z" fill="rgba(0,255,120,.07)" stroke="rgba(0,255,120,.1)" stroke-width="0.5"/>
-      <path d="M180,170 L230,165 L240,240 L200,290 L165,270 L155,210 Z" fill="rgba(0,255,120,.07)" stroke="rgba(0,255,120,.1)" stroke-width="0.5"/>
-      <path d="M450,60 L650,55 L680,100 L660,140 L580,150 L500,130 L445,100 Z" fill="rgba(0,255,120,.07)" stroke="rgba(0,255,120,.1)" stroke-width="0.5"/>
-      <path d="M610,230 L680,220 L700,260 L660,280 L610,265 Z" fill="rgba(0,255,120,.06)" stroke="rgba(0,255,120,.09)" stroke-width="0.5"/>
-      <text x="155" y="115" text-anchor="middle" font-size="8" fill="rgba(0,255,120,.25)" letter-spacing="2">AMÉR. NORD</text>
-      <text x="200" y="230" text-anchor="middle" font-size="8" fill="rgba(0,255,120,.25)" letter-spacing="2">AMÉR. SUD</text>
-      <text x="400" y="100" text-anchor="middle" font-size="8" fill="rgba(0,255,120,.25)" letter-spacing="2">EUROPE</text>
-      <text x="410" y="200" text-anchor="middle" font-size="8" fill="rgba(0,255,120,.25)" letter-spacing="2">AFRIQUE</text>
-      <text x="570" y="100" text-anchor="middle" font-size="8" fill="rgba(0,255,120,.25)" letter-spacing="2">ASIE</text>
-      <text x="655" y="252" text-anchor="middle" font-size="8" fill="rgba(0,255,120,.25)" letter-spacing="2">OCÉANIE</text>
-      ${pins}
-    </svg>
+  const svg = d3.select(container)
+    .append('svg')
+    .attr('width', '100%')
+    .attr('viewBox', `0 0 ${W} ${H}`)
+    .style('background', 'rgba(0,20,10,.8)')
+    .style('border-radius', '12px');
+
+  const projection = d3.geoNaturalEarth1()
+    .scale(W / 6.5)
+    .translate([W / 2, H / 2]);
+
+  const path = d3.geoPath().projection(projection);
+
+  const countries = topojson.feature(world, world.objects.countries);
+
+  // Codes numériques ISO → alpha2 (subset utile)
+  const ISO_NUM = {
+    '250':'FR','056':'BE','756':'CH','124':'CA','504':'MA','012':'DZ',
+    '788':'TN','840':'US','826':'GB','276':'DE','724':'ES','380':'IT',
+    '620':'PT','528':'NL','036':'AU','076':'BR','484':'MX','392':'JP',
+    '686':'SN','384':'CI','643':'RU','156':'CN','356':'IN','710':'ZA',
+    '818':'EG','566':'NG','404':'KE','682':'SA','792':'TR','616':'PL',
+    '752':'SE','578':'NO','208':'DK','246':'FI','040':'AT','203':'CZ',
+  };
+
+  const hasMembers = new Set(Object.keys(byCountry));
+
+  // Dessiner les pays
+  svg.append('g')
+    .selectAll('path')
+    .data(countries.features)
+    .join('path')
+    .attr('d', path)
+    .attr('fill', d => {
+      const alpha2 = ISO_NUM[String(d.id).padStart(3,'0')];
+      return hasMembers.has(alpha2) ? 'rgba(0,255,120,.25)' : 'rgba(0,255,120,.05)';
+    })
+    .attr('stroke', 'rgba(0,255,120,.15)')
+    .attr('stroke-width', 0.4)
+    .style('cursor', d => {
+      const alpha2 = ISO_NUM[String(d.id).padStart(3,'0')];
+      return hasMembers.has(alpha2) ? 'pointer' : 'default';
+    })
+    .on('mouseenter', function(event, d) {
+      const alpha2 = ISO_NUM[String(d.id).padStart(3,'0')];
+      if (!hasMembers.has(alpha2)) return;
+      d3.select(this).attr('fill', 'rgba(0,255,120,.5)');
+      showTooltip(event, alpha2, byCountry[alpha2] || [], tooltip);
+    })
+    .on('mousemove', function(event) {
+      tooltip.style.left = `${event.clientX + 14}px`;
+      tooltip.style.top  = `${event.clientY - 10}px`;
+    })
+    .on('mouseleave', function(event, d) {
+      const alpha2 = ISO_NUM[String(d.id).padStart(3,'0')];
+      d3.select(this).attr('fill', hasMembers.has(alpha2) ? 'rgba(0,255,120,.25)' : 'rgba(0,255,120,.05)');
+      tooltip.classList.remove('visible');
+    });
+
+  // Dessiner les pins
+  const pinsGroup = svg.append('g');
+
+  Object.entries(byCountry).forEach(([code, members]) => {
+    const coords = COUNTRY_COORDS[code];
+    if (!coords) return;
+
+    const [x, y] = projection([coords[1], coords[0]]);
+    if (!x || !y) return;
+
+    const g = pinsGroup.append('g')
+      .attr('transform', `translate(${x},${y})`)
+      .style('cursor', 'pointer');
+
+    // Anneau pulsant
+    g.append('circle')
+      .attr('r', 8)
+      .attr('fill', 'none')
+      .attr('stroke', 'rgba(0,255,120,.4)')
+      .attr('stroke-width', 1.5)
+      .append('animate')
+        .attr('attributeName', 'r')
+        .attr('values', '6;14;6')
+        .attr('dur', '2s')
+        .attr('repeatCount', 'indefinite');
+
+    g.append('animate')
+      .attr('attributeName', 'opacity')
+      .attr('values', '1;0;1')
+      .attr('dur', '2s')
+      .attr('repeatCount', 'indefinite');
+
+    // Point central
+    g.append('circle')
+      .attr('r', members.length > 3 ? 7 : 5)
+      .attr('fill', '#00ff66')
+      .style('filter', 'drop-shadow(0 0 4px rgba(0,255,120,.8))');
+
+    // Compteur si > 1
+    if (members.length > 1) {
+      g.append('text')
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'central')
+        .attr('font-size', members.length > 9 ? '7' : '8')
+        .attr('font-weight', '700')
+        .attr('fill', '#000')
+        .text(members.length);
+    }
+
+    g.on('mouseenter', (event) => showTooltip(event, code, members, tooltip))
+     .on('mousemove', (event) => {
+       tooltip.style.left = `${event.clientX + 14}px`;
+       tooltip.style.top  = `${event.clientY - 10}px`;
+     })
+     .on('mouseleave', () => tooltip.classList.remove('visible'));
+  });
+
+  // Graticule
+  svg.append('path')
+    .datum(d3.geoGraticule()())
+    .attr('d', path)
+    .attr('fill', 'none')
+    .attr('stroke', 'rgba(0,255,120,.04)')
+    .attr('stroke-width', 0.5);
+}
+
+function showTooltip(event, code, members, tooltip) {
+  const flag = getFlag(code);
+  const country = members[0]?.country || code;
+
+  tooltip.innerHTML = `
+    <div class="tooltip-country">${flag} ${country} — ${members.length} membre${members.length > 1 ? 's' : ''}</div>
+    ${members.slice(0, 5).map(m => `
+      <div class="tooltip-member">
+        ${m.avatar_url
+          ? `<img src="${m.avatar_url}" alt="">`
+          : '<i class="fas fa-user" style="width:20px;text-align:center;color:var(--green-dim)"></i>'}
+        <span>${m.username || m.discord_id}</span>
+        ${m.city ? `<span style="color:var(--text-muted);font-size:9px;margin-left:4px">— ${m.city}</span>` : ''}
+      </div>
+    `).join('')}
+    ${members.length > 5 ? `<div style="font-size:10px;color:var(--text-muted);margin-top:4px">+${members.length - 5} autres</div>` : ''}
   `;
 
-  container.querySelectorAll('.map-pin').forEach(pin => {
-    const code    = pin.dataset.code;
-    const members = byCountry[code] || [];
-    pin.addEventListener('mouseenter', e => {
-      tooltip.innerHTML = `
-        <div class="tooltip-country">${getFlag(code)} ${members[0]?.country || code}</div>
-        ${members.slice(0,5).map(m => `
-          <div class="tooltip-member">
-            ${m.avatar_url ? `<img src="${m.avatar_url}" alt="">` : '<i class="fas fa-user" style="width:20px;text-align:center;color:var(--green-dim)"></i>'}
-            ${m.username || m.discord_id}
-            ${m.city ? `<span style="color:var(--text-muted);font-size:9px">— ${m.city}</span>` : ''}
-          </div>`).join('')}
-        ${members.length > 5 ? `<div style="font-size:10px;color:var(--text-muted);margin-top:4px">+${members.length-5} autres</div>` : ''}
-      `;
-      tooltip.classList.add('visible');
-    });
-    pin.addEventListener('mousemove', e => {
-      tooltip.style.left = `${e.clientX+14}px`;
-      tooltip.style.top  = `${e.clientY-10}px`;
-    });
-    pin.addEventListener('mouseleave', () => tooltip.classList.remove('visible'));
+  tooltip.style.left = `${event.clientX + 14}px`;
+  tooltip.style.top  = `${event.clientY - 10}px`;
+  tooltip.classList.add('visible');
+}
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
   });
 }
 
 function renderCountriesList() {
   const container = document.getElementById('countries-list');
   if (!container) return;
+
   const byCountry = {};
   _allPlayers.forEach(p => {
     if (!p.country_code) return;
     if (!byCountry[p.country_code]) byCountry[p.country_code] = { name: p.country, code: p.country_code, count: 0 };
     byCountry[p.country_code].count++;
   });
-  const sorted = Object.values(byCountry).sort((a,b) => b.count - a.count);
-  const max = sorted[0]?.count || 1;
+
+  const sorted = Object.values(byCountry).sort((a, b) => b.count - a.count);
+  const max    = sorted[0]?.count || 1;
+
   if (!sorted.length) {
     container.innerHTML = `<div class="origine-loading">Aucun membre localisé. Utilisez /origine sur Discord !</div>`;
     return;
   }
+
   container.innerHTML = sorted.map(c => `
     <div class="origine-country-row">
       <div class="origine-country-flag">${getFlag(c.code)}</div>
       <div class="origine-country-info">
         <div class="origine-country-name">${c.name}</div>
-        <div class="origine-country-members">${c.count} membre${c.count>1?'s':''}</div>
+        <div class="origine-country-members">${c.count} membre${c.count > 1 ? 's' : ''}</div>
       </div>
       <div class="origine-country-bar-wrap">
-        <div class="origine-country-bar" style="width:${(c.count/max)*100}%"></div>
+        <div class="origine-country-bar" style="width:${(c.count / max) * 100}%"></div>
       </div>
       <div class="origine-country-count">${c.count}</div>
     </div>
@@ -176,10 +304,12 @@ function renderCountriesList() {
 function renderMembersList(players) {
   const container = document.getElementById('origine-members-list');
   if (!container) return;
+
   if (!players?.length) {
-    container.innerHTML = `<div class="origine-loading">Aucun membre localisé.</div>`;
+    container.innerHTML = `<div class="origine-loading">Aucun membre localisé. Utilisez /origine sur Discord !</div>`;
     return;
   }
+
   container.innerHTML = players.map(p => {
     const location = [p.city, p.region, p.country].filter(Boolean).join(', ');
     return `
@@ -202,10 +332,10 @@ function initSearch() {
     const q = e.target.value.toLowerCase().trim();
     if (!q) { renderMembersList(_allPlayers); return; }
     renderMembersList(_allPlayers.filter(p =>
-      (p.username||'').toLowerCase().includes(q) ||
-      (p.country||'').toLowerCase().includes(q) ||
-      (p.city||'').toLowerCase().includes(q) ||
-      (p.region||'').toLowerCase().includes(q)
+      (p.username || '').toLowerCase().includes(q) ||
+      (p.country  || '').toLowerCase().includes(q) ||
+      (p.city     || '').toLowerCase().includes(q) ||
+      (p.region   || '').toLowerCase().includes(q)
     ));
   });
 }

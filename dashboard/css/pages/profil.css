@@ -1,3 +1,954 @@
+.profil-body {
+  margin: 0;
+  min-height: 100vh;
+  background: #050805;
+  font-family: 'Rajdhani', sans-serif;
+  color: #f2fff2;
+}
+
+.profil-bg {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at top, rgba(0, 255, 120, .08), transparent 40%),
+    radial-gradient(circle at bottom right, rgba(var(--division-color, 0, 255, 120), .04), transparent 40%),
+    #050805;
+  z-index: 0;
+}
+
+.profil-page {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+/* HEADER */
+.profil-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 40px;
+}
+
+.profil-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #7dffb3;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: opacity .2s;
+}
+
+.profil-back:hover {
+  opacity: .7;
+}
+
+.profil-brand {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: #00ff88;
+  text-transform: uppercase;
+}
+
+/* LOADING / NOTFOUND */
+.profil-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  height: 60vh;
+  color: #7fa38a;
+  font-size: 13px;
+  letter-spacing: 2px;
+}
+
+.profil-notfound {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  height: 60vh;
+  color: #7fa38a;
+  text-align: center;
+}
+
+.profil-notfound i {
+  font-size: 48px;
+  opacity: .4;
+}
+
+.profil-notfound h2 {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #f2fff2;
+}
+
+.profil-notfound p {
+  font-size: 13px;
+  color: #7fa38a;
+}
+
+/* HERO */
+.profil-hero {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 32px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(0, 255, 120, .06), rgba(0, 255, 120, .02));
+  border: 1px solid rgba(0, 255, 120, .14);
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.profil-avatar-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.profil-avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 24px;
+  object-fit: cover;
+  border: 2px solid rgba(0, 255, 120, .24);
+  box-shadow: 0 0 30px rgba(0, 255, 120, .16);
+}
+
+.profil-division-badge {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #050805;
+  border: 1px solid rgba(0, 255, 120, .24);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.profil-identity {
+  flex: 1;
+  min-width: 0;
+}
+
+.profil-username {
+  font-size: 32px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 3px;
+  line-height: 1.1;
+}
+
+.profil-platform {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #7dffb3;
+  opacity: .7;
+  margin-top: 6px;
+}
+
+.profil-division {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #00ff88;
+  margin-top: 8px;
+}
+
+.profil-score-block {
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.profil-score-value {
+  font-size: 48px;
+  font-weight: 700;
+  color: #00ff88;
+  line-height: 1;
+  text-shadow: 0 0 20px rgba(0, 255, 120, .4);
+}
+
+.profil-score-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #7fa38a;
+  margin-top: 6px;
+}
+
+/* SECTION TITRE */
+.profil-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #7dffb3;
+  opacity: .65;
+  margin-bottom: 16px;
+  margin-top: 32px;
+}
+
+/* STATS GLOBALES */
+.profil-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 8px;
+}
+
+.profil-stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 16px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(10, 16, 13, .94), rgba(7, 10, 9, .98));
+  border: 1px solid rgba(0, 255, 120, .06);
+  text-align: center;
+  transition: border-color .2s, transform .2s;
+}
+
+.profil-stat-card:hover {
+  border-color: rgba(0, 255, 120, .16);
+  transform: translateY(-2px);
+}
+
+.profil-stat-card.highlight {
+  border-color: rgba(0, 255, 120, .18);
+  background: linear-gradient(180deg, rgba(0, 255, 120, .06), rgba(0, 255, 120, .02));
+}
+
+.profil-stat-icon {
+  font-size: 18px;
+  color: #7dffb3;
+  opacity: .7;
+}
+
+.profil-stat-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.profil-stat-card.highlight .profil-stat-value {
+  color: #00ff88;
+}
+
+.profil-stat-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #7fa38a;
+}
+
+/* TOURNOIS */
+.profil-tournois-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profil-tournoi-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(10, 16, 13, .94), rgba(7, 10, 9, .98));
+  border: 1px solid rgba(0, 255, 120, .06);
+  flex-wrap: wrap;
+  transition: border-color .2s;
+}
+
+.profil-tournoi-card:hover {
+  border-color: rgba(0, 255, 120, .14);
+}
+
+.profil-tournoi-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 1px;
+}
+
+.profil-tournoi-phase {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #7dffb3;
+  opacity: .7;
+  margin-top: 3px;
+}
+
+.profil-tournoi-stats {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.profil-tournoi-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.profil-tournoi-stat strong {
+  font-size: 16px;
+  font-weight: 700;
+  color: #00ff88;
+}
+
+.profil-tournoi-stat span {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #7fa38a;
+}
+
+.profil-tournoi-badge {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.profil-tournoi-badge.mvp {
+  background: rgba(255, 189, 46, .12);
+  border: 1px solid rgba(255, 189, 46, .3);
+  color: #ffbd2e;
+}
+
+.profil-tournoi-badge.top3 {
+  background: rgba(0, 255, 120, .08);
+  border: 1px solid rgba(0, 255, 120, .2);
+  color: #00ff88;
+}
+
+.profil-empty {
+  text-align: center;
+  padding: 32px;
+  color: #7fa38a;
+  font-size: 13px;
+  opacity: .6;
+}
+
+/* FOOTER */
+.profil-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 32px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.profil-tracker-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  background: rgba(0, 255, 120, .06);
+  border: 1px solid rgba(0, 255, 120, .14);
+  color: #7dffb3;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: .2s;
+}
+
+.profil-tracker-btn:hover {
+  background: rgba(0, 255, 120, .12);
+  border-color: rgba(0, 255, 120, .3);
+}
+
+.profil-updated {
+  font-size: 11px;
+  color: #7fa38a;
+  letter-spacing: 1px;
+}
+
+.profil-body {
+  margin: 0;
+  min-height: 100vh;
+  background: #050805;
+  font-family: 'Rajdhani', sans-serif;
+  color: #f2fff2;
+}
+
+.profil-bg {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at top, rgba(0, 255, 120, .08), transparent 40%),
+    radial-gradient(circle at bottom right, rgba(var(--division-color, 0, 255, 120), .04), transparent 40%),
+    #050805;
+  z-index: 0;
+}
+
+.profil-page {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+/* HEADER */
+.profil-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 40px;
+}
+
+.profil-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #7dffb3;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: opacity .2s;
+}
+
+.profil-back:hover {
+  opacity: .7;
+}
+
+.profil-brand {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: #00ff88;
+  text-transform: uppercase;
+}
+
+/* LOADING / NOTFOUND */
+.profil-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  height: 60vh;
+  color: #7fa38a;
+  font-size: 13px;
+  letter-spacing: 2px;
+}
+
+.profil-notfound {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  height: 60vh;
+  color: #7fa38a;
+  text-align: center;
+}
+
+.profil-notfound i {
+  font-size: 48px;
+  opacity: .4;
+}
+
+.profil-notfound h2 {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #f2fff2;
+}
+
+.profil-notfound p {
+  font-size: 13px;
+  color: #7fa38a;
+}
+
+/* HERO */
+.profil-hero {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 32px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(0, 255, 120, .06), rgba(0, 255, 120, .02));
+  border: 1px solid rgba(0, 255, 120, .14);
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.profil-avatar-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.profil-avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 24px;
+  object-fit: cover;
+  border: 2px solid rgba(0, 255, 120, .24);
+  box-shadow: 0 0 30px rgba(0, 255, 120, .16);
+}
+
+.profil-division-badge {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #050805;
+  border: 1px solid rgba(0, 255, 120, .24);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.profil-identity {
+  flex: 1;
+  min-width: 0;
+}
+
+.profil-username {
+  font-size: 32px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 3px;
+  line-height: 1.1;
+}
+
+.profil-platform {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #7dffb3;
+  opacity: .7;
+  margin-top: 6px;
+}
+
+.profil-division {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #00ff88;
+  margin-top: 8px;
+}
+
+.profil-score-block {
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.profil-score-value {
+  font-size: 48px;
+  font-weight: 700;
+  color: #00ff88;
+  line-height: 1;
+  text-shadow: 0 0 20px rgba(0, 255, 120, .4);
+}
+
+.profil-score-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #7fa38a;
+  margin-top: 6px;
+}
+
+/* SECTION TITRE */
+.profil-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #7dffb3;
+  opacity: .65;
+  margin-bottom: 16px;
+  margin-top: 32px;
+}
+
+/* STATS GLOBALES */
+.profil-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 8px;
+}
+
+.profil-stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 16px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(10, 16, 13, .94), rgba(7, 10, 9, .98));
+  border: 1px solid rgba(0, 255, 120, .06);
+  text-align: center;
+  transition: border-color .2s, transform .2s;
+}
+
+.profil-stat-card:hover {
+  border-color: rgba(0, 255, 120, .16);
+  transform: translateY(-2px);
+}
+
+.profil-stat-card.highlight {
+  border-color: rgba(0, 255, 120, .18);
+  background: linear-gradient(180deg, rgba(0, 255, 120, .06), rgba(0, 255, 120, .02));
+}
+
+.profil-stat-icon {
+  font-size: 18px;
+  color: #7dffb3;
+  opacity: .7;
+}
+
+.profil-stat-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.profil-stat-card.highlight .profil-stat-value {
+  color: #00ff88;
+}
+
+.profil-stat-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #7fa38a;
+}
+
+/* TOURNOIS */
+.profil-tournois-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profil-tournoi-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(10, 16, 13, .94), rgba(7, 10, 9, .98));
+  border: 1px solid rgba(0, 255, 120, .06);
+  flex-wrap: wrap;
+  transition: border-color .2s;
+}
+
+.profil-tournoi-card:hover {
+  border-color: rgba(0, 255, 120, .14);
+}
+
+.profil-tournoi-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 1px;
+}
+
+.profil-tournoi-phase {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #7dffb3;
+  opacity: .7;
+  margin-top: 3px;
+}
+
+.profil-tournoi-stats {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.profil-tournoi-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.profil-tournoi-stat strong {
+  font-size: 16px;
+  font-weight: 700;
+  color: #00ff88;
+}
+
+.profil-tournoi-stat span {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #7fa38a;
+}
+
+.profil-tournoi-badge {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.profil-tournoi-badge.mvp {
+  background: rgba(255, 189, 46, .12);
+  border: 1px solid rgba(255, 189, 46, .3);
+  color: #ffbd2e;
+}
+
+.profil-tournoi-badge.top3 {
+  background: rgba(0, 255, 120, .08);
+  border: 1px solid rgba(0, 255, 120, .2);
+  color: #00ff88;
+}
+
+.profil-empty {
+  text-align: center;
+  padding: 32px;
+  color: #7fa38a;
+  font-size: 13px;
+  opacity: .6;
+}
+
+/* FOOTER */
+.profil-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 32px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.profil-tracker-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  background: rgba(0, 255, 120, .06);
+  border: 1px solid rgba(0, 255, 120, .14);
+  color: #7dffb3;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: .2s;
+}
+
+.profil-tracker-btn:hover {
+  background: rgba(0, 255, 120, .12);
+  border-color: rgba(0, 255, 120, .3);
+}
+
+.profil-updated {
+  font-size: 11px;
+  color: #7fa38a;
+  letter-spacing: 1px;
+}
+
+/* ── ONGLETS ── */
+.profil-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1.5rem 0 1rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+}
+
+.profil-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  margin-bottom: -1px;
+}
+
+.profil-tab:hover {
+  color: var(--text);
+}
+
+.profil-tab.active {
+  color: var(--green);
+  border-bottom-color: var(--green);
+}
+
+/* ── BR RANK BADGE ── */
+.profil-br-rank {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 0.25rem 0.75rem;
+  width: fit-content;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  color: #C0C0C0;
+}
+
+.profil-br-rank i {
+  color: #C0C0C0;
+  font-size: 0.75rem;
+}
+
+.br-rank-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  letter-spacing: 2px;
+  margin-left: 0.25rem;
+}
+
+/* ── GRILLE 4 COLONNES ── */
+.profil-stats-grid.grid-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* ── BR RANK BANNER (onglet BR) ── */
+.profil-br-rank-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+  padding: 0.6rem 1.25rem;
+  background: linear-gradient(135deg, rgba(192, 192, 192, 0.1), rgba(192, 192, 192, 0.05));
+  border: 1px solid rgba(192, 192, 192, 0.3);
+  border-radius: 8px;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 3px;
+  color: #C0C0C0;
+  text-transform: uppercase;
+}
+
+.profil-br-rank-banner i {
+  font-size: 1rem;
+}
+
+/* ── TOURNOI CARD AMÉLIORÉ ── */
+.profil-tournoi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.profil-tournoi-dates {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 0.2rem;
+}
+
+.profil-tournoi-rank {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 40px;
+  text-align: right;
+}
+
+.profil-tournoi-rank.mvp {
+  color: #FFD700;
+}
+
+.profil-tournoi-rank.top3 {
+  color: var(--green);
+}
+
+.profil-tournoi-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.profil-tournoi-stat {
+  text-align: center;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+}
+
+.profil-tournoi-stat strong {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.profil-tournoi-stat span {
+  font-size: 0.6rem;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+/* ── PLAYER BR RANK ── */
+.player-br-rank {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.3rem;
+  font-size: 0.7rem;
+  color: #C0C0C0;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
 /* ============================================================
    WARSTACK — Profil Edit Localisation
    À ajouter dans dashboard/css/pages/profil.css
@@ -10,8 +961,8 @@
   gap: 8px;
   padding: 0 16px;
   height: 40px;
-  background: rgba(0,255,120,.08);
-  border: 1px solid rgba(0,255,120,.2);
+  background: rgba(0, 255, 120, .08);
+  border: 1px solid rgba(0, 255, 120, .2);
   border-radius: 10px;
   color: var(--green, #00ff66);
   font-family: 'Rajdhani', sans-serif;
@@ -24,15 +975,15 @@
 }
 
 .profil-edit-btn:hover {
-  background: rgba(0,255,120,.15);
-  border-color: rgba(0,255,120,.4);
+  background: rgba(0, 255, 120, .15);
+  border-color: rgba(0, 255, 120, .4);
   transform: translateY(-1px);
 }
 
 /* Badge localisation dans le hero */
 .profil-localisation {
   font-size: 13px;
-  color: rgba(255,255,255,.6);
+  color: rgba(255, 255, 255, .6);
   letter-spacing: 1px;
   margin-top: 6px;
   display: flex;
@@ -51,12 +1002,14 @@
   padding: 16px;
 }
 
-.profil-loc-modal.open { display: flex; }
+.profil-loc-modal.open {
+  display: flex;
+}
 
 .profil-loc-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,.75);
+  background: rgba(0, 0, 0, .75);
   backdrop-filter: blur(4px);
 }
 
@@ -65,16 +1018,23 @@
   width: 100%;
   max-width: 440px;
   background: linear-gradient(180deg, #0a0f0a, #060b06);
-  border: 1px solid rgba(0,255,120,.15);
+  border: 1px solid rgba(0, 255, 120, .15);
   border-radius: 18px;
   overflow: hidden;
   animation: locModalIn .2s ease;
-  box-shadow: 0 30px 80px rgba(0,0,0,.6);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .6);
 }
 
 @keyframes locModalIn {
-  from { opacity: 0; transform: scale(.96) translateY(10px); }
-  to   { opacity: 1; transform: scale(1)   translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(.96) translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .profil-loc-header {
@@ -82,7 +1042,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  border-bottom: 1px solid rgba(0,255,120,.08);
+  border-bottom: 1px solid rgba(0, 255, 120, .08);
 }
 
 .profil-loc-header h3 {
@@ -94,220 +1054,23 @@
 }
 
 .profil-loc-close {
-  width: 30px; height: 30px;
+  width: 30px;
+  height: 30px;
   border-radius: 8px;
-  border: 1px solid rgba(0,255,120,.12);
+  border: 1px solid rgba(0, 255, 120, .12);
   background: transparent;
-  color: rgba(255,255,255,.4);
+  color: rgba(255, 255, 255, .4);
   cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: all .15s;
-}
-
-.profil-loc-close:hover { color: #ff4444; border-color: rgba(255,68,68,.3); }
-
-.profil-loc-body {
-  padding: 20px;
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.profil-loc-hint {
-  font-size: 11px;
-  color: rgba(255,255,255,.4);
-  letter-spacing: .5px;
-  line-height: 1.5;
-  padding: 10px 12px;
-  background: rgba(0,255,120,.03);
-  border: 1px solid rgba(0,255,120,.06);
-  border-radius: 8px;
-}
-
-.profil-loc-optional {
-  font-size: 10px;
-  color: rgba(255,255,255,.3);
-  font-weight: 400;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-.profil-loc-footer {
-  display: flex;
-  gap: 10px;
-  padding: 14px 20px;
-  border-top: 1px solid rgba(0,255,120,.08);
-  justify-content: flex-end;
-}
-
-.profil-loc-cancel {
-  height: 40px;
-  padding: 0 16px;
-  border-radius: 10px;
-  border: 1px solid rgba(255,255,255,.08);
-  background: transparent;
-  color: rgba(255,255,255,.4);
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all .15s;
-}
-
-.profil-loc-cancel:hover { border-color: rgba(255,255,255,.2); color: rgba(255,255,255,.7); }
-
-.profil-loc-save {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 40px;
-  padding: 0 18px;
-  border-radius: 10px;
-  border: 1px solid rgba(0,255,120,.25);
-  background: rgba(0,255,120,.12);
-  color: #00ff66;
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all .15s;
-}
-
-.profil-loc-save:hover {
-  background: rgba(0,255,120,.2);
-  border-color: rgba(0,255,120,.4);
-}
-
-.profil-loc-save:disabled {
-  opacity: .5;
-  cursor: not-allowed;
-}
-
-/* Mobile */
-@media (max-width: 480px) {
-  .profil-loc-modal { padding: 0; align-items: flex-end; }
-  .profil-loc-box {
-    max-width: 100%;
-    border-radius: 18px 18px 0 0;
-    animation: locSlideUp .25s ease;
-  }
-  @keyframes locSlideUp {
-    from { transform: translateY(100%); }
-    to   { transform: translateY(0); }
-  }
-}
-
-/* ============================================================
-   WARSTACK — Profil Edit Localisation
-   À ajouter dans dashboard/css/pages/profil.css
-   ============================================================ */
-
-/* Bouton modifier localisation */
-.profil-edit-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 16px;
-  height: 40px;
-  background: rgba(0,255,120,.08);
-  border: 1px solid rgba(0,255,120,.2);
-  border-radius: 10px;
-  color: var(--green, #00ff66);
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all .18s;
-}
-
-.profil-edit-btn:hover {
-  background: rgba(0,255,120,.15);
-  border-color: rgba(0,255,120,.4);
-  transform: translateY(-1px);
-}
-
-/* Badge localisation dans le hero */
-.profil-localisation {
-  font-size: 13px;
-  color: rgba(255,255,255,.6);
-  letter-spacing: 1px;
-  margin-top: 6px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* ── MODAL LOCALISATION ── */
-.profil-loc-modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 2000;
   align-items: center;
   justify-content: center;
-  padding: 16px;
-}
-
-.profil-loc-modal.open { display: flex; }
-
-.profil-loc-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,.75);
-  backdrop-filter: blur(4px);
-}
-
-.profil-loc-box {
-  position: relative;
-  width: 100%;
-  max-width: 440px;
-  background: linear-gradient(180deg, #0a0f0a, #060b06);
-  border: 1px solid rgba(0,255,120,.15);
-  border-radius: 18px;
-  overflow: hidden;
-  animation: locModalIn .2s ease;
-  box-shadow: 0 30px 80px rgba(0,0,0,.6);
-}
-
-@keyframes locModalIn {
-  from { opacity: 0; transform: scale(.96) translateY(10px); }
-  to   { opacity: 1; transform: scale(1)   translateY(0); }
-}
-
-.profil-loc-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid rgba(0,255,120,.08);
-}
-
-.profil-loc-header h3 {
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: #00ff66;
-}
-
-.profil-loc-close {
-  width: 30px; height: 30px;
-  border-radius: 8px;
-  border: 1px solid rgba(0,255,120,.12);
-  background: transparent;
-  color: rgba(255,255,255,.4);
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
   transition: all .15s;
 }
 
-.profil-loc-close:hover { color: #ff4444; border-color: rgba(255,68,68,.3); }
+.profil-loc-close:hover {
+  color: #ff4444;
+  border-color: rgba(255, 68, 68, .3);
+}
 
 .profil-loc-body {
   padding: 20px;
@@ -318,18 +1081,18 @@
 
 .profil-loc-hint {
   font-size: 11px;
-  color: rgba(255,255,255,.4);
+  color: rgba(255, 255, 255, .4);
   letter-spacing: .5px;
   line-height: 1.5;
   padding: 10px 12px;
-  background: rgba(0,255,120,.03);
-  border: 1px solid rgba(0,255,120,.06);
+  background: rgba(0, 255, 120, .03);
+  border: 1px solid rgba(0, 255, 120, .06);
   border-radius: 8px;
 }
 
 .profil-loc-optional {
   font-size: 10px;
-  color: rgba(255,255,255,.3);
+  color: rgba(255, 255, 255, .3);
   font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
@@ -339,7 +1102,7 @@
   display: flex;
   gap: 10px;
   padding: 14px 20px;
-  border-top: 1px solid rgba(0,255,120,.08);
+  border-top: 1px solid rgba(0, 255, 120, .08);
   justify-content: flex-end;
 }
 
@@ -347,9 +1110,9 @@
   height: 40px;
   padding: 0 16px;
   border-radius: 10px;
-  border: 1px solid rgba(255,255,255,.08);
+  border: 1px solid rgba(255, 255, 255, .08);
   background: transparent;
-  color: rgba(255,255,255,.4);
+  color: rgba(255, 255, 255, .4);
   font-family: 'Rajdhani', sans-serif;
   font-size: 11px;
   font-weight: 700;
@@ -359,7 +1122,10 @@
   transition: all .15s;
 }
 
-.profil-loc-cancel:hover { border-color: rgba(255,255,255,.2); color: rgba(255,255,255,.7); }
+.profil-loc-cancel:hover {
+  border-color: rgba(255, 255, 255, .2);
+  color: rgba(255, 255, 255, .7);
+}
 
 .profil-loc-save {
   display: flex;
@@ -368,8 +1134,8 @@
   height: 40px;
   padding: 0 18px;
   border-radius: 10px;
-  border: 1px solid rgba(0,255,120,.25);
-  background: rgba(0,255,120,.12);
+  border: 1px solid rgba(0, 255, 120, .25);
+  background: rgba(0, 255, 120, .12);
   color: #00ff66;
   font-family: 'Rajdhani', sans-serif;
   font-size: 11px;
@@ -381,8 +1147,8 @@
 }
 
 .profil-loc-save:hover {
-  background: rgba(0,255,120,.2);
-  border-color: rgba(0,255,120,.4);
+  background: rgba(0, 255, 120, .2);
+  border-color: rgba(0, 255, 120, .4);
 }
 
 .profil-loc-save:disabled {
@@ -392,14 +1158,24 @@
 
 /* Mobile */
 @media (max-width: 480px) {
-  .profil-loc-modal { padding: 0; align-items: flex-end; }
+  .profil-loc-modal {
+    padding: 0;
+    align-items: flex-end;
+  }
+
   .profil-loc-box {
     max-width: 100%;
     border-radius: 18px 18px 0 0;
     animation: locSlideUp .25s ease;
   }
+
   @keyframes locSlideUp {
-    from { transform: translateY(100%); }
-    to   { transform: translateY(0); }
+    from {
+      transform: translateY(100%);
+    }
+
+    to {
+      transform: translateY(0);
+    }
   }
 }

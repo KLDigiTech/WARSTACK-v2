@@ -100,7 +100,7 @@ async function renderMap() {
 
   const tooltip = document.getElementById('origine-tooltip');
 
-  const W = container.offsetWidth || 1200;
+  const W = container.offsetWidth || 1400;
   const H = Math.round(W * 0.55);
 
   container.innerHTML = `
@@ -145,6 +145,8 @@ async function renderMap() {
 
   } catch (e) {
 
+    console.error(e);
+
     container.innerHTML = `
       <div style="padding:24px;color:var(--text-muted)">
         Impossible de charger la carte.
@@ -170,89 +172,58 @@ async function renderMap() {
     .style('background', 'rgba(0,20,10,.9)')
     .style('border-radius', '14px');
 
-  // ======================================
+  // =====================================
   // MAP GROUP
-  // ======================================
+  // =====================================
 
   const mapGroup = svg.append('g');
 
-  // ======================================
+  // =====================================
   // ZOOM
-  // ======================================
+  // =====================================
 
   const zoom = d3.zoom()
-    .scaleExtent([1, 25])
+    .scaleExtent([1, 30])
     .on('zoom', (event) => {
       mapGroup.attr('transform', event.transform);
     });
 
   svg.call(zoom);
 
-  // ======================================
-  // PROJECTION
-  // ======================================
+  // =====================================
+  // WORLD PROJECTION
+  // =====================================
 
-  const projection = d3.geoNaturalEarth1()
+  const worldProjection = d3.geoNaturalEarth1()
     .scale(W / 6.5)
     .translate([W / 2, H / 2]);
 
-  const path = d3.geoPath().projection(projection);
+  const worldPath = d3.geoPath()
+    .projection(worldProjection);
 
   const countries = topojson.feature(
     world,
     world.objects.countries
   );
 
-  // ======================================
+  // =====================================
   // GROUPS
-  // ======================================
+  // =====================================
 
   const countriesGroup = mapGroup.append('g');
   const regionsGroup = mapGroup.append('g');
   const pinsGroup = mapGroup.append('g');
 
-  // ======================================
-  // ZOOM TO FEATURE
-  // ======================================
-
-  function zoomToFeature(feature) {
-
-    const bounds = path.bounds(feature);
-
-    const dx = bounds[1][0] - bounds[0][0];
-    const dy = bounds[1][1] - bounds[0][1];
-
-    const x = (bounds[0][0] + bounds[1][0]) / 2;
-    const y = (bounds[0][1] + bounds[1][1]) / 2;
-
-    const scale = Math.max(
-      1,
-      Math.min(25, 0.9 / Math.max(dx / W, dy / H))
-    );
-
-    const translate = [
-      W / 2 - scale * x,
-      H / 2 - scale * y
-    ];
-
-    svg.transition()
-      .duration(1400)
-      .ease(d3.easeCubicInOut)
-      .call(
-        zoom.transform,
-        d3.zoomIdentity
-          .translate(translate[0], translate[1])
-          .scale(scale)
-      );
-  }
-
-  // ======================================
-  // RESET
-  // ======================================
+  // =====================================
+  // RESET MAP
+  // =====================================
 
   function resetMap() {
 
     regionsGroup.selectAll('*').remove();
+    pinsGroup.selectAll('*').remove();
+
+    renderWorldPins();
 
     svg.transition()
       .duration(1200)
@@ -267,64 +238,18 @@ async function renderMap() {
     .getElementById('map-reset-btn')
     ?.addEventListener('click', resetMap);
 
-  // ======================================
-  // FRANCE REGIONS
-  // ======================================
-
-  function renderFranceRegions() {
-
-    regionsGroup.selectAll('*').remove();
-
-    regionsGroup
-      .selectAll('path')
-      .data(franceRegions.features)
-      .join('path')
-
-      .attr('d', path)
-
-      .attr('fill', 'rgba(0,255,120,.05)')
-
-      .attr('stroke', 'rgba(0,255,120,.4)')
-
-      .attr('stroke-width', 0.8)
-
-      .style(
-        'filter',
-        'drop-shadow(0 0 2px rgba(0,255,120,.15))'
-      )
-
-      .on('mouseenter', function() {
-
-        d3.select(this)
-          .attr('fill', 'rgba(0,255,120,.18)');
-      })
-
-      .on('mouseleave', function() {
-
-        d3.select(this)
-          .attr('fill', 'rgba(0,255,120,.05)');
-      });
-  }
-
-  // ======================================
-  // COUNTRIES
-  // ======================================
+  // =====================================
+  // WORLD COUNTRIES
+  // =====================================
 
   countriesGroup
     .selectAll('path')
     .data(countries.features)
     .join('path')
 
-    .attr('d', path)
+    .attr('d', worldPath)
 
-    .attr('fill', d => {
-
-      const alpha2 = ISO_NUM[String(d.id).padStart(3,'0')];
-
-      return alpha2
-        ? 'rgba(255,255,255,.03)'
-        : 'rgba(255,255,255,.02)';
-    })
+    .attr('fill', 'rgba(255,255,255,.03)')
 
     .attr('stroke', 'rgba(255,255,255,.08)')
 
@@ -335,7 +260,7 @@ async function renderMap() {
     .on('mouseenter', function() {
 
       d3.select(this)
-        .attr('fill', 'rgba(0,255,120,.12)');
+        .attr('fill', 'rgba(0,255,120,.08)');
     })
 
     .on('mouseleave', function() {
@@ -350,131 +275,284 @@ async function renderMap() {
 
       if (!alpha2) return;
 
-      zoomToFeature(d);
-
+      // FRANCE DETAILLEE
       if (alpha2 === 'FR') {
+
         renderFranceRegions();
+
       } else {
-        regionsGroup.selectAll('*').remove();
+
+        resetMap();
       }
     });
 
-  // ======================================
-  // REAL GPS PINS
-  // ======================================
+  // =====================================
+  // WORLD PINS
+  // =====================================
 
-  _allPlayers.forEach(player => {
+  function renderWorldPins() {
 
-    if (
-      !player.latitude ||
-      !player.longitude
-    ) return;
+    pinsGroup.selectAll('*').remove();
 
-    const latitude = parseFloat(player.latitude);
-    const longitude = parseFloat(player.longitude);
+    const grouped = {};
 
-    if (!latitude || !longitude) return;
+    _allPlayers.forEach(player => {
 
-    const [x, y] = projection([
-      longitude,
-      latitude
-    ]);
+      if (
+        !player.latitude ||
+        !player.longitude ||
+        !player.country_code
+      ) return;
 
-    if (!x || !y) return;
+      if (!grouped[player.country_code]) {
+        grouped[player.country_code] = [];
+      }
 
-    const g = pinsGroup.append('g')
-      .attr('transform', `translate(${x},${y})`)
-      .style('cursor', 'pointer');
+      grouped[player.country_code].push(player);
+    });
 
-    // Pulse
-    g.append('circle')
-      .attr('r', 10)
-      .attr('fill', 'none')
-      .attr('stroke', 'rgba(0,255,120,.35)')
-      .attr('stroke-width', 1.5)
-      .append('animate')
-      .attr('attributeName', 'r')
-      .attr('values', '5;14;5')
-      .attr('dur', '2s')
-      .attr('repeatCount', 'indefinite');
+    Object.values(grouped).forEach(players => {
 
-    // Dot
-    g.append('circle')
-      .attr('r', 5)
-      .attr('fill', '#00ff66')
-      .style(
-        'filter',
-        'drop-shadow(0 0 8px rgba(0,255,120,.9))'
+      const player = players[0];
+
+      const latitude = parseFloat(player.latitude);
+      const longitude = parseFloat(player.longitude);
+
+      const [x, y] = worldProjection([
+        longitude,
+        latitude
+      ]);
+
+      if (!x || !y) return;
+
+      const g = pinsGroup.append('g')
+        .attr('transform', `translate(${x},${y})`);
+
+      // pulse
+      g.append('circle')
+        .attr('r', 10)
+        .attr('fill', 'none')
+        .attr('stroke', 'rgba(0,255,120,.35)')
+        .attr('stroke-width', 1.5)
+        .append('animate')
+        .attr('attributeName', 'r')
+        .attr('values', '5;14;5')
+        .attr('dur', '2s')
+        .attr('repeatCount', 'indefinite');
+
+      // point
+      g.append('circle')
+        .attr('r', players.length > 1 ? 7 : 5)
+        .attr('fill', '#00ff66')
+        .style(
+          'filter',
+          'drop-shadow(0 0 8px rgba(0,255,120,.9))'
+        );
+    });
+  }
+
+  // =====================================
+  // FRANCE DETAILLEE
+  // =====================================
+
+  function renderFranceRegions() {
+
+    regionsGroup.selectAll('*').remove();
+    pinsGroup.selectAll('*').remove();
+
+    // zoom camera
+    svg.transition()
+      .duration(1400)
+      .ease(d3.easeCubicInOut)
+      .call(
+        zoom.transform,
+        d3.zoomIdentity
+          .translate(-W * 0.22, -H * 0.15)
+          .scale(3.8)
       );
 
-    // Hover
-    g.on('mouseenter', (event) => {
+    // projection france
+    const franceProjection = d3.geoMercator()
+      .center([2.454071, 46.279229])
+      .scale(2600)
+      .translate([W / 2, H / 2]);
 
-      tooltip.innerHTML = `
-        <div class="tooltip-country">
-          ${getFlag(player.country_code)}
-          ${player.country || 'Unknown'}
-        </div>
+    const francePath = d3.geoPath()
+      .projection(franceProjection);
 
-        <div class="tooltip-member">
+    // regions
+    regionsGroup
+      .selectAll('path')
+      .data(franceRegions.features)
+      .join('path')
 
-          ${player.avatar_url
-            ? `<img src="${player.avatar_url}" alt="">`
-            : `<i class="fas fa-user"
-                style="
-                  width:20px;
-                  text-align:center;
-                  color:var(--green-dim)
-                "></i>`}
+      .attr('d', francePath)
 
-          <span>
-            ${player.username || player.discord_id}
-          </span>
+      .attr('fill', 'rgba(0,255,120,.05)')
 
-        </div>
+      .attr('stroke', 'rgba(0,255,120,.45)')
 
-        <div
-          style="
-            margin-top:6px;
-            color:var(--text-muted);
-            font-size:11px
-          "
-        >
-          ${[
-            player.city,
-            player.region,
-            player.country
-          ]
-          .filter(Boolean)
-          .join(', ')}
-        </div>
-      `;
+      .attr('stroke-width', 0.8)
 
-      tooltip.style.left = `${event.clientX + 14}px`;
-      tooltip.style.top = `${event.clientY - 10}px`;
+      .style(
+        'filter',
+        'drop-shadow(0 0 2px rgba(0,255,120,.15))'
+      )
 
-      tooltip.classList.add('visible');
-    })
+      .style('cursor', 'pointer')
 
-    .on('mousemove', (event) => {
+      .on('mouseenter', function(event, d) {
 
-      tooltip.style.left = `${event.clientX + 14}px`;
-      tooltip.style.top = `${event.clientY - 10}px`;
-    })
+        d3.select(this)
+          .attr('fill', 'rgba(0,255,120,.18)');
 
-    .on('mouseleave', () => {
+        const regionName =
+          d.properties.nom ||
+          d.properties.name ||
+          'Région';
 
-      tooltip.classList.remove('visible');
+        tooltip.innerHTML = `
+          <div class="tooltip-country">
+            🇫🇷 ${regionName}
+          </div>
+        `;
+
+        tooltip.style.left = `${event.clientX + 14}px`;
+        tooltip.style.top = `${event.clientY - 10}px`;
+
+        tooltip.classList.add('visible');
+      })
+
+      .on('mousemove', function(event) {
+
+        tooltip.style.left = `${event.clientX + 14}px`;
+        tooltip.style.top = `${event.clientY - 10}px`;
+      })
+
+      .on('mouseleave', function() {
+
+        d3.select(this)
+          .attr('fill', 'rgba(0,255,120,.05)');
+
+        tooltip.classList.remove('visible');
+      });
+
+    // vrais pins gps france
+    _allPlayers.forEach(player => {
+
+      if (
+        !player.latitude ||
+        !player.longitude
+      ) return;
+
+      if (player.country_code !== 'FR') return;
+
+      const latitude = parseFloat(player.latitude);
+      const longitude = parseFloat(player.longitude);
+
+      const [x, y] = franceProjection([
+        longitude,
+        latitude
+      ]);
+
+      if (!x || !y) return;
+
+      const g = pinsGroup.append('g')
+        .attr('transform', `translate(${x},${y})`)
+        .style('cursor', 'pointer');
+
+      // pulse
+      g.append('circle')
+        .attr('r', 10)
+        .attr('fill', 'none')
+        .attr('stroke', 'rgba(0,255,120,.35)')
+        .attr('stroke-width', 1.5)
+        .append('animate')
+        .attr('attributeName', 'r')
+        .attr('values', '5;14;5')
+        .attr('dur', '2s')
+        .attr('repeatCount', 'indefinite');
+
+      // point
+      g.append('circle')
+        .attr('r', 5)
+        .attr('fill', '#00ff66')
+        .style(
+          'filter',
+          'drop-shadow(0 0 8px rgba(0,255,120,.9))'
+        );
+
+      // tooltip
+      g.on('mouseenter', (event) => {
+
+        tooltip.innerHTML = `
+          <div class="tooltip-country">
+            🇫🇷 ${player.country || 'France'}
+          </div>
+
+          <div class="tooltip-member">
+
+            ${player.avatar_url
+              ? `<img src="${player.avatar_url}" alt="">`
+              : `<i class="fas fa-user"
+                  style="
+                    width:20px;
+                    text-align:center;
+                    color:var(--green-dim)
+                  "></i>`}
+
+            <span>
+              ${player.username || player.discord_id}
+            </span>
+
+          </div>
+
+          <div
+            style="
+              margin-top:6px;
+              color:var(--text-muted);
+              font-size:11px
+            "
+          >
+            ${[
+              player.city,
+              player.region,
+              player.country
+            ]
+            .filter(Boolean)
+            .join(', ')}
+          </div>
+        `;
+
+        tooltip.style.left = `${event.clientX + 14}px`;
+        tooltip.style.top = `${event.clientY - 10}px`;
+
+        tooltip.classList.add('visible');
+      })
+
+      .on('mousemove', (event) => {
+
+        tooltip.style.left = `${event.clientX + 14}px`;
+        tooltip.style.top = `${event.clientY - 10}px`;
+      })
+
+      .on('mouseleave', () => {
+
+        tooltip.classList.remove('visible');
+      });
     });
-  });
+  }
 
-  // ======================================
+  // render initial
+  renderWorldPins();
+
+  // =====================================
   // GRID
-  // ======================================
+  // =====================================
 
   mapGroup.append('path')
     .datum(d3.geoGraticule()())
-    .attr('d', path)
+    .attr('d', worldPath)
     .attr('fill', 'none')
     .attr('stroke', 'rgba(0,255,120,.04)')
     .attr('stroke-width', 0.5);

@@ -24,9 +24,9 @@ let _allPlayers = [];
 
 export async function initOrigine() {
   const players = await fetchSupabase(
-    'players?select=discord_id,username,pseudo_bf6,avatar_url,country,country_code,region,city&not=country_code,is.null'
+    'players?select=discord_id,username,pseudo_bf6,avatar_url,country,country_code,region,city&country_code=not.is.null'
   );
-  _allPlayers = players || [];
+  _allPlayers = Array.isArray(players) ? players : [];
 
   renderStats();
   initTabs();

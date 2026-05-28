@@ -245,5 +245,138 @@ router.get("/user/:id", auth, async (req, res) => {
     res.status(404).json({ error: "Utilisateur introuvable : " + e.message });
   }
 });
+// ============================================================
+// À AJOUTER dans bot/api.js (coller avant module.exports)
+// Routes : recherche membre + appliquer permissions salons
+// ============================================================
 
+// RECHERCHE MEMBRE par username
+router.get('/member/search', auth, async (req, res) => {
+  try {
+    const query = (req.query.q || '').toLowerCase();
+    if (!query || query.length < 2) return res.json({ members: [] });
+
+    const guild = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
+
+    await guild.members.fetch(); // fetch tous les membres
+    const members = guild.members.cache
+      .filter(m =>
+        !m.user.bot &&
+        (m.user.username.toLowerCase().includes(query) ||
+         m.displayName.toLowerCase().includes(query))
+      )
+      .map(m => ({
+        discord_id : m.user.id,
+        username   : m.user.username,
+        display    : m.displayName,
+        avatar     : m.user.displayAvatarURL({ size: 64, extension: 'png' })
+      }))
+      .slice(0, 20);
+
+    res.json({ members });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// APPLIQUER PERMISSIONS SALONS pour un rôle Discord
+// Reçoit : { discord_role_name, channel_ids_allow, channel_ids_deny }
+// Crée le rôle Discord si inexistant, puis applique les overwrites
+router.post('/role/apply-channels', auth, async (req, res) => {
+  try {
+    const { role_name, color, channel_ids_allow = [], channel_ids_deny = [] } = req.body;
+    if (!role_name) return res.status(400).json({ error: 'role_name manquant' });
+
+    const guild = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
+
+    const { PermissionFlagsBits } = require('discord.js');
+
+    // Trouve ou crée le rôle Discord
+    let discordRole = guild.roles.cache.find(r => r.name === role_name);
+    if (!discordRole) {
+      discordRole = await guild.roles.create({
+        name  : role_name,
+        color : color ? parseInt(color.replace('#', ''), 16) : 0x95A5A6,
+        reason: 'WARSTACK Dashboard — création rôle accès salons'
+      });
+    }
+
+    // Applique ViewChannel = allow sur les salons autorisés
+    for (const channelId of channel_ids_allow) {
+      const channel = guild.channels.cache.get(channelId);
+      if (!channel) continue;
+      await channel.permissionOverwrites.edit(discordRole, {
+        ViewChannel: true
+      });
+    }
+
+    // Applique ViewChannel = deny sur les salons refusés
+    for (const channelId of channel_ids_deny) {
+      const channel = guild.channels.cache.get(channelId);
+      if (!channel) continue;
+      await channel.permissionOverwrites.edit(discordRole, {
+        ViewChannel: false
+      });
+    }
+
+    res.json({ success: true, role_id: discordRole.id, role_name: discordRole.name });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ASSIGNER RÔLE DISCORD à un membre
+router.post('/role/assign', auth, async (req, res) => {
+  try {
+    const { discord_id, role_name } = req.body;
+    if (!discord_id || !role_name) return res.status(400).json({ error: 'Paramètres manquants' });
+
+    const guild = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
+
+    const member = await guild.members.fetch(discord_id).catch(() => null);
+    if (!member) return res.status(404).json({ error: 'Membre introuvable' });
+
+    const discordRole = guild.roles.cache.find(r => r.name === role_name);
+    if (!discordRole) return res.status(404).json({ error: `Rôle "${role_name}" introuvable sur Discord` });
+
+    // Retire tous les rôles WARSTACK custom (sauf @everyone et rôles système Discord)
+    const wrstackRoles = member.roles.cache.filter(r =>
+      r.name !== '@everyone' &&
+      !r.managed &&
+      r.name !== 'Admin' // garde Admin Discord natif si présent
+    );
+    if (wrstackRoles.size) await member.roles.remove(wrstackRoles);
+
+    // Assigne le nouveau rôle
+    await member.roles.add(discordRole);
+
+    res.json({ success: true, member: member.user.username, role: role_name });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// RETIRER RÔLE DISCORD d'un membre
+router.post('/role/remove', auth, async (req, res) => {
+  try {
+    const { discord_id, role_name } = req.body;
+    if (!discord_id || !role_name) return res.status(400).json({ error: 'Paramètres manquants' });
+
+    const guild = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
+
+    const member = await guild.members.fetch(discord_id).catch(() => null);
+    if (!member) return res.status(404).json({ error: 'Membre introuvable' });
+
+    const discordRole = guild.roles.cache.find(r => r.name === role_name);
+    if (discordRole) await member.roles.remove(discordRole);
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 module.exports = router;

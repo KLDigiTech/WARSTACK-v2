@@ -1,1 +1,149 @@
-<div id="access-root"></div>
+<!-- PANEL : RÔLES -->
+<div class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>🔐 Gestion des Accès</h2>
+      <p>Créer des rôles et gérer qui voit quoi</p>
+    </div>
+    <div class="access-header-actions">
+      <button class="btn btn-primary" id="btn-new-role">
+        <i class="fas fa-plus"></i> Nouveau rôle
+      </button>
+    </div>
+  </div>
+  <div class="panel-body">
+
+    <!-- TABS -->
+    <div class="access-tabs">
+      <button class="access-tab active" data-tab="roles">
+        <i class="fas fa-tags"></i> Rôles
+      </button>
+      <button class="access-tab" data-tab="membres">
+        <i class="fas fa-users"></i> Membres
+      </button>
+    </div>
+
+    <!-- TAB : RÔLES -->
+    <div class="access-tab-content active" id="tab-roles">
+      <div class="access-roles-list" id="roles-list">
+        <div class="access-loading"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
+      </div>
+    </div>
+
+    <!-- TAB : MEMBRES -->
+    <div class="access-tab-content" id="tab-membres">
+      <div class="access-search-bar">
+        <i class="fas fa-search"></i>
+        <input type="text" id="member-search" placeholder="Rechercher un membre..." class="form-input">
+      </div>
+      <div class="access-members-list" id="members-list">
+        <div class="access-loading"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- DRAWER : CRÉER / MODIFIER UN RÔLE -->
+<div class="access-drawer" id="role-drawer">
+  <div class="access-drawer-overlay" id="drawer-overlay"></div>
+  <div class="access-drawer-panel">
+
+    <div class="access-drawer-header">
+      <h3 id="drawer-title">Nouveau rôle</h3>
+      <button class="access-drawer-close" id="btn-close-drawer">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="access-drawer-body">
+
+      <!-- NOM + COULEUR -->
+      <div class="access-drawer-section">
+        <div class="access-section-label">Identité</div>
+        <div class="form-group">
+          <label>Nom du rôle</label>
+          <input type="text" id="role-name-input" class="form-input" placeholder="Ex: Staff, Caster, Partenaire...">
+        </div>
+        <div class="form-group">
+          <label>Couleur</label>
+          <div class="access-color-grid" id="color-grid"></div>
+          <div class="access-color-custom">
+            <label>Hex personnalisé</label>
+            <div class="access-color-custom-row">
+              <div class="access-color-preview" id="color-preview"></div>
+              <input type="text" id="color-hex-input" class="form-input" placeholder="#ffffff" maxlength="7">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PERMISSIONS DASHBOARD -->
+      <div class="access-drawer-section">
+        <div class="access-section-label">Modules Dashboard visibles</div>
+        <div class="access-modules-grid" id="modules-grid"></div>
+      </div>
+
+      <!-- PERMISSIONS SALONS DISCORD -->
+      <div class="access-drawer-section">
+        <div class="access-section-label">Salons Discord accessibles</div>
+        <div class="access-channels-info">
+          <i class="fas fa-info-circle"></i>
+          Seuls les salons cochés seront visibles pour ce rôle sur Discord.
+        </div>
+        <div class="access-channels-list" id="channels-list-drawer">
+          <div class="access-loading"><i class="fas fa-spinner fa-spin"></i> Chargement salons...</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="access-drawer-footer">
+      <button class="btn btn-danger" id="btn-delete-role" style="display:none">
+        <i class="fas fa-trash"></i> Supprimer
+      </button>
+      <div class="access-drawer-footer-right">
+        <button class="btn btn-secondary" id="btn-cancel-drawer">Annuler</button>
+        <button class="btn btn-primary" id="btn-save-role">
+          <i class="fas fa-save"></i> Sauvegarder
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- DRAWER : ASSIGNER UN RÔLE À UN MEMBRE -->
+<div class="access-drawer" id="member-drawer">
+  <div class="access-drawer-overlay" id="member-drawer-overlay"></div>
+  <div class="access-drawer-panel">
+
+    <div class="access-drawer-header">
+      <h3 id="member-drawer-title">Gérer le membre</h3>
+      <button class="access-drawer-close" id="btn-close-member-drawer">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="access-drawer-body">
+      <div class="access-member-info" id="member-info-block"></div>
+      <div class="access-drawer-section">
+        <div class="access-section-label">Rôle Dashboard</div>
+        <div class="access-roles-radio" id="roles-radio-list"></div>
+      </div>
+    </div>
+
+    <div class="access-drawer-footer">
+      <button class="btn btn-danger" id="btn-remove-member-role">
+        <i class="fas fa-user-minus"></i> Retirer le rôle
+      </button>
+      <div class="access-drawer-footer-right">
+        <button class="btn btn-secondary" id="btn-cancel-member-drawer">Annuler</button>
+        <button class="btn btn-primary" id="btn-save-member-role">
+          <i class="fas fa-save"></i> Assigner
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

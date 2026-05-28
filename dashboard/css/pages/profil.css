@@ -200,3 +200,206 @@
     to   { transform: translateY(0); }
   }
 }
+
+/* ============================================================
+   WARSTACK — Profil Edit Localisation
+   À ajouter dans dashboard/css/pages/profil.css
+   ============================================================ */
+
+/* Bouton modifier localisation */
+.profil-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  height: 40px;
+  background: rgba(0,255,120,.08);
+  border: 1px solid rgba(0,255,120,.2);
+  border-radius: 10px;
+  color: var(--green, #00ff66);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all .18s;
+}
+
+.profil-edit-btn:hover {
+  background: rgba(0,255,120,.15);
+  border-color: rgba(0,255,120,.4);
+  transform: translateY(-1px);
+}
+
+/* Badge localisation dans le hero */
+.profil-localisation {
+  font-size: 13px;
+  color: rgba(255,255,255,.6);
+  letter-spacing: 1px;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── MODAL LOCALISATION ── */
+.profil-loc-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.profil-loc-modal.open { display: flex; }
+
+.profil-loc-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.75);
+  backdrop-filter: blur(4px);
+}
+
+.profil-loc-box {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  background: linear-gradient(180deg, #0a0f0a, #060b06);
+  border: 1px solid rgba(0,255,120,.15);
+  border-radius: 18px;
+  overflow: hidden;
+  animation: locModalIn .2s ease;
+  box-shadow: 0 30px 80px rgba(0,0,0,.6);
+}
+
+@keyframes locModalIn {
+  from { opacity: 0; transform: scale(.96) translateY(10px); }
+  to   { opacity: 1; transform: scale(1)   translateY(0); }
+}
+
+.profil-loc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(0,255,120,.08);
+}
+
+.profil-loc-header h3 {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #00ff66;
+}
+
+.profil-loc-close {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  border: 1px solid rgba(0,255,120,.12);
+  background: transparent;
+  color: rgba(255,255,255,.4);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .15s;
+}
+
+.profil-loc-close:hover { color: #ff4444; border-color: rgba(255,68,68,.3); }
+
+.profil-loc-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.profil-loc-hint {
+  font-size: 11px;
+  color: rgba(255,255,255,.4);
+  letter-spacing: .5px;
+  line-height: 1.5;
+  padding: 10px 12px;
+  background: rgba(0,255,120,.03);
+  border: 1px solid rgba(0,255,120,.06);
+  border-radius: 8px;
+}
+
+.profil-loc-optional {
+  font-size: 10px;
+  color: rgba(255,255,255,.3);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.profil-loc-footer {
+  display: flex;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid rgba(0,255,120,.08);
+  justify-content: flex-end;
+}
+
+.profil-loc-cancel {
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.08);
+  background: transparent;
+  color: rgba(255,255,255,.4);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.profil-loc-cancel:hover { border-color: rgba(255,255,255,.2); color: rgba(255,255,255,.7); }
+
+.profil-loc-save {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,255,120,.25);
+  background: rgba(0,255,120,.12);
+  color: #00ff66;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.profil-loc-save:hover {
+  background: rgba(0,255,120,.2);
+  border-color: rgba(0,255,120,.4);
+}
+
+.profil-loc-save:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .profil-loc-modal { padding: 0; align-items: flex-end; }
+  .profil-loc-box {
+    max-width: 100%;
+    border-radius: 18px 18px 0 0;
+    animation: locSlideUp .25s ease;
+  }
+  @keyframes locSlideUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+}

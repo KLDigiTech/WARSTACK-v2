@@ -7,6 +7,34 @@ const loading  = document.getElementById('profil-loading');
 const notfound = document.getElementById('profil-notfound');
 const content  = document.getElementById('profil-content');
 
+// ── PAYS ──────────────────────────────────────────────────────
+const PAYS_LIST = [
+  { name: 'France',         code: 'FR' }, { name: 'Belgique',       code: 'BE' },
+  { name: 'Suisse',         code: 'CH' }, { name: 'Canada',         code: 'CA' },
+  { name: 'Maroc',          code: 'MA' }, { name: 'Algérie',        code: 'DZ' },
+  { name: 'Tunisie',        code: 'TN' }, { name: 'États-Unis',     code: 'US' },
+  { name: 'Royaume-Uni',    code: 'GB' }, { name: 'Allemagne',      code: 'DE' },
+  { name: 'Espagne',        code: 'ES' }, { name: 'Italie',         code: 'IT' },
+  { name: 'Portugal',       code: 'PT' }, { name: 'Pays-Bas',       code: 'NL' },
+  { name: 'Australie',      code: 'AU' }, { name: 'Brésil',         code: 'BR' },
+  { name: 'Mexique',        code: 'MX' }, { name: 'Japon',          code: 'JP' },
+  { name: 'Sénégal',        code: 'SN' }, { name: "Côte d'Ivoire",  code: 'CI' },
+  { name: 'Russie',         code: 'RU' }, { name: 'Chine',          code: 'CN' },
+  { name: 'Inde',           code: 'IN' }, { name: 'Afrique du Sud', code: 'ZA' },
+  { name: 'Turquie',        code: 'TR' }, { name: 'Pologne',        code: 'PL' },
+  { name: 'Suède',          code: 'SE' }, { name: 'Norvège',        code: 'NO' },
+  { name: 'Danemark',       code: 'DK' }, { name: 'Finlande',       code: 'FI' },
+  { name: 'Autre',          code: 'XX' },
+];
+
+function getFlag(code) {
+  if (!code || code === 'XX') return '🌍';
+  return code.toUpperCase().replace(/./g, c =>
+    String.fromCodePoint(0x1F1E0 - 65 + c.charCodeAt(0))
+  );
+}
+
+// ── UTILS ─────────────────────────────────────────────────────
 function calcScore(s) {
   if (!s) return 0;
   const kd      = parseFloat(s.kd)      || 0;
@@ -49,6 +77,127 @@ function initTabs() {
   });
 }
 
+// ── MODAL LOCALISATION ────────────────────────────────────────
+async function injectEditLocalisation(player) {
+  const { supabase }                  = await import('../supabaseClient.js');
+  const { SUPABASE_URL, SUPABASE_KEY } = await import('../config.js');
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return;
+
+  const sessionDiscordId = session.user?.user_metadata?.provider_id
+                        || session.user?.user_metadata?.sub;
+  if (sessionDiscordId !== player.discord_id) return;
+
+  // Bouton dans le footer
+  const footer = document.querySelector('.profil-footer');
+  if (!footer) return;
+
+  const editBtn = document.createElement('button');
+  editBtn.className = 'profil-edit-btn';
+  editBtn.innerHTML = `<i class="fas fa-map-marker-alt"></i> Ma localisation`;
+  footer.prepend(editBtn);
+
+  // Modal
+  const modal = document.createElement('div');
+  modal.id        = 'localisation-modal';
+  modal.className = 'profil-loc-modal';
+  modal.innerHTML = `
+    <div class="profil-loc-overlay"></div>
+    <div class="profil-loc-box">
+      <div class="profil-loc-header">
+        <h3>📍 Ma localisation</h3>
+        <button class="profil-loc-close"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="profil-loc-body">
+        <p class="profil-loc-hint">Ta localisation apparaîtra sur la carte des membres. La ville est optionnelle.</p>
+        <div class="form-group">
+          <label>Pays <span style="color:#ff4444">*</span></label>
+          <select id="loc-pays" class="form-select">
+            <option value="">— Sélectionner —</option>
+            ${PAYS_LIST.map(p => `
+              <option value="${p.code}" ${player.country_code === p.code ? 'selected' : ''}>
+                ${getFlag(p.code)} ${p.name}
+              </option>
+            `).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Région <span class="profil-loc-optional">(optionnel)</span></label>
+          <input type="text" id="loc-region" class="form-input"
+                 placeholder="Ex: Occitanie, Île-de-France..."
+                 value="${player.region || ''}">
+        </div>
+        <div class="form-group">
+          <label>Ville <span class="profil-loc-optional">(optionnel)</span></label>
+          <input type="text" id="loc-ville" class="form-input"
+                 placeholder="Ex: Montpellier, Paris..."
+                 value="${player.city || ''}">
+        </div>
+      </div>
+      <div class="profil-loc-footer">
+        <button class="profil-loc-cancel">Annuler</button>
+        <button class="profil-loc-save"><i class="fas fa-save"></i> Sauvegarder</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  editBtn.addEventListener('click', () => modal.classList.add('open'));
+  modal.querySelector('.profil-loc-overlay').addEventListener('click', () => modal.classList.remove('open'));
+  modal.querySelector('.profil-loc-close').addEventListener('click',   () => modal.classList.remove('open'));
+  modal.querySelector('.profil-loc-cancel').addEventListener('click',  () => modal.classList.remove('open'));
+
+  modal.querySelector('.profil-loc-save').addEventListener('click', async () => {
+    const countryCode = document.getElementById('loc-pays').value;
+    const region      = document.getElementById('loc-region').value.trim() || null;
+    const city        = document.getElementById('loc-ville').value.trim()  || null;
+
+    if (!countryCode) { alert('Sélectionne un pays.'); return; }
+
+    const country = PAYS_LIST.find(p => p.code === countryCode)?.name || countryCode;
+    const saveBtn = modal.querySelector('.profil-loc-save');
+    saveBtn.textContent = 'Sauvegarde...';
+    saveBtn.disabled    = true;
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/players?discord_id=eq.${player.discord_id}`, {
+        method: 'PATCH',
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=representation'
+        },
+        body: JSON.stringify({ country, country_code: countryCode, region, city })
+      });
+
+      if (!res.ok) throw new Error('Erreur serveur');
+
+      modal.classList.remove('open');
+
+      // Mise à jour du badge localisation
+      const flag = getFlag(countryCode);
+      const loc  = [city, region, country].filter(Boolean).join(', ');
+      let locBadge = document.getElementById('p-localisation');
+      if (!locBadge) {
+        locBadge = document.createElement('div');
+        locBadge.id        = 'p-localisation';
+        locBadge.className = 'profil-localisation';
+        document.querySelector('.profil-identity')?.appendChild(locBadge);
+      }
+      locBadge.innerHTML = `${flag} ${loc}`;
+
+    } catch {
+      alert('Erreur lors de la sauvegarde. Réessaie.');
+    } finally {
+      saveBtn.innerHTML = '<i class="fas fa-save"></i> Sauvegarder';
+      saveBtn.disabled  = false;
+    }
+  });
+}
+
+// ── LOAD PROFIL ───────────────────────────────────────────────
 async function loadProfil() {
   if (!discordId) { showNotFound(); return; }
 
@@ -65,7 +214,6 @@ async function loadProfil() {
   const score    = calcScore(snapshot);
   const division = getDivision(score);
 
-  // Hero
   document.getElementById('p-avatar').src                = player.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png';
   document.getElementById('p-username').textContent       = player.username || player.pseudo_bf6 || '—';
   document.getElementById('p-platform').textContent       = player.platform?.toUpperCase() || '—';
@@ -74,7 +222,21 @@ async function loadProfil() {
   document.getElementById('p-score').textContent          = score;
   document.documentElement.style.setProperty('--division-color', division.color);
 
-  // BR Rank badge hero
+  // Localisation
+  if (player.country) {
+    const flag     = getFlag(player.country_code);
+    const loc      = [player.city, player.region, player.country].filter(Boolean).join(', ');
+    const identity = document.querySelector('.profil-identity');
+    if (identity) {
+      const locEl       = document.createElement('div');
+      locEl.id          = 'p-localisation';
+      locEl.className   = 'profil-localisation';
+      locEl.innerHTML   = `${flag} ${loc}`;
+      identity.appendChild(locEl);
+    }
+  }
+
+  // BR Rank hero
   if (snapshot?.br_rank) {
     const brRankEl = document.getElementById('p-br-rank');
     brRankEl.style.display = 'flex';
@@ -87,7 +249,7 @@ async function loadProfil() {
     }
   }
 
-  // BR Rank card dans Global
+  // BR Rank card Global
   if (snapshot?.br_rank) {
     if (snapshot.br_rank_img) {
       document.getElementById('p-rank-card').style.display = 'flex';
@@ -99,7 +261,7 @@ async function loadProfil() {
     }
   }
 
-  // Global stats
+  // Stats Global
   document.getElementById('p-kills').textContent   = snapshot?.kills  ? Number(snapshot.kills).toLocaleString('fr-FR')  : '—';
   document.getElementById('p-deaths').textContent  = snapshot?.deaths ? Number(snapshot.deaths).toLocaleString('fr-FR') : '—';
   document.getElementById('p-kd').textContent      = snapshot?.kd     || '—';
@@ -145,9 +307,11 @@ async function loadProfil() {
 
   initTabs();
   await loadTournois(discordId);
+  await injectEditLocalisation(player);
   showContent();
 }
 
+// ── TOURNOIS ──────────────────────────────────────────────────
 async function loadTournois(discordId) {
   const container = document.getElementById('p-tournois');
 
@@ -162,14 +326,9 @@ async function loadTournois(discordId) {
     const tournoi  = tournois?.[0];
     if (!tournoi) return null;
 
-    // Toutes les soumissions approuvées du joueur dans ce tournoi
     const subs = await fetchSupabase(`tournament_submissions?tournament_id=eq.${entry.tournament_id}&discord_id=eq.${discordId}&status=eq.approved&order=submitted_at.desc`);
 
-    // Calcul stats tournoi
-    let totalKills  = 0;
-    let bestKd      = 0;
-    let totalGames  = subs?.length || 0;
-
+    let totalKills = 0, bestKd = 0, totalGames = subs?.length || 0;
     if (subs?.length) {
       subs.forEach(s => {
         totalKills += s.kills || 0;
@@ -177,15 +336,12 @@ async function loadTournois(discordId) {
       });
     }
 
-    // Classement depuis tournament_scores
-    const scores = await fetchSupabase(`tournament_scores?tournament_id=eq.${entry.tournament_id}&order=total_score.desc`);
-    const rank   = scores?.findIndex(s => s.discord_id === discordId) ?? -1;
-    const rankDisplay = rank >= 0 ? `#${rank + 1}` : '—';
-    const isMvp  = rank === 0;
-    const isTop3 = rank >= 0 && rank < 3;
-
-    // Dernière soumission pour affichage
-    const lastSub = subs?.[0] || null;
+    const scores     = await fetchSupabase(`tournament_scores?tournament_id=eq.${entry.tournament_id}&order=total_score.desc`);
+    const rank       = scores?.findIndex(s => s.discord_id === discordId) ?? -1;
+    const rankDisplay= rank >= 0 ? `#${rank + 1}` : '—';
+    const isMvp      = rank === 0;
+    const isTop3     = rank >= 0 && rank < 3;
+    const lastSub    = subs?.[0] || null;
 
     return { tournoi, entry, lastSub, totalKills, bestKd, totalGames, rankDisplay, isMvp, isTop3 };
   }));
@@ -204,29 +360,15 @@ async function loadTournois(discordId) {
           ${tournoi.phase ? `<div class="profil-tournoi-phase">${tournoi.phase}</div>` : ''}
           <div class="profil-tournoi-dates">${formatDate(tournoi.start_date)} → ${formatDate(tournoi.end_date)}</div>
         </div>
-        <div class="profil-tournoi-rank ${isMvp ? 'mvp' : isTop3 ? 'top3' : ''}">
-          ${rankDisplay}
-        </div>
+        <div class="profil-tournoi-rank ${isMvp ? 'mvp' : isTop3 ? 'top3' : ''}">${rankDisplay}</div>
       </div>
       <div class="profil-tournoi-stats">
-        <div class="profil-tournoi-stat">
-          <strong>${lastSub?.kd ?? '—'}</strong>
-          <span>Meilleur K/D</span>
-        </div>
-        <div class="profil-tournoi-stat">
-          <strong>${totalKills || '—'}</strong>
-          <span>Kills totaux</span>
-        </div>
-        <div class="profil-tournoi-stat">
-          <strong>${totalGames || '—'}</strong>
-          <span>Parties</span>
-        </div>
-        <div class="profil-tournoi-stat">
-          <strong>${rankDisplay}</strong>
-          <span>Classement</span>
-        </div>
+        <div class="profil-tournoi-stat"><strong>${lastSub?.kd ?? '—'}</strong><span>Meilleur K/D</span></div>
+        <div class="profil-tournoi-stat"><strong>${totalKills || '—'}</strong><span>Kills totaux</span></div>
+        <div class="profil-tournoi-stat"><strong>${totalGames || '—'}</strong><span>Parties</span></div>
+        <div class="profil-tournoi-stat"><strong>${rankDisplay}</strong><span>Classement</span></div>
       </div>
-      ${isMvp  ? '<div class="profil-tournoi-badge mvp">⭐ MVP</div>'   : ''}
+      ${isMvp ? '<div class="profil-tournoi-badge mvp">⭐ MVP</div>' : ''}
       ${isTop3 && !isMvp ? '<div class="profil-tournoi-badge top3">🏆 Top 3</div>' : ''}
     </div>
   `).join('');
@@ -234,282 +376,5 @@ async function loadTournois(discordId) {
 
 function showNotFound() { loading.style.display='none'; notfound.style.display='flex'; content.style.display='none'; }
 function showContent()  { loading.style.display='none'; notfound.style.display='none'; content.style.display='block'; }
-
-// ============================================================
-// PATCH à ajouter à la FIN de dashboard/js/pages/profil.js
-// Juste avant loadProfil(); en bas du fichier
-// ============================================================
-
-// ── PAYS disponibles ──────────────────────────────────────────
-const PAYS_LIST = [
-  { name: 'France',         code: 'FR' }, { name: 'Belgique',       code: 'BE' },
-  { name: 'Suisse',         code: 'CH' }, { name: 'Canada',         code: 'CA' },
-  { name: 'Maroc',          code: 'MA' }, { name: 'Algérie',        code: 'DZ' },
-  { name: 'Tunisie',        code: 'TN' }, { name: 'États-Unis',     code: 'US' },
-  { name: 'Royaume-Uni',    code: 'GB' }, { name: 'Allemagne',      code: 'DE' },
-  { name: 'Espagne',        code: 'ES' }, { name: 'Italie',         code: 'IT' },
-  { name: 'Portugal',       code: 'PT' }, { name: 'Pays-Bas',       code: 'NL' },
-  { name: 'Australie',      code: 'AU' }, { name: 'Brésil',         code: 'BR' },
-  { name: 'Mexique',        code: 'MX' }, { name: 'Japon',          code: 'JP' },
-  { name: 'Sénégal',        code: 'SN' }, { name: "Côte d'Ivoire",  code: 'CI' },
-  { name: 'Russie',         code: 'RU' }, { name: 'Chine',          code: 'CN' },
-  { name: 'Inde',           code: 'IN' }, { name: 'Afrique du Sud', code: 'ZA' },
-  { name: 'Turquie',        code: 'TR' }, { name: 'Pologne',        code: 'PL' },
-  { name: 'Suède',          code: 'SE' }, { name: 'Norvège',        code: 'NO' },
-  { name: 'Danemark',       code: 'DK' }, { name: 'Finlande',       code: 'FI' },
-  { name: 'Autre',          code: 'XX' },
-];
-
-function getFlag(code) {
-  if (!code || code === 'XX') return '🌍';
-  return code.toUpperCase().replace(/./g, c =>
-    String.fromCodePoint(0x1F1E0 - 65 + c.charCodeAt(0))
-  );
-}
-
-// ── INJECTER LE BOUTON EDIT + LA MODAL ───────────────────────
-async function injectEditLocalisation(player) {
-  const { supabase } = await import('../supabaseClient.js');
-  const { SUPABASE_URL, SUPABASE_KEY } = await import('../config.js');
-
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return;
-
-  const sessionDiscordId = session.user?.user_metadata?.provider_id
-                        || session.user?.user_metadata?.sub;
-
-  // Seulement si c'est son propre profil
-  if (sessionDiscordId !== player.discord_id) return;
-
-  // Bouton dans le hero
-  const footer = document.querySelector('.profil-footer');
-  if (!footer) return;
-
-  const editBtn = document.createElement('button');
-  editBtn.className = 'profil-edit-btn';
-  editBtn.innerHTML = `<i class="fas fa-map-marker-alt"></i> Ma localisation`;
-  footer.prepend(editBtn);
-
-  // Modal HTML
-  const modal = document.createElement('div');
-  modal.id        = 'localisation-modal';
-  modal.className = 'profil-loc-modal';
-  modal.innerHTML = `
-    <div class="profil-loc-overlay"></div>
-    <div class="profil-loc-box">
-      <div class="profil-loc-header">
-        <h3>📍 Ma localisation</h3>
-        <button class="profil-loc-close"><i class="fas fa-times"></i></button>
-      </div>
-      <div class="profil-loc-body">
-        <p class="profil-loc-hint">
-          Ta localisation apparaîtra sur la carte des membres. La ville est optionnelle.
-        </p>
-        <div class="form-group">
-          <label>Pays <span style="color:var(--red)">*</span></label>
-          <select id="loc-pays" class="form-select">
-            <option value="">— Sélectionner —</option>
-            ${PAYS_LIST.map(p => `
-              <option value="${p.code}" ${player.country_code === p.code ? 'selected' : ''}>
-                ${getFlag(p.code)} ${p.name}
-              </option>
-            `).join('')}
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Région <span class="profil-loc-optional">(optionnel)</span></label>
-          <input type="text" id="loc-region" class="form-input"
-                 placeholder="Ex: Occitanie, Île-de-France..."
-                 value="${player.region || ''}">
-        </div>
-        <div class="form-group">
-          <label>Ville <span class="profil-loc-optional">(optionnel)</span></label>
-          <input type="text" id="loc-ville" class="form-input"
-                 placeholder="Ex: Montpellier, Paris..."
-                 value="${player.city || ''}">
-        </div>
-      </div>
-      <div class="profil-loc-footer">
-        <button class="profil-loc-cancel">Annuler</button>
-        <button class="profil-loc-save"><i class="fas fa-save"></i> Sauvegarder</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-
-  // Events
-  editBtn.addEventListener('click', () => modal.classList.add('open'));
-
-  modal.querySelector('.profil-loc-overlay').addEventListener('click', () => modal.classList.remove('open'));
-  modal.querySelector('.profil-loc-close').addEventListener('click',   () => modal.classList.remove('open'));
-  modal.querySelector('.profil-loc-cancel').addEventListener('click',  () => modal.classList.remove('open'));
-
-  modal.querySelector('.profil-loc-save').addEventListener('click', async () => {
-    const countryCode = document.getElementById('loc-pays').value;
-    const region      = document.getElementById('loc-region').value.trim() || null;
-    const city        = document.getElementById('loc-ville').value.trim()  || null;
-
-    if (!countryCode) {
-      alert('Sélectionne un pays.'); return;
-    }
-
-    const country = PAYS_LIST.find(p => p.code === countryCode)?.name || countryCode;
-
-    const saveBtn = modal.querySelector('.profil-loc-save');
-    saveBtn.textContent = 'Sauvegarde...';
-    saveBtn.disabled    = true;
-
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/players?discord_id=eq.${player.discord_id}`, {
-        method: 'PATCH',
-        headers: {
-          apikey: SUPABASE_KEY,
-          Authorization: `Bearer ${SUPABASE_KEY}`,
-          'Content-Type': 'application/json',
-          Prefer: 'return=representation'
-        },
-        body: JSON.stringify({ country, country_code: countryCode, region, city })
-      });
-
-      if (!res.ok) throw new Error('Erreur serveur');
-
-      // Met à jour l'affichage
-      modal.classList.remove('open');
-      const flag = getFlag(countryCode);
-      const loc  = [city, region, country].filter(Boolean).join(', ');
-
-      // Affiche un badge localisation dans le hero si pas encore présent
-      let locBadge = document.getElementById('p-localisation');
-      if (!locBadge) {
-        locBadge = document.createElement('div');
-        locBadge.id        = 'p-localisation';
-        locBadge.className = 'profil-localisation';
-        document.querySelector('.profil-identity')?.appendChild(locBadge);
-      }
-      locBadge.innerHTML = `${flag} ${loc}`;
-
-    } catch (err) {
-      alert('Erreur lors de la sauvegarde. Réessaie.');
-    } finally {
-      saveBtn.innerHTML = '<i class="fas fa-save"></i> Sauvegarder';
-      saveBtn.disabled  = false;
-    }
-  });
-}
-
-// ── PATCH : appeler injectEditLocalisation après chargement du profil ──
-const _originalLoadProfil = loadProfil;
-
-async function loadProfil() {
-  if (!discordId) { showNotFound(); return; }
-
-  const players = await fetchSupabase(`players?discord_id=eq.${discordId}&select=*`);
-  const player  = players?.[0];
-  if (!player) { showNotFound(); return; }
-
-  let snapshot = null;
-  if (player.tracker_id) {
-    const snaps = await fetchSupabase(`player_snapshots?tracker_id=eq.${player.tracker_id}&order=snapshot_at.desc&limit=1`);
-    snapshot    = snaps?.[0] || null;
-  }
-
-  const score    = calcScore(snapshot);
-  const division = getDivision(score);
-
-  document.getElementById('p-avatar').src                = player.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png';
-  document.getElementById('p-username').textContent       = player.username || player.pseudo_bf6 || '—';
-  document.getElementById('p-platform').textContent       = player.platform?.toUpperCase() || '—';
-  document.getElementById('p-division').textContent       = `${division.emoji} ${division.name}`;
-  document.getElementById('p-division-badge').textContent = division.emoji;
-  document.getElementById('p-score').textContent          = score;
-  document.documentElement.style.setProperty('--division-color', division.color);
-
-  if (snapshot?.br_rank) {
-    const brRankEl = document.getElementById('p-br-rank');
-    brRankEl.style.display = 'flex';
-    document.getElementById('p-br-rank-value').textContent = snapshot.br_rank;
-    if (snapshot.br_rank_img) {
-      const img = document.getElementById('p-br-rank-img');
-      img.src = snapshot.br_rank_img;
-      img.style.display = 'block';
-      document.getElementById('p-br-rank-icon').style.display = 'none';
-    }
-  }
-
-  // Afficher localisation si disponible
-  if (player.country) {
-    const flag = getFlag(player.country_code);
-    const loc  = [player.city, player.region, player.country].filter(Boolean).join(', ');
-    const identity = document.querySelector('.profil-identity');
-    if (identity) {
-      const locEl = document.createElement('div');
-      locEl.id        = 'p-localisation';
-      locEl.className = 'profil-localisation';
-      locEl.innerHTML = `${flag} ${loc}`;
-      identity.appendChild(locEl);
-    }
-  }
-
-  document.getElementById('p-kills').textContent   = fmt(snapshot?.kills);
-  document.getElementById('p-deaths').textContent  = fmt(snapshot?.deaths);
-  document.getElementById('p-kd').textContent      = snapshot?.kd || '—';
-  document.getElementById('p-games').textContent   = fmt(snapshot?.games);
-  document.getElementById('p-winrate').textContent = fmt(snapshot?.winrate, true);
-
-  if (snapshot?.br_rank) {
-    const rankCard = document.getElementById('p-rank-card');
-    const rankImg  = document.getElementById('p-rank-card-img');
-    const rankVal  = document.getElementById('p-rank-card-value');
-    if (snapshot.br_rank_img) {
-      rankCard.style.display   = 'flex';
-      rankImg.src              = snapshot.br_rank_img;
-      rankVal.textContent      = snapshot.br_rank;
-    } else {
-      document.getElementById('p-rank-card-fallback').style.display = 'flex';
-      document.getElementById('p-rank-card-value-fb').textContent   = snapshot.br_rank;
-    }
-  }
-
-  document.getElementById('p-mp-kills').textContent   = fmt(snapshot?.mp_kills);
-  document.getElementById('p-mp-deaths').textContent  = fmt(snapshot?.mp_deaths);
-  document.getElementById('p-mp-kd').textContent      = snapshot?.mp_kd || '—';
-  document.getElementById('p-mp-winrate').textContent = fmt(snapshot?.mp_winrate, true);
-
-  document.getElementById('p-br-kills').textContent   = fmt(snapshot?.br_kills);
-  document.getElementById('p-br-deaths').textContent  = fmt(snapshot?.br_deaths);
-  document.getElementById('p-br-kd').textContent      = snapshot?.br_kd || '—';
-  document.getElementById('p-br-winrate').textContent = fmt(snapshot?.br_winrate, true);
-
-  if (snapshot?.br_rank) {
-    const bannerEl = document.getElementById('p-br-rank-banner');
-    bannerEl.style.display = 'flex';
-    document.getElementById('p-br-rank-banner-value').textContent = snapshot.br_rank;
-    if (snapshot.br_rank_img) {
-      const bannerImg = document.getElementById('p-br-banner-img');
-      bannerImg.src   = snapshot.br_rank_img;
-      bannerImg.style.display = 'block';
-      document.getElementById('p-br-banner-icon').style.display = 'none';
-    }
-  }
-
-  if (player.tracker_id) {
-    const trackerLink = document.getElementById('p-tracker-link');
-    trackerLink.href  = `https://tracker.gg/bf6/profile/${player.tracker_id}/overview`;
-  }
-
-  if (snapshot?.snapshot_at) {
-    document.getElementById('p-updated').textContent = `Mis à jour le ${formatDate(snapshot.snapshot_at)}`;
-  }
-
-  document.title = `${player.username || 'Joueur'} — WARSTACK`;
-
-  initTabs();
-  await loadTournois(discordId);
-
-  // Injecter le bouton edit si c'est son propre profil
-  await injectEditLocalisation(player);
-
-  showContent();
-}
 
 loadProfil();

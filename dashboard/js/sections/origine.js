@@ -1,5 +1,4 @@
 // dashboard/js/sections/origine.js
-// WARSTACK Interactive World Map
 
 import { fetchSupabase } from '../api.js';
 
@@ -31,6 +30,7 @@ const ISO_NUM = {
 let _allPlayers = [];
 
 function getFlag(code) {
+
   if (!code || code === 'XX') return '🌍';
 
   return code.toUpperCase().replace(/./g, c =>
@@ -44,7 +44,9 @@ export async function initOrigine() {
     'players?select=discord_id,username,pseudo_bf6,avatar_url,country,country_code,region,city&country_code=not.is.null'
   );
 
-  _allPlayers = Array.isArray(players) ? players : [];
+  _allPlayers = Array.isArray(players)
+    ? players
+    : [];
 
   renderStats();
   initTabs();
@@ -152,14 +154,23 @@ async function renderMap() {
   ]);
 
   let world;
+  let franceRegions;
 
   try {
 
-    const res = await fetch(
-      'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
-    );
+    const [worldRes, regionsRes] = await Promise.all([
 
-    world = await res.json();
+      fetch(
+        'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
+      ),
+
+      fetch(
+        'https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions.geojson'
+      )
+    ]);
+
+    world = await worldRes.json();
+    franceRegions = await regionsRes.json();
 
   } catch (e) {
 
@@ -188,23 +199,23 @@ async function renderMap() {
     .style('background', 'rgba(0,20,10,.85)')
     .style('border-radius', '14px');
 
-  // =========================
-  // ZOOM SYSTEM
-  // =========================
+  // ======================================
+  // MAP GROUP + ZOOM
+  // ======================================
 
   const mapGroup = svg.append('g');
 
   const zoom = d3.zoom()
-    .scaleExtent([1, 8])
+    .scaleExtent([1, 20])
     .on('zoom', (event) => {
       mapGroup.attr('transform', event.transform);
     });
 
   svg.call(zoom);
 
-  // =========================
+  // ======================================
   // PROJECTION
-  // =========================
+  // ======================================
 
   const projection = d3.geoNaturalEarth1()
     .scale(W / 6.5)
@@ -219,9 +230,17 @@ async function renderMap() {
 
   const hasMembers = new Set(Object.keys(byCountry));
 
-  // =========================
-  // ZOOM TO COUNTRY
-  // =========================
+  // ======================================
+  // GROUPS
+  // ======================================
+
+  const countriesGroup = mapGroup.append('g');
+  const regionsGroup = mapGroup.append('g');
+  const pinsGroup = mapGroup.append('g');
+
+  // ======================================
+  // ZOOM TO FEATURE
+  // ======================================
 
   function zoomToFeature(feature) {
 
@@ -235,7 +254,7 @@ async function renderMap() {
 
     const scale = Math.max(
       1,
-      Math.min(8, 0.9 / Math.max(dx / W, dy / H))
+      Math.min(20, 0.9 / Math.max(dx / W, dy / H))
     );
 
     const translate = [
@@ -244,7 +263,7 @@ async function renderMap() {
     ];
 
     svg.transition()
-      .duration(1200)
+      .duration(1400)
       .ease(d3.easeCubicInOut)
       .call(
         zoom.transform,
@@ -254,14 +273,16 @@ async function renderMap() {
       );
   }
 
-  // =========================
-  // RESET MAP
-  // =========================
+  // ======================================
+  // RESET
+  // ======================================
 
   function resetMap() {
 
+    regionsGroup.selectAll('*').remove();
+
     svg.transition()
-      .duration(1000)
+      .duration(1200)
       .ease(d3.easeCubicInOut)
       .call(
         zoom.transform,
@@ -273,14 +294,54 @@ async function renderMap() {
     .getElementById('map-reset-btn')
     ?.addEventListener('click', resetMap);
 
-  // =========================
-  // COUNTRIES
-  // =========================
+  // ======================================
+  // REGIONS FRANCE
+  // ======================================
 
-  mapGroup.append('g')
+  function renderFranceRegions() {
+
+    regionsGroup.selectAll('*').remove();
+
+    regionsGroup
+      .selectAll('path')
+      .data(franceRegions.features)
+      .join('path')
+
+      .attr('d', path)
+
+      .attr('fill', 'rgba(0,255,120,.06)')
+
+      .attr('stroke', 'rgba(0,255,120,.45)')
+
+      .attr('stroke-width', 0.7)
+
+      .style(
+        'filter',
+        'drop-shadow(0 0 2px rgba(0,255,120,.15))'
+      )
+
+      .on('mouseenter', function() {
+
+        d3.select(this)
+          .attr('fill', 'rgba(0,255,120,.18)');
+      })
+
+      .on('mouseleave', function() {
+
+        d3.select(this)
+          .attr('fill', 'rgba(0,255,120,.06)');
+      });
+  }
+
+  // ======================================
+  // COUNTRIES
+  // ======================================
+
+  countriesGroup
     .selectAll('path')
     .data(countries.features)
     .join('path')
+
     .attr('d', path)
 
     .attr('fill', d => {
@@ -293,6 +354,7 @@ async function renderMap() {
     })
 
     .attr('stroke', 'rgba(255,255,255,.08)')
+
     .attr('stroke-width', 0.5)
 
     .style('cursor', d => {
@@ -349,13 +411,17 @@ async function renderMap() {
       if (!hasMembers.has(alpha2)) return;
 
       zoomToFeature(d);
+
+      if (alpha2 === 'FR') {
+        renderFranceRegions();
+      } else {
+        regionsGroup.selectAll('*').remove();
+      }
     });
 
-  // =========================
+  // ======================================
   // PINS
-  // =========================
-
-  const pinsGroup = mapGroup.append('g');
+  // ======================================
 
   Object.entries(byCountry).forEach(([code, members]) => {
 
@@ -371,7 +437,7 @@ async function renderMap() {
       .attr('transform', `translate(${x},${y})`)
       .style('cursor', 'pointer');
 
-    // Pulse
+    // Pulse ring
     g.append('circle')
       .attr('r', 8)
       .attr('fill', 'none')
@@ -383,7 +449,7 @@ async function renderMap() {
       .attr('dur', '2s')
       .attr('repeatCount', 'indefinite');
 
-    // Main dot
+    // Main point
     g.append('circle')
       .attr('r', members.length > 3 ? 7 : 5)
       .attr('fill', '#00ff66')
@@ -392,7 +458,7 @@ async function renderMap() {
         'drop-shadow(0 0 6px rgba(0,255,120,.9))'
       );
 
-    // Count
+    // Counter
     if (members.length > 1) {
 
       g.append('text')
@@ -426,9 +492,9 @@ async function renderMap() {
     });
   });
 
-  // =========================
+  // ======================================
   // GRID
-  // =========================
+  // ======================================
 
   mapGroup.append('path')
     .datum(d3.geoGraticule()())

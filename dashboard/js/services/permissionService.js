@@ -55,7 +55,7 @@ export async function getUserPermissions() {
       _cachedPerms = [
         'overview','players','tournament','welcome','roles','birthdays',
         'suggestions','moderation','automod','tickets','logs','messages',
-        'reactions','channels','access','settings','ocr-test'
+        'reactions','channels','access','settings','ocr-test','origine'
       ];
       return _cachedPerms;
     }

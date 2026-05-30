@@ -1,0 +1,244 @@
+<!-- STATS -->
+<div class="suggestions-stats">
+  <div class="stat-card">
+    <div class="stat-icon">🎯</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-events-total">0</div>
+      <div class="stat-label">Événements</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">✅</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-events-participants">0</div>
+      <div class="stat-label">Participants</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">🔓</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-events-open">0</div>
+      <div class="stat-label">En cours</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">📊</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-events-presence">0%</div>
+      <div class="stat-label">Taux présence</div>
+    </div>
+  </div>
+</div>
+
+<div class="events-layout">
+
+  <!-- ══ COLONNE GAUCHE ══ -->
+  <div>
+
+    <!-- CRÉER ÉVÉNEMENT -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2>➕ Créer un événement</h2>
+        <button class="btn btn-sm btn-secondary" id="btn-toggle-form">
+          <i class="fas fa-chevron-down"></i>
+        </button>
+      </div>
+      <div id="event-form" class="panel-body">
+
+        <div class="form-group">
+          <label>Nom de l'événement</label>
+          <input type="text" id="event-title" class="form-input" placeholder="BF6 Tournament — Saison 3">
+        </div>
+
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="event-description" class="form-textarea" rows="3"
+            placeholder="Tournoi 5v5 — Format élimination directe..."></textarea>
+        </div>
+
+        <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" id="event-date" class="form-input">
+          </div>
+          <div class="form-group">
+            <label>Heure</label>
+            <input type="time" id="event-time" class="form-input">
+          </div>
+        </div>
+
+        <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="form-group">
+            <label>Places maximum</label>
+            <input type="number" id="event-max" class="form-input" placeholder="64" min="1">
+          </div>
+          <div class="form-group">
+            <label>Salon d'annonce</label>
+            <select id="event-channel" class="form-select">
+              <option value="">Aucun</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Salon vocal</label>
+          <select id="event-voice" class="form-select">
+            <option value="">Aucun</option>
+          </select>
+        </div>
+
+        <div class="welcome-section-title" style="margin-top:0.5rem">Rappels automatiques</div>
+
+        <div class="form-group">
+          <div style="display:flex;flex-wrap:wrap;gap:0.75rem">
+            <label class="delay-option">
+              <input type="checkbox" id="reminder-24h" checked> 24h avant
+            </label>
+            <label class="delay-option">
+              <input type="checkbox" id="reminder-1h" checked> 1h avant
+            </label>
+            <label class="delay-option">
+              <input type="checkbox" id="reminder-15min" checked> 15min avant
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="toggle-row">
+            <label>Check-in 30min avant l'événement</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="event-checkin">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+      <div class="panel-footer">
+        <button class="btn btn-primary" id="btn-create-event">
+          <i class="fas fa-plus"></i> Créer l'événement
+        </button>
+      </div>
+    </div>
+
+    <!-- LISTE ÉVÉNEMENTS -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2>📅 Événements</h2>
+        <div class="suggestions-filters">
+          <button class="filter-btn active" data-filter="all">Tous</button>
+          <button class="filter-btn" data-filter="open">🔓 Ouverts</button>
+          <button class="filter-btn" data-filter="closed">🔒 Fermés</button>
+          <button class="filter-btn" data-filter="finished">✅ Terminés</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div id="events-list">
+          <div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ COLONNE DROITE ══ -->
+  <div>
+
+    <!-- DÉTAIL ÉVÉNEMENT -->
+    <div class="panel" id="event-detail" style="display:none">
+      <div class="panel-header">
+        <h2 id="detail-title">Événement</h2>
+        <div style="display:flex;gap:0.5rem">
+          <button class="btn btn-sm btn-secondary" id="btn-export-csv">
+            <i class="fas fa-download"></i> CSV
+          </button>
+          <button class="btn btn-sm btn-danger" id="btn-close-event">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+      <div class="panel-body">
+
+        <!-- Compteurs -->
+        <div class="event-counters">
+          <div class="event-counter present">
+            <div class="ec-value" id="ec-present">0</div>
+            <div class="ec-label">✅ Présents</div>
+          </div>
+          <div class="event-counter maybe">
+            <div class="ec-value" id="ec-maybe">0</div>
+            <div class="ec-label">❔ Peut-être</div>
+          </div>
+          <div class="event-counter absent">
+            <div class="ec-value" id="ec-absent">0</div>
+            <div class="ec-label">❌ Absents</div>
+          </div>
+          <div class="event-counter reserve">
+            <div class="ec-value" id="ec-reserve">0</div>
+            <div class="ec-label">🎮 Réserve</div>
+          </div>
+        </div>
+
+        <!-- Barre de remplissage -->
+        <div class="event-progress-bar">
+          <div class="event-progress-fill" id="event-progress"></div>
+        </div>
+        <div style="font-size:0.75rem;color:var(--text-muted);text-align:right;margin-bottom:1rem">
+          <span id="progress-text">0 / 0 places</span>
+        </div>
+
+        <!-- Actions -->
+        <div class="welcome-section-title">Actions</div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem">
+          <button class="btn btn-sm btn-secondary" id="btn-msg-participants">
+            <i class="fas fa-paper-plane"></i> Contacter participants
+          </button>
+          <button class="btn btn-sm btn-secondary" id="btn-msg-maybe">
+            <i class="fas fa-question"></i> Relancer indécis
+          </button>
+          <button class="btn btn-sm btn-danger" id="btn-cancel-event">
+            <i class="fas fa-ban"></i> Annuler l'événement
+          </button>
+        </div>
+
+        <!-- Liste participants -->
+        <div class="welcome-section-title">Participants</div>
+        <input type="text" id="participant-search" class="form-input"
+          placeholder="Rechercher un participant..." style="margin-bottom:0.75rem">
+        <div id="participants-list">
+          <div style="color:var(--text-muted);font-size:0.85rem">Sélectionne un événement.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="panel" id="event-placeholder">
+      <div class="panel-body" style="text-align:center;padding:3rem;color:var(--text-muted)">
+        <div style="font-size:3rem;margin-bottom:1rem">🎯</div>
+        <div>Sélectionne un événement pour voir les détails.</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- MODAL CONTACT -->
+<div id="modal-contact" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="modal-contact-title">📢 Message aux participants</h3>
+      <button class="btn btn-secondary btn-sm" id="modal-contact-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <textarea id="contact-message" class="form-textarea" rows="5"
+        placeholder="Votre message..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="modal-contact-cancel">Annuler</button>
+      <button class="btn btn-primary" id="modal-contact-send">
+        <i class="fas fa-paper-plane"></i> Envoyer
+      </button>
+    </div>
+  </div>
+</div>

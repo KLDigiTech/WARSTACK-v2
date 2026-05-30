@@ -45,6 +45,7 @@ const sections = {
   roles:      () => import('./sections/roles.js').then(m => m.initRoles()),
   birthdays:  () => import('./sections/birthdays.js').then(m => m.initBirthdays()),
   suggestions:() => import('./sections/suggestions.js').then(m => m.initSuggestions()),
+  events:     () => import('./sections/events.js').then(m => m.initEvents()),
   moderation: () => import('./sections/moderation.js').then(m => m.initModeration()),
   automod:    () => import('./sections/automod.js').then(m => m.initAutomod()),
   tickets:    () => import('./sections/tickets.js').then(m => m.initTickets()),

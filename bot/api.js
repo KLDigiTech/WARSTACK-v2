@@ -560,4 +560,99 @@ router.post('/suggestion/status', auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// ANNONCER ÉVÉNEMENT
+router.post('/event/announce', auth, async (req, res) => {
+  try {
+    const { event_id, channel_id, title, description, date, time, max } = req.body;
+    const guild = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
+
+    const channel = guild.channels.cache.get(channel_id);
+    if (!channel) return res.status(404).json({ error: 'Salon introuvable' });
+
+    const dateFormatted = new Date(date).toLocaleDateString('fr-FR', {
+      day: '2-digit', month: 'long', year: 'numeric'
+    });
+
+    const msg = await channel.send(
+      `🎯 **${title}**\n\n` +
+      (description ? `${description}\n\n` : '') +
+      `📅 ${dateFormatted} à ${time}\n` +
+      (max ? `👥 ${max} places disponibles\n` : '') +
+      `\nInscris-toi avec \`/event join\` !`
+    );
+
+    await msg.react('✅');
+    await msg.react('❔');
+    await msg.react('❌');
+
+    await supabase
+      .from('events')
+      .update({ message_id: msg.id })
+      .eq('id', event_id);
+
+    res.json({ success: true, message_id: msg.id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ANNULER ÉVÉNEMENT
+router.post('/event/cancel', auth, async (req, res) => {
+  try {
+    const { event_id } = req.body;
+    const guild = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
+
+    const { data: event } = await supabase
+      .from('events')
+      .select('*')
+      .eq('id', event_id)
+      .single();
+
+    const { data: participants } = await supabase
+      .from('event_participants')
+      .select('discord_id')
+      .eq('event_id', event_id)
+      .eq('status', 'present');
+
+    // DM tous les participants
+    for (const p of participants || []) {
+      const member = await guild.members.fetch(p.discord_id).catch(() => null);
+      if (member) {
+        await member.send(
+          `❌ L'événement **${event?.title}** a été annulé.`
+        ).catch(() => {});
+      }
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// CONTACTER PARTICIPANTS
+router.post('/event/contact', auth, async (req, res) => {
+  try {
+    const { discord_ids, message, event_title } = req.body;
+    const guild = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
+
+    let sent = 0;
+    for (const id of discord_ids || []) {
+      const member = await guild.members.fetch(id).catch(() => null);
+      if (member) {
+        await member.send(
+          `📢 **${event_title}**\n\n${message}`
+        ).catch(() => {});
+        sent++;
+      }
+    }
+
+    res.json({ success: true, sent });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 module.exports = router;

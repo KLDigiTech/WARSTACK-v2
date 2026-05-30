@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WARSTACK — Connexion</title>
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="css/core/variables.css">
   <link rel="stylesheet" href="css/core/reset.css">
   <link rel="stylesheet" href="css/core/base.css">
@@ -14,10 +15,24 @@
 
 <body class="login-body">
 
-  <div class="login-container">
-    <img id="login-server-logo" src="https://placehold.co/128x128" alt="Logo">
-    <h1>WARSTACK</h1>
-    <button id="discord-login-btn">Se connecter avec Discord</button>
+  <div class="login-background"></div>
+
+  <div class="login-page">
+    <div class="login-card">
+
+      <div class="login-logo">
+        <img id="login-server-logo" src="https://cdn.discordapp.com/embed/avatars/0.png" alt="Logo">
+      </div>
+
+      <h1>WARSTACK</h1>
+      <p>Plateforme compétitive BF6</p>
+
+      <button class="discord-login-btn" id="discord-login-btn">
+        <i class="fab fa-discord"></i>
+        Se connecter avec Discord
+      </button>
+
+    </div>
   </div>
 
   <script type="module">
@@ -28,7 +43,7 @@
 
     try {
       const guild = await fetch('https://warstack-bot.onrender.com/api/guild').then(r => r.json());
-      document.getElementById('login-server-logo').src = guild.icon || 'https://placehold.co/128x128';
+      document.getElementById('login-server-logo').src = guild.icon || 'https://cdn.discordapp.com/embed/avatars/0.png';
     } catch { }
 
     document.getElementById('discord-login-btn').addEventListener('click', async () => {
@@ -38,6 +53,6 @@
       });
     });
   </script>
-</body>
 
+</body>
 </html>

@@ -515,5 +515,49 @@ router.post('/birthday/test', auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// SUGGESTION — CHANGER STATUT + ÉDITER MESSAGE DISCORD
+router.post('/suggestion/status', auth, async (req, res) => {
+  try {
+    const { suggestion_id, status } = req.body;
+    const guild = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
+    const { data: suggestions } = await supabase
+      .from('suggestions')
+      .select('*')
+      .eq('id', suggestion_id)
+      .single();
+
+    if (!suggestions) return res.status(404).json({ error: 'Suggestion introuvable' });
+
+    const statusMap = {
+      pending    : { emoji: '🟡', label: 'En attente' },
+      reviewing  : { emoji: '🔵', label: 'En analyse' },
+      accepted   : { emoji: '🟢', label: 'Acceptée' },
+      refused    : { emoji: '🔴', label: 'Refusée' },
+      implemented: { emoji: '⚫', label: 'Implémentée' },
+    };
+
+    const s = statusMap[status] || { emoji: '❓', label: status };
+
+    if (suggestions.message_id) {
+      // Trouver le message dans tous les salons texte
+      const channels = guild.channels.cache.filter(c => c.type === 0);
+      for (const [, channel] of channels) {
+        try {
+          const msg = await channel.messages.fetch(suggestions.message_id);
+          if (msg) {
+            const newContent = msg.content + `\n\n${s.emoji} **Statut : ${s.label}**`;
+            await msg.edit(newContent).catch(() => {});
+            break;
+          }
+        } catch {}
+      }
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 module.exports = router;

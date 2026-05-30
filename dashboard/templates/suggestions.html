@@ -1,17 +1,166 @@
-<div class="panel">
-  <div class="panel-header">
-    <h2>💡 Suggestions</h2>
+<!-- STATS -->
+<div class="suggestions-stats">
+  <div class="stat-card">
+    <div class="stat-icon">💡</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-total">0</div>
+      <div class="stat-label">Total</div>
+    </div>
   </div>
-  <div class="panel-body">
-    <div class="form-grid">
-      <div class="form-group">
-        <label>Salon suggestions</label>
-        <input type="text" class="form-input" placeholder="suggestions">
+  <div class="stat-card">
+    <div class="stat-icon">🟢</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-accepted">0</div>
+      <div class="stat-label">Acceptées</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">🔴</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-refused">0</div>
+      <div class="stat-label">Refusées</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">⚫</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-implemented">0</div>
+      <div class="stat-label">Implémentées</div>
+    </div>
+  </div>
+</div>
+
+<div class="suggestions-layout">
+
+  <!-- ══ COLONNE GAUCHE ══ -->
+  <div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>⚙️ Configuration</h2>
       </div>
-      <div class="form-group">
-        <label>Salon staff</label>
-        <input type="text" class="form-input" placeholder="staff-suggestions">
+      <div class="panel-body">
+
+        <div class="form-group">
+          <div class="toggle-row">
+            <label>Activer les suggestions</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="suggestions-enabled">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="welcome-section-title" style="margin-top:1rem">Salons</div>
+
+        <div class="form-group">
+          <label>Salon suggestions</label>
+          <select id="suggestions-channel" class="form-select">
+            <option value="">Chargement...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Salon logs staff</label>
+          <select id="suggestions-logs" class="form-select">
+            <option value="">Aucun</option>
+          </select>
+        </div>
+
+        <div class="welcome-section-title" style="margin-top:1rem">Options</div>
+
+        <div class="form-group">
+          <div class="toggle-row">
+            <label>Réactions automatiques 👍 👎</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="suggestions-reactions" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="toggle-row">
+            <label>Thread automatique par suggestion</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="suggestions-threads">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="toggle-row">
+            <label>Vote anonyme</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="suggestions-anonymous">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
       </div>
+      <div class="panel-footer">
+        <button class="btn btn-primary" id="btn-save-suggestions">
+          <i class="fas fa-save"></i> Sauvegarder
+        </button>
+      </div>
+    </div>
+
+    <!-- LEADERBOARD -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2>🏆 Top contributeurs</h2>
+      </div>
+      <div class="panel-body">
+        <div id="suggestions-leaderboard">
+          <div style="color:var(--text-muted);font-size:0.85rem">Aucune donnée.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ COLONNE DROITE ══ -->
+  <div class="suggestions-right">
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>💡 Suggestions</h2>
+        <div class="suggestions-filters">
+          <button class="filter-btn active" data-filter="all">Toutes</button>
+          <button class="filter-btn" data-filter="pending">🟡 En attente</button>
+          <button class="filter-btn" data-filter="reviewing">🔵 En analyse</button>
+          <button class="filter-btn" data-filter="accepted">🟢 Acceptées</button>
+          <button class="filter-btn" data-filter="refused">🔴 Refusées</button>
+          <button class="filter-btn" data-filter="implemented">⚫ Implémentées</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div id="suggestions-list">
+          <div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- MODAL NOTE STAFF -->
+<div id="modal-staff-note" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>📝 Note interne</h3>
+      <button id="modal-close" class="btn btn-secondary btn-sm">✕</button>
+    </div>
+    <div class="modal-body">
+      <textarea id="staff-note-input" class="form-textarea" rows="4"
+        placeholder="Note visible uniquement dans le dashboard..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="modal-cancel">Annuler</button>
+      <button class="btn btn-primary" id="modal-save-note">Sauvegarder</button>
     </div>
   </div>
 </div>

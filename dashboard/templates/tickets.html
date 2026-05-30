@@ -1,32 +1,174 @@
-<div class="panel">
-  <div class="panel-header">
-    <h2>🎫 Tickets</h2>
-  </div>
-  <div class="panel-body">
-    <div class="form-grid">
-      <div class="form-group">
-        <label>Catégorie tickets</label>
-        <input type="text" id="tickets-category" class="form-input" placeholder="TICKETS">
-      </div>
-      <div class="form-group">
-        <label>Salon création</label>
-        <input type="text" id="tickets-channel" class="form-input" placeholder="ouvrir-ticket">
-      </div>
-      <div class="form-group">
-        <label>Rôle staff</label>
-        <input type="text" id="tickets-role" class="form-input" placeholder="Staff">
-      </div>
-      <div class="form-group">
-        <label>Salon logs</label>
-        <input type="text" id="tickets-logs" class="form-input" placeholder="logs-tickets">
-      </div>
-      <div class="form-group full">
-        <label>Message ouverture</label>
-        <textarea id="tickets-message" class="form-textarea" rows="4" placeholder="Clique sur le bouton pour ouvrir un ticket."></textarea>
-      </div>
+<!-- STATS -->
+<div class="suggestions-stats">
+  <div class="stat-card">
+    <div class="stat-icon">🎫</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-tickets-total">0</div>
+      <div class="stat-label">Total</div>
     </div>
   </div>
-  <div class="panel-footer">
-    <button class="btn btn-primary" id="save-tickets">Sauvegarder</button>
+  <div class="stat-card">
+    <div class="stat-icon">🟢</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-tickets-open">0</div>
+      <div class="stat-label">Ouverts</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">✅</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-tickets-closed">0</div>
+      <div class="stat-label">Fermés</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">⏱️</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-tickets-time">—</div>
+      <div class="stat-label">Temps moyen</div>
+    </div>
+  </div>
+</div>
+
+<div class="tickets-layout">
+
+  <!-- ══ COLONNE GAUCHE ══ -->
+  <div>
+
+    <!-- CONFIG -->
+    <div class="panel">
+      <div class="panel-header"><h2>⚙️ Configuration</h2></div>
+      <div class="panel-body">
+
+        <div class="form-group">
+          <label>Salon de création</label>
+          <select id="ticket-create-channel" class="form-select">
+            <option value="">Aucun</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Catégorie Discord</label>
+          <select id="ticket-category" class="form-select">
+            <option value="">Aucune</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Salon logs</label>
+          <select id="ticket-logs-channel" class="form-select">
+            <option value="">Aucun</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Rôle staff</label>
+          <select id="ticket-staff-role" class="form-select">
+            <option value="">Aucun</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <div class="toggle-row">
+            <label>Transcription à la fermeture</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="ticket-transcript" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+      <div class="panel-footer" style="justify-content:space-between">
+        <button class="btn btn-secondary" id="btn-send-panel">
+          <i class="fas fa-paper-plane"></i> Envoyer le panel
+        </button>
+        <button class="btn btn-primary" id="btn-save-tickets">
+          <i class="fas fa-save"></i> Sauvegarder
+        </button>
+      </div>
+    </div>
+
+    <!-- TYPES DE TICKETS -->
+    <div class="panel">
+      <div class="panel-header"><h2>🏷️ Types de tickets</h2></div>
+      <div class="panel-body">
+        <div class="ticket-types-list" id="ticket-types-list">
+          <!-- généré par JS -->
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ COLONNE DROITE ══ -->
+  <div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>🎫 Tickets</h2>
+        <div class="suggestions-filters">
+          <button class="filter-btn active" data-filter="all">Tous</button>
+          <button class="filter-btn" data-filter="open">🟢 Ouverts</button>
+          <button class="filter-btn" data-filter="in_progress">🔵 En cours</button>
+          <button class="filter-btn" data-filter="closed">✅ Fermés</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div id="tickets-list">
+          <div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- MODAL TICKET DETAIL -->
+<div id="modal-ticket" class="modal-overlay" style="display:none">
+  <div class="modal-box" style="max-width:600px">
+    <div class="modal-header">
+      <h3 id="modal-ticket-title">Ticket</h3>
+      <button class="btn btn-secondary btn-sm" id="modal-ticket-close">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="ticket-detail-meta" id="ticket-detail-meta"></div>
+
+      <div class="welcome-section-title" style="margin-top:0.75rem">Assignation</div>
+      <div style="display:flex;gap:0.5rem;margin-bottom:1rem">
+        <select id="ticket-assign-select" class="form-select">
+          <option value="">Non assigné</option>
+        </select>
+        <button class="btn btn-secondary btn-sm" id="btn-assign-ticket">Assigner</button>
+      </div>
+
+      <div class="welcome-section-title">Priorité</div>
+      <div class="ticket-priorities" style="margin-bottom:1rem">
+        <button class="priority-btn" data-priority="low">🟢 Faible</button>
+        <button class="priority-btn" data-priority="normal">🟡 Normale</button>
+        <button class="priority-btn" data-priority="high">🟠 Haute</button>
+        <button class="priority-btn" data-priority="critical">🔴 Critique</button>
+      </div>
+
+      <div class="welcome-section-title">Notes internes</div>
+      <div id="ticket-notes-list" style="margin-bottom:0.5rem"></div>
+      <div style="display:flex;gap:0.5rem;margin-bottom:1rem">
+        <input type="text" id="ticket-note-input" class="form-input" placeholder="Ajouter une note staff...">
+        <button class="btn btn-secondary btn-sm" id="btn-add-ticket-note">
+          <i class="fas fa-plus"></i>
+        </button>
+      </div>
+
+    </div>
+    <div class="modal-footer" style="justify-content:space-between">
+      <button class="btn btn-danger" id="btn-close-ticket">
+        <i class="fas fa-times"></i> Fermer le ticket
+      </button>
+      <button class="btn btn-secondary" id="btn-transcript">
+        <i class="fas fa-download"></i> Transcription
+      </button>
+    </div>
   </div>
 </div>

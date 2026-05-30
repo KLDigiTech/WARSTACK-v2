@@ -791,4 +791,131 @@ router.post('/moderation/lift', auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// ENVOYER PANEL TICKETS
+router.post('/ticket/panel', auth, async (req, res) => {
+  try {
+    const { channel_id } = req.body;
+    const guild = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
+
+    const channel = guild.channels.cache.get(channel_id);
+    if (!channel) return res.status(404).json({ error: 'Salon introuvable' });
+
+    const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
+
+    const embed = new EmbedBuilder()
+      .setTitle('🎫 Support WARSTACK')
+      .setDescription('Clique sur le bouton correspondant à ta demande pour ouvrir un ticket.')
+      .setColor(0x00ff66)
+      .addFields(
+        { name: '🔧 Support Technique', value: 'Problème technique ou question', inline: true },
+        { name: '🐛 Signaler un Bug',   value: 'Bug dans le bot ou le dashboard', inline: true },
+        { name: '⚖️ Appel de Sanction', value: 'Contester une sanction reçue', inline: true },
+        { name: '🤝 Partenariat',       value: 'Proposition de partenariat', inline: true },
+        { name: '📝 Candidature Staff', value: 'Rejoindre l\'équipe WARSTACK', inline: true },
+        { name: '❓ Autre',             value: 'Toute autre demande', inline: true },
+      );
+
+    const row1 = new ActionRowBuilder().addComponents(
+      new ButtonBuilder().setCustomId('ticket_support')     .setLabel('Support')     .setEmoji('🔧').setStyle(ButtonStyle.Primary),
+      new ButtonBuilder().setCustomId('ticket_bug')         .setLabel('Bug')          .setEmoji('🐛').setStyle(ButtonStyle.Danger),
+      new ButtonBuilder().setCustomId('ticket_appeal')      .setLabel('Appel')        .setEmoji('⚖️').setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder().setCustomId('ticket_partnership') .setLabel('Partenariat')  .setEmoji('🤝').setStyle(ButtonStyle.Success),
+    );
+
+    const row2 = new ActionRowBuilder().addComponents(
+      new ButtonBuilder().setCustomId('ticket_application') .setLabel('Candidature') .setEmoji('📝').setStyle(ButtonStyle.Primary),
+      new ButtonBuilder().setCustomId('ticket_other')       .setLabel('Autre')       .setEmoji('❓').setStyle(ButtonStyle.Secondary),
+    );
+
+    await channel.send({ embeds: [embed], components: [row1, row2] });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// FERMER TICKET
+router.post('/ticket/close', auth, async (req, res) => {
+  try {
+    const { ticket_id, channel_id, transcript } = req.body;
+    const guild = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
+
+    const channel = guild.channels.cache.get(channel_id);
+    if (!channel) return res.json({ success: true });
+
+    if (transcript) {
+      // Récupérer les messages
+      const messages = await channel.messages.fetch({ limit: 100 });
+      const lines = [...messages.values()]
+        .reverse()
+        .map(m => `[${new Date(m.createdTimestamp).toLocaleString('fr-FR')}] ${m.author.username}: ${m.content}`)
+        .join('\n');
+
+      // Chercher salon logs
+      const { data: configs } = await supabase
+        .from('config')
+        .select('*')
+        .eq('guild_id', guild.id);
+
+      const logChId = configs?.find(c => c.key === 'ticket_logs_channel')?.value;
+      if (logChId) {
+        const logCh = guild.channels.cache.get(logChId);
+        if (logCh) {
+          const { AttachmentBuilder } = require('discord.js');
+          const buf = Buffer.from(lines, 'utf-8');
+          const att = new AttachmentBuilder(buf, { name: `ticket-${ticket_id}.txt` });
+          await logCh.send({ content: `📄 Transcription ticket fermé`, files: [att] });
+        }
+      }
+    }
+
+    await channel.send('✅ Ce ticket a été fermé. Le salon sera supprimé dans 5 secondes.');
+    setTimeout(() => channel.delete().catch(() => {}), 5000);
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// TRANSCRIPTION MANUELLE
+router.post('/ticket/transcript', auth, async (req, res) => {
+  try {
+    const { ticket_id, channel_id } = req.body;
+    const guild = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
+
+    const channel = guild.channels.cache.get(channel_id);
+    if (!channel) return res.status(404).json({ error: 'Salon introuvable' });
+
+    const messages = await channel.messages.fetch({ limit: 100 });
+    const lines = [...messages.values()]
+      .reverse()
+      .map(m => `[${new Date(m.createdTimestamp).toLocaleString('fr-FR')}] ${m.author.username}: ${m.content}`)
+      .join('\n');
+
+    const { data: configs } = await supabase
+      .from('config')
+      .select('*')
+      .eq('guild_id', guild.id);
+
+    const logChId = configs?.find(c => c.key === 'ticket_logs_channel')?.value;
+    if (logChId) {
+      const logCh = guild.channels.cache.get(logChId);
+      if (logCh) {
+        const { AttachmentBuilder } = require('discord.js');
+        const buf = Buffer.from(lines, 'utf-8');
+        const att = new AttachmentBuilder(buf, { name: `ticket-${ticket_id}.txt` });
+        await logCh.send({ content: `📄 Transcription ticket #${ticket_id}`, files: [att] });
+      }
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

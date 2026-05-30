@@ -49,7 +49,7 @@
     document.getElementById('discord-login-btn').addEventListener('click', async () => {
       await supabase.auth.signInWithOAuth({
         provider: 'discord',
-        options: { redirectTo: 'https://warstack-v2.vercel.app/login' }
+        options: { redirectTo: 'https://warstack-v2.vercel.app/login.html' }
       });
     });
   </script>

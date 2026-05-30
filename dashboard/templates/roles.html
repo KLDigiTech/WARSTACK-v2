@@ -1,25 +1,154 @@
-<div class="panel">
-  <div class="panel-header">
-    <h2>🎖️ Rôles automatiques</h2>
+<div class="roles-layout">
+
+  <!-- ══ COLONNE GAUCHE ══ -->
+  <div class="roles-left">
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>🎭 Rôles automatiques</h2>
+      </div>
+      <div class="panel-body">
+
+        <div class="welcome-section-title">Rôles attribués à l'arrivée</div>
+
+        <div id="autoroles-list" style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:0.75rem"></div>
+
+        <button class="btn btn-secondary btn-sm" id="btn-add-autorole">
+          <i class="fas fa-plus"></i> Ajouter un rôle
+        </button>
+
+        <div class="welcome-section-title" style="margin-top:1.5rem">Options</div>
+
+        <div class="form-group">
+          <div class="toggle-row">
+            <label>Ignorer les bots</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="ignore-bots" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:0.75rem">
+          <label>Délai d'attribution</label>
+          <div class="delay-options">
+            <label class="delay-option">
+              <input type="radio" name="autorole-delay" value="0" checked> Immédiat
+            </label>
+            <label class="delay-option">
+              <input type="radio" name="autorole-delay" value="5"> 5 minutes
+            </label>
+            <label class="delay-option">
+              <input type="radio" name="autorole-delay" value="60"> 1 heure
+            </label>
+            <label class="delay-option">
+              <input type="radio" name="autorole-delay" value="1440"> 24 heures
+            </label>
+          </div>
+        </div>
+
+        <div class="welcome-section-title" style="margin-top:1.5rem">DM de confirmation</div>
+
+        <div class="form-group">
+          <div class="toggle-row">
+            <label>Envoyer un DM au nouveau membre</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="autorole-dm">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group" id="autorole-dm-group" style="display:none">
+          <textarea id="autorole-dm-message" class="form-textarea" rows="3"
+            placeholder="Bienvenue sur {server} ! Le rôle {role} t'a été attribué."></textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>👥 Compteur de membres</h2>
+      </div>
+      <div class="panel-body">
+
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:1rem">
+          Crée un salon vocal dont le nom se met à jour automatiquement avec le nombre de membres.
+        </p>
+
+        <div class="form-group">
+          <div class="toggle-row">
+            <label>Activer le compteur</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="enable-counter">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div id="counter-group" style="display:none">
+          <div class="form-group">
+            <label>Format du salon vocal</label>
+            <input type="text" id="counter-format" class="form-input"
+              placeholder="👥 Membres : {count}">
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.4rem">
+              <code>{count}</code> sera remplacé par le nombre de membres.
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Salon vocal existant <span style="color:var(--text-muted)">(optionnel)</span></label>
+            <select id="counter-channel" class="form-select">
+              <option value="">Créer un nouveau salon</option>
+            </select>
+          </div>
+        </div>
+
+      </div>
+      <div class="panel-footer" style="justify-content:space-between">
+        <button class="btn btn-secondary" id="btn-test-autorole">
+          <i class="fas fa-vial"></i> Tester
+        </button>
+        <button class="btn btn-primary" id="btn-save-roles">
+          <i class="fas fa-save"></i> Sauvegarder
+        </button>
+      </div>
+    </div>
+
   </div>
-  <div class="panel-body">
-    <div class="form-grid">
-      <div class="form-group">
-        <label>Rôle membre</label>
-        <input type="text" class="form-input" placeholder="Membre">
+
+  <!-- ══ COLONNE DROITE ══ -->
+  <div class="roles-right">
+    <div class="panel">
+      <div class="panel-header">
+        <h2>👁️ Aperçu en direct</h2>
       </div>
-      <div class="form-group">
-        <label>Rôle vérifié</label>
-        <input type="text" class="form-input" placeholder="Vérifié">
-      </div>
-      <div class="form-group">
-        <label>Rôle admin</label>
-        <input type="text" class="form-input" placeholder="Admin">
-      </div>
-      <div class="form-group">
-        <label>Rôle modérateur</label>
-        <input type="text" class="form-input" placeholder="Modérateur">
+      <div class="panel-body">
+
+        <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:1rem">
+          Simulation de ce qui se passe quand un membre rejoint.
+        </p>
+
+        <div class="roles-preview" id="roles-preview">
+          <div class="rp-step">
+            <div class="rp-icon">🟢</div>
+            <div class="rp-text"><strong>Kevin</strong> rejoint le serveur</div>
+          </div>
+          <div class="rp-arrow">↓</div>
+          <div id="rp-roles-steps"></div>
+          <div class="rp-arrow">↓</div>
+          <div class="rp-step" id="rp-dm-step" style="display:none">
+            <div class="rp-icon">✉️</div>
+            <div class="rp-text">DM envoyé à <strong>Kevin</strong></div>
+          </div>
+          <div class="rp-step">
+            <div class="rp-icon">✅</div>
+            <div class="rp-text">Accès au serveur accordé</div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
+
 </div>

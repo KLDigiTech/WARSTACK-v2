@@ -425,4 +425,69 @@ router.post('/welcome/test', auth, async (req, res) => {
   }
 });
 
+
+// TEST AUTOROLE
+router.post('/autorole/test', auth, async (req, res) => {
+  try {
+    const { role_ids, dm_enabled, dm_message } = req.body;
+    const guild = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
+
+    const member = await guild.members.fetch(guild.ownerId).catch(() => null);
+    if (!member) return res.status(404).json({ error: 'Membre introuvable' });
+
+    for (const roleId of role_ids || []) {
+      const role = guild.roles.cache.get(roleId);
+      if (role) await member.roles.add(role).catch(() => {});
+    }
+
+    if (dm_enabled && dm_message) {
+      const roleNames = (role_ids || [])
+        .map(id => guild.roles.cache.get(id)?.name)
+        .filter(Boolean)
+        .join(', ');
+      const filled = dm_message
+        .replace(/{server}/g, guild.name)
+        .replace(/{role}/g,   roleNames)
+        .replace(/{user}/g,   member.user.username);
+      await member.send(filled).catch(() => {});
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// COMPTEUR MEMBRES — mise à jour du salon vocal
+router.post('/counter/update', auth, async (req, res) => {
+  try {
+    const guild = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
+
+    const { channel_id, format } = req.body;
+    const fmt  = format || '👥 Membres : {count}';
+    const name = fmt.replace(/{count}/g, guild.memberCount);
+
+    let channel = channel_id ? guild.channels.cache.get(channel_id) : null;
+
+    if (!channel) {
+      channel = await guild.channels.create({
+        name,
+        type: 2, // vocal
+        permissionOverwrites: [{
+          id  : guild.roles.everyone,
+          deny: ['Connect']
+        }]
+      });
+    } else {
+      await channel.setName(name);
+    }
+
+    res.json({ success: true, channel_id: channel.id, name });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

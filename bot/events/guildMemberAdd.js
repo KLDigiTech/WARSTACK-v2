@@ -17,14 +17,62 @@ module.exports = {
         .select('*')
         .eq('guild_id', guild.id);
 
-      // ── Message bienvenue ──────────────────────────────
-      const channelId = getConfig(configs, 'welcome_channel');
-      const message   = getConfig(configs, 'welcome_message');
+      // ── Anti Raid ──────────────────────────────────────
+      const raidEnabled = getConfig(configs, 'automod_raid_enabled') === 'true';
+      if (raidEnabled) {
+        const raidAge      = parseInt(getConfig(configs, 'automod_raid_age')       || '7');
+        const raidNoAvatar = getConfig(configs, 'automod_raid_no_avatar')          === 'true';
+        const raidAction   = getConfig(configs, 'automod_raid_action')             || 'kick';
+        const logChannelId = getConfig(configs, 'automod_logs_channel');
 
-      if (channelId && message) {
-        const channel = guild.channels.cache.get(channelId);
+        const accountAge  = (Date.now() - member.user.createdTimestamp) / (1000 * 60 * 60 * 24);
+        const hasNoAvatar = !member.user.avatar;
+        const isRaider    = accountAge < raidAge || (raidNoAvatar && hasNoAvatar);
+
+        if (isRaider) {
+          const reason = accountAge < raidAge
+            ? `Anti-Raid : compte trop récent (${Math.floor(accountAge)}j)`
+            : 'Anti-Raid : compte sans avatar';
+
+          switch (raidAction) {
+            case 'kick'   : await member.kick(reason).catch(() => {}); break;
+            case 'ban'    : await guild.members.ban(member.id, { reason }).catch(() => {}); break;
+            case 'timeout': await member.timeout(24 * 60 * 60 * 1000, reason).catch(() => {}); break;
+          }
+
+          await supabase.from('sanctions').insert({
+            guild_id      : guild.id,
+            discord_id    : member.user.id,
+            username      : member.user.username,
+            type          : raidAction,
+            reason,
+            moderator_id  : 'automod',
+            moderator_name: 'AutoMod Anti-Raid',
+            active        : true,
+          });
+
+          // Log salon
+          if (logChannelId) {
+            const logChannel = guild.channels.cache.get(logChannelId);
+            if (logChannel) {
+              await logChannel.send(
+                `🚨 **Anti-Raid** — ${raidAction.toUpperCase()}\n👤 ${member.user.username}\n📋 ${reason}`
+              );
+            }
+          }
+
+          return; // Stop — pas de bienvenue pour un raider
+        }
+      }
+
+      // ── Message bienvenue ──────────────────────────────
+      const welcomeChannelId = getConfig(configs, 'welcome_channel');
+      const welcomeMessage   = getConfig(configs, 'welcome_message');
+
+      if (welcomeChannelId && welcomeMessage) {
+        const channel = guild.channels.cache.get(welcomeChannelId);
         if (channel) {
-          const filled = message
+          const filled = welcomeMessage
             .replace(/{mention}/g,     member.toString())
             .replace(/{user}/g,        member.user.username)
             .replace(/{server}/g,      guild.name)
@@ -33,7 +81,7 @@ module.exports = {
         }
       }
 
-      // ── DM ────────────────────────────────────────────
+      // ── DM bienvenue ───────────────────────────────────
       const dmEnabled = getConfig(configs, 'enable_dm') === 'true';
       const dmMessage = getConfig(configs, 'dm_message');
 
@@ -46,11 +94,46 @@ module.exports = {
         await member.send(filled).catch(() => {});
       }
 
-      // ── Rôle auto ─────────────────────────────────────
-      const autoroleId = getConfig(configs, 'autorole');
-      if (autoroleId) {
-        const role = guild.roles.cache.get(autoroleId);
-        if (role) await member.roles.add(role).catch(() => {});
+      // ── Délai autorole ─────────────────────────────────
+      const delayMin = parseInt(getConfig(configs, 'autorole_delay') || '0');
+      const applyRoles = async () => {
+        const savedRoles = getConfig(configs, 'autoroles');
+        const roles      = savedRoles ? JSON.parse(savedRoles) : [];
+        for (const r of roles) {
+          const role = guild.roles.cache.get(r.id);
+          if (role) await member.roles.add(role).catch(() => {});
+        }
+
+        // DM autorole
+        const autorole_dm    = getConfig(configs, 'autorole_dm') === 'true';
+        const autorole_dmMsg = getConfig(configs, 'autorole_dm_message');
+        if (autorole_dm && autorole_dmMsg) {
+          const roleNames = roles.map(r => r.name).join(', ');
+          const filled    = autorole_dmMsg
+            .replace(/{server}/g, guild.name)
+            .replace(/{role}/g,   roleNames)
+            .replace(/{user}/g,   member.user.username);
+          await member.send(filled).catch(() => {});
+        }
+      };
+
+      if (delayMin > 0) {
+        setTimeout(applyRoles, delayMin * 60 * 1000);
+      } else {
+        await applyRoles();
+      }
+
+      // ── Compteur membres ───────────────────────────────
+      const counterOn  = getConfig(configs, 'counter_enabled') === 'true';
+      const counterFmt = getConfig(configs, 'counter_format') || '👥 Membres : {count}';
+      const counterCh  = getConfig(configs, 'counter_channel');
+
+      if (counterOn && counterCh) {
+        const channel = guild.channels.cache.get(counterCh);
+        if (channel) {
+          const name = counterFmt.replace(/{count}/g, guild.memberCount);
+          await channel.setName(name).catch(() => {});
+        }
       }
 
     } catch (err) {

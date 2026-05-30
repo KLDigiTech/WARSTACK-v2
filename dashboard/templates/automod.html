@@ -1,26 +1,267 @@
-<div class="panel">
-  <div class="panel-header">
-    <h2>🤖 Auto-Modération</h2>
+<!-- SCORE PROTECTION -->
+<div class="automod-score-bar">
+  <div class="automod-score-left">
+    <div class="automod-score-title">🛡️ Score de protection</div>
+    <div class="automod-score-sub">État de la sécurité de ton serveur</div>
   </div>
-  <div class="panel-body">
-    <div class="toggle-row">
-      <div><strong>Anti Spam</strong><p>Bloque les messages spam</p></div>
-      <div class="toggle" id="toggle-antispam"></div>
-    </div>
-    <div class="toggle-row">
-      <div><strong>Anti Liens</strong><p>Supprime les liens</p></div>
-      <div class="toggle" id="toggle-links"></div>
-    </div>
-    <div class="toggle-row">
-      <div><strong>Anti Caps</strong><p>Détecte les majuscules abusives</p></div>
-      <div class="toggle" id="toggle-caps"></div>
-    </div>
-    <div class="form-group" style="margin-top:20px">
-      <label>Mots interdits</label>
-      <textarea id="banned-words" class="form-textarea" rows="4" placeholder="mot1, mot2, mot3"></textarea>
-    </div>
+  <div class="automod-score-gauge">
+    <div class="automod-score-value" id="protection-score">0</div>
+    <div class="automod-score-max">/ 100</div>
   </div>
-  <div class="panel-footer">
-    <button class="btn btn-primary" id="save-automod">Sauvegarder</button>
+  <div class="automod-score-indicators" id="protection-indicators"></div>
+</div>
+
+<div class="automod-layout">
+
+  <!-- ══ COLONNE GAUCHE ══ -->
+  <div>
+
+    <!-- ANTI SPAM -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2>💬 Anti Spam</h2>
+        <label class="toggle-switch">
+          <input type="checkbox" id="spam-enabled">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="panel-body">
+        <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="form-group">
+            <label>Max messages</label>
+            <input type="number" id="spam-max" class="form-input" value="5" min="2" max="20">
+          </div>
+          <div class="form-group">
+            <label>Période (secondes)</label>
+            <input type="number" id="spam-period" class="form-input" value="10" min="3" max="60">
+          </div>
+        </div>
+        <div class="welcome-section-title">Escalade automatique</div>
+        <div class="automod-escalade">
+          <div class="escalade-step">
+            <span class="escalade-num">1</span>
+            <select id="spam-action-1" class="form-select">
+              <option value="warn">⚠️ Warn</option>
+              <option value="delete">🗑️ Supprimer</option>
+              <option value="timeout">⏰ Timeout</option>
+            </select>
+          </div>
+          <div class="escalade-arrow">↓ récidive</div>
+          <div class="escalade-step">
+            <span class="escalade-num">2</span>
+            <select id="spam-action-2" class="form-select">
+              <option value="timeout">⏰ Timeout 10min</option>
+              <option value="kick">👢 Kick</option>
+              <option value="ban">🔨 Ban</option>
+            </select>
+          </div>
+          <div class="escalade-arrow">↓ récidive</div>
+          <div class="escalade-step">
+            <span class="escalade-num">3</span>
+            <select id="spam-action-3" class="form-select">
+              <option value="kick">👢 Kick</option>
+              <option value="ban">🔨 Ban</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANTI RAID -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2>🚨 Anti Raid</h2>
+        <label class="toggle-switch">
+          <input type="checkbox" id="raid-enabled">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="panel-body">
+        <div class="form-group">
+          <label>Bloquer les comptes de moins de</label>
+          <select id="raid-age" class="form-select">
+            <option value="1">1 jour</option>
+            <option value="3">3 jours</option>
+            <option value="7" selected>7 jours</option>
+            <option value="30">30 jours</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="toggle-row">
+            <label>Bloquer comptes sans avatar</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="raid-no-avatar">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Action</label>
+          <select id="raid-action" class="form-select">
+            <option value="kick">👢 Kick</option>
+            <option value="ban">🔨 Ban</option>
+            <option value="timeout">⏰ Timeout 24h</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANTI LIENS -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2>🔗 Anti Liens</h2>
+        <label class="toggle-switch">
+          <input type="checkbox" id="links-enabled">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="panel-body">
+        <div class="form-group">
+          <label>Action</label>
+          <select id="links-action" class="form-select">
+            <option value="delete">🗑️ Supprimer</option>
+            <option value="warn">⚠️ Warn + Supprimer</option>
+            <option value="timeout">⏰ Timeout</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Whitelist (un domaine par ligne)</label>
+          <textarea id="links-whitelist" class="form-textarea" rows="4"
+            placeholder="youtube.com&#10;discord.gg&#10;warstack.gg"></textarea>
+        </div>
+      </div>
+    </div>
+
   </div>
+
+  <!-- ══ COLONNE DROITE ══ -->
+  <div>
+
+    <!-- ANTI MENTIONS -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2>📣 Anti Mass Mention</h2>
+        <label class="toggle-switch">
+          <input type="checkbox" id="mentions-enabled">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="panel-body">
+        <div class="form-group">
+          <label>Max mentions par message</label>
+          <input type="number" id="mentions-max" class="form-input" value="5" min="2" max="20">
+        </div>
+        <div class="form-group">
+          <label>Action</label>
+          <select id="mentions-action" class="form-select">
+            <option value="delete">🗑️ Supprimer</option>
+            <option value="warn">⚠️ Warn</option>
+            <option value="timeout">⏰ Timeout</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANTI CAPS -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2>🔠 Anti Caps</h2>
+        <label class="toggle-switch">
+          <input type="checkbox" id="caps-enabled">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="panel-body">
+        <div class="form-group">
+          <label>% de majuscules max</label>
+          <input type="number" id="caps-percent" class="form-input" value="70" min="50" max="100">
+        </div>
+        <div class="form-group">
+          <label>Longueur min du message (caractères)</label>
+          <input type="number" id="caps-min-length" class="form-input" value="10" min="5">
+        </div>
+        <div class="form-group">
+          <label>Action</label>
+          <select id="caps-action" class="form-select">
+            <option value="delete">🗑️ Supprimer</option>
+            <option value="warn">⚠️ Warn</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- MOTS INTERDITS -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2>🚫 Mots interdits</h2>
+        <label class="toggle-switch">
+          <input type="checkbox" id="words-enabled">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="panel-body">
+        <div class="form-group">
+          <label>Liste (un mot par ligne)</label>
+          <textarea id="words-list" class="form-textarea" rows="5"
+            placeholder="mot1&#10;mot2&#10;expression interdite"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Action</label>
+          <select id="words-action" class="form-select">
+            <option value="delete">🗑️ Supprimer</option>
+            <option value="warn">⚠️ Warn + Supprimer</option>
+            <option value="timeout">⏰ Timeout</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXCEPTIONS -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2>⚡ Exceptions</h2>
+      </div>
+      <div class="panel-body">
+        <div class="form-group">
+          <label>Salons ignorés</label>
+          <select id="except-channels" class="form-select" multiple style="height:100px">
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Rôles ignorés</label>
+          <select id="except-roles" class="form-select" multiple style="height:100px">
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Salon logs AutoMod</label>
+          <select id="automod-logs-channel" class="form-select">
+            <option value="">Aucun</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- JOURNAL VIOLATIONS -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2>📋 Journal des violations</h2>
+        <button class="btn btn-sm btn-secondary" id="btn-refresh-violations">
+          <i class="fas fa-sync"></i>
+        </button>
+      </div>
+      <div class="panel-body">
+        <div id="violations-list">
+          <div style="color:var(--text-muted);font-size:0.85rem">Aucune violation récente.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<div style="display:flex;justify-content:flex-end;margin-top:1rem">
+  <button class="btn btn-primary" id="btn-save-automod" style="min-width:180px">
+    <i class="fas fa-save"></i> Sauvegarder la configuration
+  </button>
 </div>

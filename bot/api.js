@@ -490,4 +490,30 @@ router.post('/counter/update', auth, async (req, res) => {
   }
 });
 
+
+// TEST ANNIVERSAIRE
+router.post('/birthday/test', auth, async (req, res) => {
+  try {
+    const { channel_id, message } = req.body;
+    const guild = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
+
+    const member = await guild.members.fetch(guild.ownerId).catch(() => null);
+    if (!member) return res.status(404).json({ error: 'Membre introuvable' });
+
+    const filled = (message || '🎂 Joyeux anniversaire {mention} !')
+      .replace(/{mention}/g, member.toString())
+      .replace(/{user}/g,    member.user.username)
+      .replace(/{age}/g,     '??')
+      .replace(/{server}/g,  guild.name);
+
+    const channel = guild.channels.cache.get(channel_id);
+    if (channel) await channel.send(filled);
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

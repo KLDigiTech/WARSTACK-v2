@@ -38,26 +38,38 @@ setInterval(checkBotStatus, 30000);
 
 // SECTIONS
 const sections = {
-  overview:   () => import('./sections/overview.js').then(m => m.initOverview()),
-  players:    () => import('./sections/players.js').then(m => m.initPlayers()),
-  tournament: () => import('./sections/tournament.js').then(m => m.initTournament()),
-  welcome:    () => import('./sections/welcome.js').then(m => m.initWelcome()),
-  roles:      () => import('./sections/roles.js').then(m => m.initRoles()),
-  birthdays:  () => import('./sections/birthdays.js').then(m => m.initBirthdays()),
-  suggestions:() => import('./sections/suggestions.js').then(m => m.initSuggestions()),
-  events:     () => import('./sections/events.js').then(m => m.initEvents()),
-  moderation: () => import('./sections/moderation.js').then(m => m.initModeration()),
-  automod:    () => import('./sections/automod.js').then(m => m.initAutomod()),
-  tickets:    () => import('./sections/tickets.js').then(m => m.initTickets()),
-  logs:       () => import('./sections/logs.js').then(m => m.initLogs()),
-  messages:   () => import('./sections/messages.js').then(m => m.initMessages()),
-  reactions:  () => import('./sections/reactions.js').then(m => m.initReactions()),
-  channels:   () => import('./sections/channels.js').then(m => m.initChannels()),
-  access:     () => import('./sections/access.js').then(m => m.initAccess()),
-  settings:   () => import('./sections/settings.js').then(m => m.initSettings()),
-  'ocr-test': () => import('./sections/ocr-test.js').then(m => m.initOcrTest()),
-  origine:    () => import('./sections/origine.js').then(m => m.initOrigine()),
+  overview:    () => import('./sections/overview.js').then(m => m.initOverview()),
+  players:     () => import('./sections/players.js').then(m => m.initPlayers()),
+  tournament:  () => import('./sections/tournament.js').then(m => m.initTournament()),
+  welcome:     () => import('./sections/welcome.js').then(m => m.initWelcome()),
+  roles:       () => import('./sections/roles.js').then(m => m.initRoles()),
+  birthdays:   () => import('./sections/birthdays.js').then(m => m.initBirthdays()),
+  suggestions: () => import('./sections/suggestions.js').then(m => m.initSuggestions()),
+  events:      () => import('./sections/events.js').then(m => m.initEvents()),
+  moderation:  () => import('./sections/moderation.js').then(m => m.initModeration()),
+  automod:     () => import('./sections/automod.js').then(m => m.initAutomod()),
+  tickets:     () => import('./sections/tickets.js').then(m => m.initTickets()),
+  logs:        () => import('./sections/logs.js').then(m => m.initLogs()),
+  messages:    () => import('./sections/messages.js').then(m => m.initMessages()),
+  reactions:   () => import('./sections/reactions.js').then(m => m.initReactions()),
+  channels:    () => import('./sections/channels.js').then(m => m.initChannels()),
+  access:      () => import('./sections/access.js').then(m => m.initAccess()),
+  settings:    () => import('./sections/settings.js').then(m => m.initSettings()),
+  'ocr-test':  () => import('./sections/ocr-test.js').then(m => m.initOcrTest()),
+  origine:     () => import('./sections/origine.js').then(m => m.initOrigine()),
 };
+
+// Sections toujours visibles (pas de restriction de permissions)
+const PUBLIC_SECTIONS = [
+  'overview', 'players', 'tournament', 'welcome', 'roles',
+  'birthdays', 'suggestions', 'events', 'origine',
+  'messages', 'reactions', 'channels', 'ocr-test',
+];
+
+// Sections restreintes aux permissions
+const RESTRICTED_SECTIONS = [
+  'moderation', 'automod', 'tickets', 'logs', 'access', 'settings',
+];
 
 // ROUTER
 async function navigate(section) {
@@ -71,7 +83,7 @@ async function navigate(section) {
   content.innerHTML = '<div class="loading-screen">CHARGEMENT...</div>';
 
   try {
-    const res = await fetch(`/templates/${section}.html`);
+    const res  = await fetch(`/templates/${section}.html`);
     const html = await res.text();
     content.innerHTML = html;
   } catch {
@@ -87,17 +99,25 @@ async function navigate(section) {
 async function applyPermissions() {
   try {
     const permissions = await getUserPermissions();
-    if (!permissions || permissions.length === 0) {
-      document.querySelectorAll('.nav-item').forEach(i => i.style.display = 'flex');
-      return;
-    }
+
     document.querySelectorAll('.nav-item').forEach(item => {
       const section = item.dataset.section;
-      // Les liens externes (pas de data-section) sont toujours visibles
+
+      // Liens externes (pas de data-section) — toujours visibles
       if (!section) { item.style.display = 'flex'; return; }
-      item.style.display = (section === 'overview' || section === 'ocr-test' || permissions.includes(section)) ? 'flex' : 'none';
+
+      // Sections publiques — toujours visibles
+      if (PUBLIC_SECTIONS.includes(section)) { item.style.display = 'flex'; return; }
+
+      // Sections restreintes — visibles seulement si permission ou liste vide
+      if (!permissions || permissions.length === 0) {
+        item.style.display = 'flex';
+      } else {
+        item.style.display = permissions.includes(section) ? 'flex' : 'none';
+      }
     });
   } catch {
+    // En cas d'erreur, tout afficher
     document.querySelectorAll('.nav-item').forEach(i => i.style.display = 'flex');
   }
 }
@@ -105,7 +125,6 @@ async function applyPermissions() {
 // NAV EVENTS
 document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', async (e) => {
-    // Lien externe — laisse le navigateur gérer
     if (!item.dataset.section) return;
     e.preventDefault();
     await navigate(item.dataset.section);

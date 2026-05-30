@@ -34,6 +34,49 @@ function getFlag(code) {
   );
 }
 
+// ── COORDS ────────────────────────────────────────────────────
+const CITY_COORDS = {
+  'paris': { lat: 48.8566, lng: 2.3522 }, 'marseille': { lat: 43.2965, lng: 5.3698 },
+  'lyon': { lat: 45.7640, lng: 4.8357 }, 'toulouse': { lat: 43.6047, lng: 1.4442 },
+  'nice': { lat: 43.7102, lng: 7.2620 }, 'nantes': { lat: 47.2184, lng: -1.5536 },
+  'montpellier': { lat: 43.6110, lng: 3.8767 }, 'strasbourg': { lat: 48.5734, lng: 7.7521 },
+  'bordeaux': { lat: 44.8378, lng: -0.5792 }, 'lille': { lat: 50.6292, lng: 3.0573 },
+  'rennes': { lat: 48.1173, lng: -1.6778 }, 'grenoble': { lat: 45.1885, lng: 5.7245 },
+  'dijon': { lat: 47.3220, lng: 5.0415 }, 'nîmes': { lat: 43.8367, lng: 4.3601 },
+  'toulon': { lat: 43.1242, lng: 5.9280 }, 'reims': { lat: 49.2583, lng: 4.0317 },
+  'lunel': { lat: 43.6760, lng: 4.1358 }, 'avignon': { lat: 43.9493, lng: 4.8055 },
+  'pau': { lat: 43.2951, lng: -0.3708 }, 'perpignan': { lat: 42.6987, lng: 2.8956 },
+  'caen': { lat: 49.1829, lng: -0.3707 }, 'brest': { lat: 48.3904, lng: -4.4861 },
+  'rouen': { lat: 49.4432, lng: 1.0993 }, 'metz': { lat: 49.1193, lng: 6.1757 },
+  'nancy': { lat: 48.6921, lng: 6.1844 }, 'clermont-ferrand': { lat: 45.7772, lng: 3.0870 },
+  'angers': { lat: 47.4784, lng: -0.5632 }, 'le havre': { lat: 49.4938, lng: 0.1077 },
+  'amiens': { lat: 49.8941, lng: 2.2958 }, 'tours': { lat: 47.3941, lng: 0.6848 },
+  'limoges': { lat: 45.8354, lng: 1.2644 }, 'narbonne': { lat: 43.1836, lng: 3.0042 },
+  'montauban': { lat: 44.0181, lng: 1.3528 }, 'albi': { lat: 43.9279, lng: 2.1479 },
+  'bayonne': { lat: 43.4929, lng: -1.4748 }, 'cannes': { lat: 43.5528, lng: 7.0174 },
+  'aix-en-provence': { lat: 43.5297, lng: 5.4474 }, 'mulhouse': { lat: 47.7508, lng: 7.3359 },
+};
+
+const COUNTRY_COORDS = {
+  'France': { lat: 46.5, lng: 2.5 }, 'Belgique': { lat: 50.5, lng: 4.5 },
+  'Suisse': { lat: 46.8, lng: 8.2 }, 'Canada': { lat: 56.0, lng: -96.0 },
+  'Maroc': { lat: 31.8, lng: -7.0 }, 'Algérie': { lat: 28.0, lng: 3.0 },
+  'Tunisie': { lat: 33.9, lng: 9.5 }, 'États-Unis': { lat: 37.0, lng: -95.0 },
+  'Royaume-Uni': { lat: 55.0, lng: -3.0 }, 'Allemagne': { lat: 51.0, lng: 10.0 },
+  'Espagne': { lat: 40.0, lng: -4.0 }, 'Italie': { lat: 42.5, lng: 12.5 },
+  'Portugal': { lat: 39.5, lng: -8.0 }, 'Pays-Bas': { lat: 52.3, lng: 5.3 },
+  'Australie': { lat: -25.0, lng: 133.0 }, 'Brésil': { lat: -10.0, lng: -55.0 },
+  'Mexique': { lat: 23.0, lng: -102.0 }, 'Japon': { lat: 36.0, lng: 138.0 },
+};
+
+function getCityCoords(city, country) {
+  if (city) {
+    const c = CITY_COORDS[city.toLowerCase().trim()];
+    if (c) return c;
+  }
+  return COUNTRY_COORDS[country] || { lat: 46.5, lng: 2.5 };
+}
+
 // ── UTILS ─────────────────────────────────────────────────────
 function calcScore(s) {
   if (!s) return 0;
@@ -79,7 +122,7 @@ function initTabs() {
 
 // ── MODAL LOCALISATION ────────────────────────────────────────
 async function injectEditLocalisation(player) {
-  const { supabase }                  = await import('../supabaseClient.js');
+  const { supabase }                   = await import('../supabaseClient.js');
   const { SUPABASE_URL, SUPABASE_KEY } = await import('../config.js');
 
   const { data: { session } } = await supabase.auth.getSession();
@@ -89,7 +132,6 @@ async function injectEditLocalisation(player) {
                         || session.user?.user_metadata?.sub;
   if (sessionDiscordId !== player.discord_id) return;
 
-  // Bouton dans le footer
   const footer = document.querySelector('.profil-footer');
   if (!footer) return;
 
@@ -98,7 +140,6 @@ async function injectEditLocalisation(player) {
   editBtn.innerHTML = `<i class="fas fa-map-marker-alt"></i> Ma localisation`;
   footer.prepend(editBtn);
 
-  // Modal
   const modal = document.createElement('div');
   modal.id        = 'localisation-modal';
   modal.className = 'profil-loc-modal';
@@ -161,34 +202,59 @@ async function injectEditLocalisation(player) {
     saveBtn.disabled    = true;
 
     try {
+      // 1. Mettre à jour players
       const res = await fetch(`${SUPABASE_URL}/rest/v1/players?discord_id=eq.${player.discord_id}`, {
-        method: 'PATCH',
+        method : 'PATCH',
         headers: {
-          apikey: SUPABASE_KEY,
-          Authorization: `Bearer ${SUPABASE_KEY}`,
+          apikey        : SUPABASE_KEY,
+          Authorization : `Bearer ${SUPABASE_KEY}`,
           'Content-Type': 'application/json',
-          Prefer: 'return=representation'
+          Prefer        : 'return=representation'
         },
         body: JSON.stringify({ country, country_code: countryCode, region, city })
       });
 
       if (!res.ok) throw new Error('Erreur serveur');
 
+      // 2. Enregistrer dans member_locations pour la carte
+      const coords = getCityCoords(city, country);
+      const flag   = getFlag(countryCode);
+
+      await fetch(`${SUPABASE_URL}/rest/v1/member_locations`, {
+        method : 'POST',
+        headers: {
+          apikey        : SUPABASE_KEY,
+          Authorization : `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          Prefer        : 'resolution=merge-duplicates'
+        },
+        body: JSON.stringify({
+          discord_id: player.discord_id,
+          username  : player.pseudo || player.username,
+          city      : city   || null,
+          region    : region || null,
+          country,
+          lat       : coords?.lat || null,
+          lng       : coords?.lng || null,
+          flag,
+        })
+      });
+
       modal.classList.remove('open');
 
-      // Mise à jour du badge localisation
-      const flag = getFlag(countryCode);
-      const loc  = [city, region, country].filter(Boolean).join(', ');
+      // 3. Mise à jour badge localisation
+      const loc = [city, region, country].filter(Boolean).join(', ');
       let locBadge = document.getElementById('p-localisation');
       if (!locBadge) {
-        locBadge = document.createElement('div');
+        locBadge           = document.createElement('div');
         locBadge.id        = 'p-localisation';
         locBadge.className = 'profil-localisation';
         document.querySelector('.profil-identity')?.appendChild(locBadge);
       }
       locBadge.innerHTML = `${flag} ${loc}`;
 
-    } catch {
+    } catch (err) {
+      console.error(err);
       alert('Erreur lors de la sauvegarde. Réessaie.');
     } finally {
       saveBtn.innerHTML = '<i class="fas fa-save"></i> Sauvegarder';
@@ -228,10 +294,10 @@ async function loadProfil() {
     const loc      = [player.city, player.region, player.country].filter(Boolean).join(', ');
     const identity = document.querySelector('.profil-identity');
     if (identity) {
-      const locEl       = document.createElement('div');
-      locEl.id          = 'p-localisation';
-      locEl.className   = 'profil-localisation';
-      locEl.innerHTML   = `${flag} ${loc}`;
+      const locEl     = document.createElement('div');
+      locEl.id        = 'p-localisation';
+      locEl.className = 'profil-localisation';
+      locEl.innerHTML = `${flag} ${loc}`;
       identity.appendChild(locEl);
     }
   }
@@ -336,12 +402,12 @@ async function loadTournois(discordId) {
       });
     }
 
-    const scores     = await fetchSupabase(`tournament_scores?tournament_id=eq.${entry.tournament_id}&order=total_score.desc`);
-    const rank       = scores?.findIndex(s => s.discord_id === discordId) ?? -1;
-    const rankDisplay= rank >= 0 ? `#${rank + 1}` : '—';
-    const isMvp      = rank === 0;
-    const isTop3     = rank >= 0 && rank < 3;
-    const lastSub    = subs?.[0] || null;
+    const scores      = await fetchSupabase(`tournament_scores?tournament_id=eq.${entry.tournament_id}&order=total_score.desc`);
+    const rank        = scores?.findIndex(s => s.discord_id === discordId) ?? -1;
+    const rankDisplay = rank >= 0 ? `#${rank + 1}` : '—';
+    const isMvp       = rank === 0;
+    const isTop3      = rank >= 0 && rank < 3;
+    const lastSub     = subs?.[0] || null;
 
     return { tournoi, entry, lastSub, totalKills, bestKd, totalGames, rankDisplay, isMvp, isTop3 };
   }));

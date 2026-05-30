@@ -1,60 +1,83 @@
-<div class="panel">
-  <div class="panel-header">
-    <div>
-      <h2>🌍 Carte des Membres</h2>
-      <p>D'où vient la communauté WARSTACK</p>
+<!-- STATS -->
+<div class="suggestions-stats">
+  <div class="stat-card">
+    <div class="stat-icon">🌍</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-locations-total">0</div>
+      <div class="stat-label">Membres localisés</div>
     </div>
-    <div id="origine-stats-header"></div>
   </div>
-  <div class="panel-body">
-
-    <!-- STATS RAPIDES -->
-    <div class="origine-stats-row" id="origine-stats-row"></div>
-
-    <!-- TABS -->
-    <div class="origine-tabs">
-      <button class="origine-tab active" data-tab="carte">
-        <i class="fas fa-map-marked-alt"></i> Carte
-      </button>
-      <button class="origine-tab" data-tab="liste">
-        <i class="fas fa-list"></i> Par pays
-      </button>
-      <button class="origine-tab" data-tab="membres">
-        <i class="fas fa-users"></i> Membres
-      </button>
+  <div class="stat-card">
+    <div class="stat-icon">🇫🇷</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-locations-france">0</div>
+      <div class="stat-label">France</div>
     </div>
-
-    <!-- TAB CARTE -->
-    <div class="origine-tab-content active" id="tab-carte">
-      <div class="origine-map-container">
-        <div class="origine-map-hint">
-          <i class="fas fa-info-circle"></i>
-          Survole un point pour voir les membres. Clique pour zoomer.
-        </div>
-        <div id="world-map"></div>
-      </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">🌐</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-locations-countries">0</div>
+      <div class="stat-label">Pays différents</div>
     </div>
-
-    <!-- TAB LISTE PAR PAYS -->
-    <div class="origine-tab-content" id="tab-liste">
-      <div class="origine-countries-list" id="countries-list">
-        <div class="origine-loading"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
-      </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">📍</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-locations-regions">0</div>
+      <div class="stat-label">Régions</div>
     </div>
-
-    <!-- TAB MEMBRES -->
-    <div class="origine-tab-content" id="tab-membres">
-      <div class="origine-search-bar">
-        <i class="fas fa-search"></i>
-        <input type="text" id="origine-member-search" placeholder="Rechercher un membre..." class="form-input">
-      </div>
-      <div class="origine-members-list" id="origine-members-list">
-        <div class="origine-loading"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
-      </div>
-    </div>
-
   </div>
 </div>
 
-<!-- TOOLTIP -->
-<div class="origine-tooltip" id="origine-tooltip"></div>
+<div class="origine-layout">
+
+  <!-- CARTE -->
+  <div class="panel origine-map-panel">
+    <div class="panel-header">
+      <h2>🗺️ Carte des membres</h2>
+      <div style="display:flex;gap:0.5rem;align-items:center">
+        <select id="map-filter-country" class="form-select" style="width:140px;font-size:0.8rem">
+          <option value="all">Tous les pays</option>
+          <option value="France" selected>🇫🇷 France</option>
+        </select>
+        <button class="btn btn-sm btn-secondary" id="btn-map-reset">
+          <i class="fas fa-compress"></i>
+        </button>
+      </div>
+    </div>
+    <div class="panel-body" style="padding:0">
+      <div id="membre-map" style="height:500px;width:100%;border-radius:0 0 var(--radius) var(--radius)"></div>
+    </div>
+  </div>
+
+  <!-- LISTE -->
+  <div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>👥 Membres</h2>
+        <input type="text" id="location-search" class="form-input" placeholder="Rechercher..."
+          style="width:160px;font-size:0.8rem">
+      </div>
+      <div class="panel-body">
+        <div id="locations-list">
+          <div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>📊 Top régions</h2>
+      </div>
+      <div class="panel-body">
+        <div id="regions-list">
+          <div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>

@@ -1,17 +1,187 @@
-<div class="panel">
-  <div class="panel-header">
-    <h2>🛡️ Modération</h2>
-  </div>
-  <div class="panel-body">
-    <div class="form-grid">
-      <div class="form-group">
-        <label>Salon logs modération</label>
-        <input type="text" class="form-input" placeholder="logs-moderation">
-      </div>
-      <div class="form-group">
-        <label>Salon sanctions</label>
-        <input type="text" class="form-input" placeholder="sanctions">
-      </div>
+<!-- STATS -->
+<div class="suggestions-stats">
+  <div class="stat-card">
+    <div class="stat-icon">⚠️</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-warns">0</div>
+      <div class="stat-label">Warns</div>
     </div>
   </div>
+  <div class="stat-card">
+    <div class="stat-icon">🔇</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-mutes">0</div>
+      <div class="stat-label">Mutes actifs</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">👢</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-kicks">0</div>
+      <div class="stat-label">Kicks</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">🔨</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-bans">0</div>
+      <div class="stat-label">Bans actifs</div>
+    </div>
+  </div>
+</div>
+
+<div class="moderation-layout">
+
+  <!-- ══ COLONNE GAUCHE ══ -->
+  <div>
+
+    <!-- CONFIG -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2>⚙️ Configuration</h2>
+      </div>
+      <div class="panel-body">
+        <div class="form-group">
+          <label>Salon logs modération</label>
+          <select id="mod-logs-channel" class="form-select">
+            <option value="">Aucun</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Salon sanctions</label>
+          <select id="mod-sanctions-channel" class="form-select">
+            <option value="">Aucun</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Rôle modérateur</label>
+          <select id="mod-role" class="form-select">
+            <option value="">Aucun</option>
+          </select>
+        </div>
+      </div>
+      <div class="panel-footer">
+        <button class="btn btn-primary" id="btn-save-modconfig">
+          <i class="fas fa-save"></i> Sauvegarder
+        </button>
+      </div>
+    </div>
+
+    <!-- CENTRE MODÉRATION -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2>🔍 Centre de modération</h2>
+      </div>
+      <div class="panel-body">
+        <div class="form-group">
+          <input type="text" id="mod-search" class="form-input"
+            placeholder="Rechercher un membre Discord...">
+        </div>
+        <div id="mod-search-results" style="display:none;margin-bottom:0.75rem"></div>
+        <div id="mod-member-card" style="display:none">
+
+          <div class="mod-member-header">
+            <img id="mod-member-avatar" src="" class="mod-member-avatar" alt="">
+            <div>
+              <div class="mod-member-name" id="mod-member-name">—</div>
+              <div class="mod-member-id" id="mod-member-id">—</div>
+            </div>
+          </div>
+
+          <div class="mod-member-stats">
+            <div class="mod-stat">
+              <div class="mod-stat-value" id="mc-warns">0</div>
+              <div class="mod-stat-label">Warns</div>
+            </div>
+            <div class="mod-stat">
+              <div class="mod-stat-value" id="mc-mutes">0</div>
+              <div class="mod-stat-label">Mutes</div>
+            </div>
+            <div class="mod-stat">
+              <div class="mod-stat-value" id="mc-kicks">0</div>
+              <div class="mod-stat-label">Kicks</div>
+            </div>
+            <div class="mod-stat">
+              <div class="mod-stat-value" id="mc-bans">0</div>
+              <div class="mod-stat-label">Bans</div>
+            </div>
+          </div>
+
+          <!-- Actions rapides -->
+          <div class="welcome-section-title">Actions rapides</div>
+          <div class="mod-actions">
+            <button class="mod-action-btn warn"    data-type="warn">⚠️ Warn</button>
+            <button class="mod-action-btn mute"    data-type="mute">🔇 Mute</button>
+            <button class="mod-action-btn timeout" data-type="timeout">⏰ Timeout</button>
+            <button class="mod-action-btn kick"    data-type="kick">👢 Kick</button>
+            <button class="mod-action-btn ban"     data-type="ban">🔨 Ban</button>
+            <button class="mod-action-btn unban"   data-type="unban">✅ Unban</button>
+          </div>
+
+          <!-- Formulaire sanction -->
+          <div id="sanction-form" style="display:none;margin-top:0.75rem">
+            <div class="form-group">
+              <label>Raison</label>
+              <input type="text" id="sanction-reason" class="form-input" placeholder="Raison de la sanction...">
+            </div>
+            <div class="form-group" id="sanction-duration-group" style="display:none">
+              <label>Durée</label>
+              <select id="sanction-duration" class="form-select">
+                <option value="60">1 heure</option>
+                <option value="360">6 heures</option>
+                <option value="1440">24 heures</option>
+                <option value="10080">7 jours</option>
+                <option value="43200">30 jours</option>
+                <option value="0">Permanent</option>
+              </select>
+            </div>
+            <div style="display:flex;gap:0.5rem;margin-top:0.5rem">
+              <button class="btn btn-secondary btn-sm" id="sanction-cancel">Annuler</button>
+              <button class="btn btn-danger btn-sm" id="sanction-confirm">Confirmer</button>
+            </div>
+          </div>
+
+          <!-- Notes staff -->
+          <div class="welcome-section-title" style="margin-top:1rem">Notes staff</div>
+          <div id="mod-notes-list" style="margin-bottom:0.5rem"></div>
+          <div style="display:flex;gap:0.5rem">
+            <input type="text" id="mod-note-input" class="form-input" placeholder="Ajouter une note...">
+            <button class="btn btn-secondary btn-sm" id="btn-add-note">
+              <i class="fas fa-plus"></i>
+            </button>
+          </div>
+
+          <!-- Timeline -->
+          <div class="welcome-section-title" style="margin-top:1rem">Historique</div>
+          <div id="mod-member-history"></div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ COLONNE DROITE ══ -->
+  <div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>📋 Sanctions</h2>
+        <div class="suggestions-filters">
+          <button class="filter-btn active" data-filter="all">Toutes</button>
+          <button class="filter-btn" data-filter="warn">⚠️ Warns</button>
+          <button class="filter-btn" data-filter="mute">🔇 Mutes</button>
+          <button class="filter-btn" data-filter="kick">👢 Kicks</button>
+          <button class="filter-btn" data-filter="ban">🔨 Bans</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div id="sanctions-list">
+          <div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
 </div>

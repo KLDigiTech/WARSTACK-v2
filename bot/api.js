@@ -655,4 +655,140 @@ router.post('/event/contact', auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// RECHERCHE MEMBRE
+router.get('/member/search', auth, async (req, res) => {
+  try {
+    const query = req.query.q?.toLowerCase();
+    if (!query) return res.json({ members: [] });
+
+    const guild = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
+
+    await guild.members.fetch();
+
+    const members = guild.members.cache
+      .filter(m => m.user.username.toLowerCase().includes(query) ||
+                   m.displayName.toLowerCase().includes(query))
+      .map(m => ({
+        id      : m.user.id,
+        username: m.user.username,
+        avatar  : m.user.displayAvatarURL({ size: 64 }),
+      }))
+      .slice(0, 10);
+
+    res.json({ members });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// APPLIQUER SANCTION
+router.post('/moderation/sanction', auth, async (req, res) => {
+  try {
+    const { discord_id, username, type, reason, duration } = req.body;
+    const guild = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
+
+    const member = await guild.members.fetch(discord_id).catch(() => null);
+    if (!member && !['ban', 'unban'].includes(type)) {
+      return res.status(404).json({ error: 'Membre introuvable' });
+    }
+
+    // Enregistrer en BDD
+    const { data: sanction } = await supabase
+      .from('sanctions')
+      .insert({
+        guild_id      : guild.id,
+        discord_id,
+        username,
+        type,
+        reason,
+        duration      : duration || null,
+        moderator_id  : 'dashboard',
+        moderator_name: 'Dashboard',
+        active        : true,
+      })
+      .select()
+      .single();
+
+    // Appliquer sur Discord
+    switch (type) {
+      case 'warn':
+        await member?.send(`⚠️ Tu as reçu un avertissement sur **${guild.name}**\nRaison : ${reason}`).catch(() => {});
+        break;
+
+      case 'mute':
+        if (member && duration) {
+          await member.timeout(duration * 60 * 1000, reason);
+        }
+        break;
+
+      case 'timeout':
+        if (member && duration) {
+          await member.timeout(duration * 60 * 1000, reason);
+        }
+        break;
+
+      case 'kick':
+        await member?.kick(reason);
+        break;
+
+      case 'ban':
+        await guild.members.ban(discord_id, { reason });
+        break;
+
+      case 'unban':
+        await guild.members.unban(discord_id, reason).catch(() => {});
+        await supabase
+          .from('sanctions')
+          .update({ active: false })
+          .eq('discord_id', discord_id)
+          .eq('type', 'ban');
+        break;
+    }
+
+    // Log dans salon modération
+    const { data: configs } = await supabase
+      .from('config')
+      .select('*')
+      .eq('guild_id', guild.id);
+
+    const getConfig = (key) => configs?.find(c => c.key === key)?.value;
+    const logChannelId = getConfig('mod_logs_channel');
+
+    if (logChannelId) {
+      const logChannel = guild.channels.cache.get(logChannelId);
+      const icons = { warn: '⚠️', mute: '🔇', kick: '👢', ban: '🔨', timeout: '⏰', unban: '✅' };
+      if (logChannel) {
+        await logChannel.send(
+          `${icons[type] || '❓'} **${type.toUpperCase()}** — ${username}\n` +
+          `Raison : ${reason}\n` +
+          `Par : Dashboard`
+        );
+      }
+    }
+
+    res.json({ success: true, sanction_id: sanction?.id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// LEVER SANCTION
+router.post('/moderation/lift', auth, async (req, res) => {
+  try {
+    const { discord_id } = req.body;
+    const guild = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
+
+    // Essayer de lever le timeout
+    const member = await guild.members.fetch(discord_id).catch(() => null);
+    if (member) await member.timeout(null).catch(() => {});
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 module.exports = router;

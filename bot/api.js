@@ -379,4 +379,50 @@ router.post('/role/remove', auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// LISTE DES RÔLES
+router.get('/roles', auth, async (req, res) => {
+  try {
+    const guild = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
+    const roles = guild.roles.cache
+      .filter(r => r.name !== '@everyone')
+      .sort((a, b) => b.position - a.position)
+      .map(r => ({ id: r.id, name: r.name, color: r.hexColor }));
+    res.json({ roles });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// TEST MESSAGE BIENVENUE
+router.post('/welcome/test', auth, async (req, res) => {
+  try {
+    const { channel_id, message, dm_message } = req.body;
+    const guild = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
+
+    const member = await guild.members.fetch(guild.ownerId).catch(() => null);
+    if (!member) return res.status(404).json({ error: 'Membre introuvable' });
+
+    const fill = (str) => (str || '')
+      .replace(/{mention}/g,     member.toString())
+      .replace(/{user}/g,        member.user.username)
+      .replace(/{server}/g,      guild.name)
+      .replace(/{membercount}/g, guild.memberCount);
+
+    if (channel_id) {
+      const channel = guild.channels.cache.get(channel_id);
+      if (channel) await channel.send(fill(message) || `Bienvenue ${member} !`);
+    }
+
+    if (dm_message) {
+      await member.send(fill(dm_message)).catch(() => {});
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

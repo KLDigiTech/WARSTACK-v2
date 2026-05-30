@@ -1,28 +1,149 @@
-<div class="panel">
-  <div class="panel-header">
-    <h2>👋 Arrivées / Départs</h2>
+<div class="welcome-layout">
+
+  <!-- ══ COLONNE GAUCHE ══ -->
+  <div class="welcome-left">
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>⚙️ Configuration</h2>
+      </div>
+      <div class="panel-body">
+
+        <div class="welcome-section-title">Salons</div>
+
+        <div class="form-group">
+          <label>Salon de bienvenue</label>
+          <select id="welcome-channel" class="form-select">
+            <option value="">Chargement...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Salon de départ</label>
+          <select id="leave-channel" class="form-select">
+            <option value="">Chargement...</option>
+          </select>
+        </div>
+
+        <div class="welcome-section-title" style="margin-top:1.25rem">Rôle automatique</div>
+
+        <div class="form-group">
+          <label>Attribuer ce rôle à l'arrivée</label>
+          <select id="autorole" class="form-select">
+            <option value="">Aucun</option>
+          </select>
+        </div>
+
+        <div class="welcome-section-title" style="margin-top:1.25rem">Message privé (DM)</div>
+
+        <div class="form-group">
+          <div class="toggle-row">
+            <label>Envoyer un DM au nouveau membre</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="enable-dm">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group" id="dm-group" style="display:none">
+          <textarea id="dm-message" class="form-textarea" rows="3"
+            placeholder="Bienvenue {user} sur {server} ! Pense à consulter le règlement."></textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>💬 Messages</h2>
+      </div>
+      <div class="panel-body">
+
+        <div class="form-group">
+          <label>Message de bienvenue</label>
+          <div class="variables-bar">
+            <span class="var-label">Insérer :</span>
+            <button class="var-btn" data-var="{mention}" data-target="welcome-message">{mention}</button>
+            <button class="var-btn" data-var="{user}" data-target="welcome-message">{user}</button>
+            <button class="var-btn" data-var="{server}" data-target="welcome-message">{server}</button>
+            <button class="var-btn" data-var="{membercount}" data-target="welcome-message">{membercount}</button>
+          </div>
+          <textarea id="welcome-message" class="form-textarea" rows="5"
+            placeholder="Bienvenue {mention} sur {server} ! 🎉&#10;Tu es notre {membercount}ème membre."></textarea>
+        </div>
+
+        <div class="form-group" style="margin-top:1rem">
+          <label>Message de départ</label>
+          <div class="variables-bar">
+            <button class="var-btn" data-var="{user}" data-target="leave-message">{user}</button>
+            <button class="var-btn" data-var="{server}" data-target="leave-message">{server}</button>
+            <button class="var-btn" data-var="{membercount}" data-target="leave-message">{membercount}</button>
+          </div>
+          <textarea id="leave-message" class="form-textarea" rows="3"
+            placeholder="**{user}** a quitté le serveur. Plus que {membercount} membres."></textarea>
+        </div>
+
+      </div>
+      <div class="panel-footer" style="justify-content:space-between">
+        <button class="btn btn-secondary" id="btn-test-welcome">
+          <i class="fas fa-paper-plane"></i> Tester
+        </button>
+        <button class="btn btn-primary" id="save-welcome">
+          <i class="fas fa-save"></i> Sauvegarder
+        </button>
+      </div>
+    </div>
+
   </div>
-  <div class="panel-body">
-    <div class="form-grid">
-      <div class="form-group">
-        <label>Salon bienvenue</label>
-        <input type="text" id="welcome-channel" class="form-input" placeholder="bienvenue">
+
+  <!-- ══ COLONNE DROITE ══ -->
+  <div class="welcome-right">
+    <div class="panel">
+      <div class="panel-header">
+        <h2>👁️ Aperçu en direct</h2>
       </div>
-      <div class="form-group">
-        <label>Salon départs</label>
-        <input type="text" id="leave-channel" class="form-input" placeholder="départs">
-      </div>
-      <div class="form-group full">
-        <label>Message bienvenue</label>
-        <textarea id="welcome-message" class="form-textarea" rows="4"></textarea>
-      </div>
-      <div class="form-group full">
-        <label>Message départ</label>
-        <textarea id="leave-message" class="form-textarea" rows="4"></textarea>
+      <div class="panel-body">
+        <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:0.75rem">
+          Mise à jour en temps réel pendant que tu rédiges.
+        </p>
+
+        <div class="welcome-section-title">Message de bienvenue</div>
+        <div class="discord-preview-box" style="margin-bottom:1rem">
+          <div class="discord-preview">
+            <div class="dp-avatar">
+              <img src="https://cdn.discordapp.com/embed/avatars/0.png" alt="bot">
+            </div>
+            <div class="dp-content">
+              <div class="dp-header">
+                <span class="dp-botname">WARSTACK</span>
+                <span class="dp-badge">APP</span>
+                <span class="dp-time">Aujourd'hui à <span id="dp-time-val">--:--</span></span>
+              </div>
+              <div class="dp-message" id="dp-welcome-text">Bienvenue @Kevin sur WARSTACK ! 🎉</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="welcome-section-title">Message de départ</div>
+        <div class="discord-preview-box">
+          <div class="discord-preview">
+            <div class="dp-avatar">
+              <img src="https://cdn.discordapp.com/embed/avatars/0.png" alt="bot">
+            </div>
+            <div class="dp-content">
+              <div class="dp-header">
+                <span class="dp-botname">WARSTACK</span>
+                <span class="dp-badge">APP</span>
+                <span class="dp-time">Aujourd'hui à <span id="dp-time-val-2">--:--</span></span>
+              </div>
+              <div class="dp-message" id="dp-leave-text">Kevin a quitté le serveur.</div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
-  <div class="panel-footer">
-    <button class="btn btn-primary" id="save-welcome">Sauvegarder</button>
-  </div>
+
 </div>

@@ -2,52 +2,43 @@ import { SUPABASE_URL, SUPABASE_KEY, BOT_URL, API_KEY } from './config.js';
 
 // SUPABASE
 
-export async function fetchSupabase(endpoint) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, {
-    headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`
-    }
-  });
-  return res.json();
+export async function fetchSupabase(endpoint, method = 'GET', body = null, returnData = false) {
+  const headers = {
+    apikey       : SUPABASE_KEY,
+    Authorization: `Bearer ${SUPABASE_KEY}`,
+    'Content-Type': 'application/json',
+    Prefer       : 'return=representation',
+  };
+
+  const options = { method, headers };
+  if (body) options.body = JSON.stringify(body);
+
+  const res  = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, options);
+
+  if (res.status === 204) return returnData ? { data: null } : null;
+
+  const json = await res.json();
+
+  if (returnData) {
+    // Retourne { data, error } pour les inserts
+    if (Array.isArray(json)) return { data: json[0] || null, error: null };
+    if (json?.code)          return { data: null, error: json };
+    return { data: json, error: null };
+  }
+
+  return json;
 }
 
 export async function updateSupabase(endpoint, data) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, {
-    method: 'PATCH',
-    headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json',
-      Prefer: 'return=representation'
-    },
-    body: JSON.stringify(data)
-  });
-  return res.json();
+  return fetchSupabase(endpoint, 'PATCH', data);
 }
 
 export async function insertSupabase(endpoint, data) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, {
-    method: 'POST',
-    headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json',
-      Prefer: 'return=representation'
-    },
-    body: JSON.stringify(data)
-  });
-  return res.json();
+  return fetchSupabase(endpoint, 'POST', data);
 }
 
 export async function deleteSupabase(endpoint) {
-  await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, {
-    method: 'DELETE',
-    headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`
-    }
-  });
+  return fetchSupabase(endpoint, 'DELETE');
 }
 
 // BOT API
@@ -57,8 +48,8 @@ export async function callBotAPI(endpoint, method = 'GET', body = null) {
     const options = {
       method,
       headers: {
-        'x-api-key': API_KEY,
-        'Content-Type': 'application/json'
+        'x-api-key'   : API_KEY,
+        'Content-Type': 'application/json',
       }
     };
     if (body) options.body = JSON.stringify(body);

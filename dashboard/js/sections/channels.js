@@ -25,6 +25,8 @@ export async function initChannels() {
   });
 
   document.getElementById('btn-confirm-channel')?.addEventListener('click', createChannel);
+
+  document.getElementById('btn-delete-all')?.addEventListener('click', deleteAll);
 }
 
 function resetForm() {
@@ -69,15 +71,12 @@ async function loadChannels() {
     return;
   }
 
-  // Grouper par catégorie
   const categories = {};
 
-  // Ajoute d'abord les catégories vides
   data.channels.filter(c => c.type === 'category').forEach(cat => {
     if (!categories[cat.name]) categories[cat.name] = [];
   });
 
-  // Puis les salons
   for (const ch of data.channels) {
     if (ch.type === 'category') continue;
     const cat = ch.category || 'Sans catégorie';
@@ -85,7 +84,6 @@ async function loadChannels() {
     categories[cat].push(ch);
   }
 
-  // Remplir le select catégories
   const select = document.getElementById('channel-category');
   select.innerHTML = '<option value="">Aucune</option>';
   data.channels.filter(c => c.type === 'category').forEach(cat => {
@@ -95,9 +93,19 @@ async function loadChannels() {
     select.appendChild(opt);
   });
 
-  container.innerHTML = Object.entries(categories).map(([cat, channels]) => `
+  const categoryIds = {};
+  data.channels.filter(c => c.type === 'category').forEach(cat => {
+    categoryIds[cat.name] = cat.id;
+  });
+
+  container.innerHTML = Object.entries(categories).map(([cat, channels]) => {
+    const catId = categoryIds[cat] || null;
+    return `
     <div class="channels-category">
-      <div class="channels-category-title">${cat}</div>
+      <div class="channels-category-title">
+        ${cat}
+        ${catId ? `<button class="btn btn-danger btn-sm" style="margin-left:0.75rem;" onclick="window.deleteChannel('${catId}', '${cat}')"><i class="fas fa-trash"></i></button>` : ''}
+      </div>
       <div class="channels-grid">
         ${channels.length ? channels.map(ch => `
           <div class="channel-card">
@@ -115,7 +123,8 @@ async function loadChannels() {
         `).join('') : '<div class="channel-empty">Catégorie vide</div>'}
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 async function createChannel() {
@@ -151,3 +160,20 @@ window.deleteChannel = async function(id, name) {
     showToast('❌ Erreur suppression', 'error');
   }
 };
+
+async function deleteAll() {
+  if (!confirm('⚠️ Supprimer TOUS les salons et catégories ? Cette action est irréversible.')) return;
+
+  const data = await callBotAPI('channels');
+  if (!data?.channels?.length) return showToast('Aucun salon à supprimer', 'error');
+
+  const salons     = data.channels.filter(c => c.type !== 'category');
+  const categories = data.channels.filter(c => c.type === 'category');
+
+  for (const ch of [...salons, ...categories]) {
+    await callBotAPI('channel/delete', 'POST', { channel_id: ch.id });
+  }
+
+  showToast('✅ Tous les salons supprimés');
+  await loadChannels();
+}

@@ -13,15 +13,6 @@ const ISO_NUM = {
 
 let _allPlayers = [];
 
-function getFlag(code) {
-
-  if (!code || code === 'XX') return '🌍';
-
-  return code.toUpperCase().replace(/./g, c =>
-    String.fromCodePoint(0x1F1E0 - 65 + c.charCodeAt(0))
-  );
-}
-
 export async function initOrigine() {
 
   const players = await fetchSupabase(
@@ -42,6 +33,23 @@ export async function initOrigine() {
 
   initSearch();
 }
+
+// =====================================
+// FLAGS
+// =====================================
+
+function getFlag(code) {
+
+  if (!code || code === 'XX') return '🌍';
+
+  return code.toUpperCase().replace(/./g, c =>
+    String.fromCodePoint(0x1F1E0 - 65 + c.charCodeAt(0))
+  );
+}
+
+// =====================================
+// STATS
+// =====================================
 
 function renderStats() {
 
@@ -71,6 +79,10 @@ function renderStats() {
   `;
 }
 
+// =====================================
+// TABS
+// =====================================
+
 function initTabs() {
 
   document.querySelectorAll('.origine-tab').forEach(tab => {
@@ -91,6 +103,10 @@ function initTabs() {
     });
   });
 }
+
+// =====================================
+// MAP
+// =====================================
 
 async function renderMap() {
 
@@ -165,30 +181,26 @@ async function renderMap() {
     </div>
   `;
 
+  // =====================================
+  // SVG
+  // =====================================
+
   const svg = d3.select(container)
     .append('svg')
     .attr('width', '100%')
     .attr('viewBox', `0 0 ${W} ${H}`)
-    .style('background', 'rgba(0,20,10,.9)')
+    .style('background', 'rgba(0,20,10,.92)')
     .style('border-radius', '14px');
 
   // =====================================
-  // MAP GROUP
+  // GROUPS
   // =====================================
 
   const mapGroup = svg.append('g');
 
-  // =====================================
-  // ZOOM
-  // =====================================
-
-  const zoom = d3.zoom()
-    .scaleExtent([1, 30])
-    .on('zoom', (event) => {
-      mapGroup.attr('transform', event.transform);
-    });
-
-  svg.call(zoom);
+  const countriesGroup = mapGroup.append('g');
+  const regionsGroup = mapGroup.append('g');
+  const pinsGroup = mapGroup.append('g');
 
   // =====================================
   // WORLD PROJECTION
@@ -207,39 +219,7 @@ async function renderMap() {
   );
 
   // =====================================
-  // GROUPS
-  // =====================================
-
-  const countriesGroup = mapGroup.append('g');
-  const regionsGroup = mapGroup.append('g');
-  const pinsGroup = mapGroup.append('g');
-
-  // =====================================
-  // RESET MAP
-  // =====================================
-
-  function resetMap() {
-
-    regionsGroup.selectAll('*').remove();
-    pinsGroup.selectAll('*').remove();
-
-    renderWorldPins();
-
-    svg.transition()
-      .duration(1200)
-      .ease(d3.easeCubicInOut)
-      .call(
-        zoom.transform,
-        d3.zoomIdentity
-      );
-  }
-
-  document
-    .getElementById('map-reset-btn')
-    ?.addEventListener('click', resetMap);
-
-  // =====================================
-  // WORLD COUNTRIES
+  // WORLD MAP
   // =====================================
 
   countriesGroup
@@ -318,15 +298,23 @@ async function renderMap() {
       const latitude = parseFloat(player.latitude);
       const longitude = parseFloat(player.longitude);
 
-      const [x, y] = worldProjection([
+      const projected = worldProjection([
         longitude,
         latitude
       ]);
 
-      if (!x || !y) return;
+      if (!projected) return;
+
+      const [x, y] = projected;
+
+      if (
+        isNaN(x) ||
+        isNaN(y)
+      ) return;
 
       const g = pinsGroup.append('g')
-        .attr('transform', `translate(${x},${y})`);
+        .attr('transform', `translate(${x},${y})`)
+        .style('cursor', 'pointer');
 
       // pulse
       g.append('circle')
@@ -340,13 +328,13 @@ async function renderMap() {
         .attr('dur', '2s')
         .attr('repeatCount', 'indefinite');
 
-      // point
+      // core
       g.append('circle')
         .attr('r', players.length > 1 ? 7 : 5)
         .attr('fill', '#00ff66')
         .style(
           'filter',
-          'drop-shadow(0 0 8px rgba(0,255,120,.9))'
+          'drop-shadow(0 0 8px rgba(0,255,120,.95))'
         );
     });
   }
@@ -357,30 +345,26 @@ async function renderMap() {
 
   function renderFranceRegions() {
 
+    // clean
     regionsGroup.selectAll('*').remove();
     pinsGroup.selectAll('*').remove();
 
-    // zoom camera
-    svg.transition()
-      .duration(1400)
-      .ease(d3.easeCubicInOut)
-      .call(
-        zoom.transform,
-        d3.zoomIdentity
-          .translate(-W * 0.22, -H * 0.15)
-          .scale(3.8)
-      );
+    // hide world
+    countriesGroup
+      .transition()
+      .duration(600)
+      .style('opacity', 0);
 
-    // projection france
+    // FRANCE PROJECTION
     const franceProjection = d3.geoMercator()
       .center([2.454071, 46.279229])
-      .scale(2600)
+      .scale(W * 2.2)
       .translate([W / 2, H / 2]);
 
     const francePath = d3.geoPath()
       .projection(franceProjection);
 
-    // regions
+    // REGIONS
     regionsGroup
       .selectAll('path')
       .data(franceRegions.features)
@@ -390,13 +374,13 @@ async function renderMap() {
 
       .attr('fill', 'rgba(0,255,120,.05)')
 
-      .attr('stroke', 'rgba(0,255,120,.45)')
+      .attr('stroke', 'rgba(0,255,120,.55)')
 
-      .attr('stroke-width', 0.8)
+      .attr('stroke-width', 1.2)
 
       .style(
         'filter',
-        'drop-shadow(0 0 2px rgba(0,255,120,.15))'
+        'drop-shadow(0 0 3px rgba(0,255,120,.18))'
       )
 
       .style('cursor', 'pointer')
@@ -437,25 +421,32 @@ async function renderMap() {
         tooltip.classList.remove('visible');
       });
 
-    // vrais pins gps france
-    _allPlayers.forEach(player => {
+    // GPS PINS
+    const francePlayers = _allPlayers.filter(player =>
 
-      if (
-        !player.latitude ||
-        !player.longitude
-      ) return;
+      player.country_code === 'FR' &&
+      player.latitude &&
+      player.longitude
+    );
 
-      if (player.country_code !== 'FR') return;
+    francePlayers.forEach(player => {
 
       const latitude = parseFloat(player.latitude);
       const longitude = parseFloat(player.longitude);
 
-      const [x, y] = franceProjection([
+      const projected = franceProjection([
         longitude,
         latitude
       ]);
 
-      if (!x || !y) return;
+      if (!projected) return;
+
+      const [x, y] = projected;
+
+      if (
+        isNaN(x) ||
+        isNaN(y)
+      ) return;
 
       const g = pinsGroup.append('g')
         .attr('transform', `translate(${x},${y})`)
@@ -463,23 +454,23 @@ async function renderMap() {
 
       // pulse
       g.append('circle')
-        .attr('r', 10)
+        .attr('r', 12)
         .attr('fill', 'none')
         .attr('stroke', 'rgba(0,255,120,.35)')
-        .attr('stroke-width', 1.5)
+        .attr('stroke-width', 2)
         .append('animate')
         .attr('attributeName', 'r')
-        .attr('values', '5;14;5')
+        .attr('values', '5;16;5')
         .attr('dur', '2s')
         .attr('repeatCount', 'indefinite');
 
-      // point
+      // core
       g.append('circle')
-        .attr('r', 5)
+        .attr('r', 6)
         .attr('fill', '#00ff66')
         .style(
           'filter',
-          'drop-shadow(0 0 8px rgba(0,255,120,.9))'
+          'drop-shadow(0 0 10px rgba(0,255,120,.95))'
         );
 
       // tooltip
@@ -543,7 +534,35 @@ async function renderMap() {
     });
   }
 
-  // render initial
+  // =====================================
+  // RESET MAP
+  // =====================================
+
+  function resetMap() {
+
+    regionsGroup.selectAll('*').remove();
+    pinsGroup.selectAll('*').remove();
+
+    countriesGroup
+      .transition()
+      .duration(400)
+      .style('opacity', 1);
+
+    renderWorldPins();
+  }
+
+  // =====================================
+  // RESET BTN
+  // =====================================
+
+  document
+    .getElementById('map-reset-btn')
+    ?.addEventListener('click', resetMap);
+
+  // =====================================
+  // INITIAL WORLD PINS
+  // =====================================
+
   renderWorldPins();
 
   // =====================================
@@ -558,25 +577,9 @@ async function renderMap() {
     .attr('stroke-width', 0.5);
 }
 
-function showTooltip(event, code, members, tooltip) {
-
-  const flag = getFlag(code);
-
-  const country =
-    members[0]?.country || code;
-
-  tooltip.innerHTML = `
-    <div class="tooltip-country">
-      ${flag} ${country}
-      — ${members.length} membre${members.length > 1 ? 's' : ''}
-    </div>
-  `;
-
-  tooltip.style.left = `${event.clientX + 14}px`;
-  tooltip.style.top = `${event.clientY - 10}px`;
-
-  tooltip.classList.add('visible');
-}
+// =====================================
+// SCRIPT LOADER
+// =====================================
 
 function loadScript(src) {
 
@@ -597,6 +600,10 @@ function loadScript(src) {
     document.head.appendChild(s);
   });
 }
+
+// =====================================
+// COUNTRIES LIST
+// =====================================
 
 function renderCountriesList() {
 
@@ -659,6 +666,10 @@ function renderCountriesList() {
   `).join('');
 }
 
+// =====================================
+// MEMBERS LIST
+// =====================================
+
 function renderMembersList(players) {
 
   const container =
@@ -709,6 +720,10 @@ function renderMembersList(players) {
     `;
   }).join('');
 }
+
+// =====================================
+// SEARCH
+// =====================================
 
 function initSearch() {
 

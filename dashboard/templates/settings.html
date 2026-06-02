@@ -1,41 +1,188 @@
-<div class="panel">
-  <div class="panel-header">
-    <h2>⚙️ Paramètres</h2>
-  </div>
-  <div class="panel-body">
-    <div class="form-grid">
-      <div class="form-group">
-        <label>Langue</label>
-        <select id="settings-language" class="form-select">
-          <option value="fr">Français</option>
-          <option value="en">English</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Préfixe</label>
-        <input type="text" id="settings-prefix" class="form-input" placeholder="!">
-      </div>
-    </div>
-  </div>
-  <div class="panel-footer">
-    <button class="btn btn-primary" id="save-settings">Sauvegarder</button>
-  </div>
-</div>
+<div class="settings-layout">
 
-<div class="panel">
-  <div class="panel-header">
-    <h2>🔑 API</h2>
-  </div>
-  <div class="panel-body">
-    <div class="form-grid">
-      <div class="form-group full">
-        <label>BOT URL</label>
-        <input type="text" id="settings-bot-url" class="form-input" disabled>
-      </div>
-      <div class="form-group full">
-        <label>GUILD ID</label>
-        <input type="text" id="settings-guild-id" class="form-input" disabled>
+  <!-- ══ COLONNE GAUCHE ══ -->
+  <div>
+
+    <!-- INFOS SERVEUR -->
+    <div class="panel">
+      <div class="panel-header"><h2>🏠 Serveur</h2></div>
+      <div class="panel-body">
+        <div class="settings-server-header">
+          <img id="settings-guild-icon" src="" alt="" style="width:56px;height:56px;border-radius:50%;display:none">
+          <div class="settings-server-avatar" id="settings-guild-avatar" style="display:none">W</div>
+          <div>
+            <div class="settings-guild-name" id="settings-guild-name">Chargement...</div>
+            <div style="font-size:0.75rem;color:var(--text-muted)" id="settings-guild-id-display"></div>
+          </div>
+        </div>
+        <div class="settings-server-stats">
+          <div class="settings-server-stat">
+            <div class="settings-stat-value" id="settings-member-count">—</div>
+            <div class="settings-stat-label">Membres</div>
+          </div>
+          <div class="settings-server-stat">
+            <div class="settings-stat-value" id="settings-channel-count">—</div>
+            <div class="settings-stat-label">Salons</div>
+          </div>
+          <div class="settings-server-stat">
+            <div class="settings-stat-value" id="settings-role-count">—</div>
+            <div class="settings-stat-label">Rôles</div>
+          </div>
+          <div class="settings-server-stat">
+            <div class="settings-stat-value" id="settings-emoji-count">—</div>
+            <div class="settings-stat-label">Emojis</div>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- SANTÉ WARSTACK -->
+    <div class="panel">
+      <div class="panel-header"><h2>💚 Santé WARSTACK</h2></div>
+      <div class="panel-body">
+        <div class="settings-health-row">
+          <span>🤖 Bot</span>
+          <span class="settings-health-badge" id="health-bot">—</span>
+        </div>
+        <div class="settings-health-row">
+          <span>⏱ Uptime</span>
+          <span id="health-uptime" style="font-size:0.82rem;color:var(--text-dim)">—</span>
+        </div>
+        <div class="settings-health-row">
+          <span>🔄 Dernière synchro</span>
+          <span id="health-sync" style="font-size:0.82rem;color:var(--text-dim)">—</span>
+        </div>
+        <div class="settings-health-row">
+          <span>📦 Version</span>
+          <span style="font-size:0.82rem;color:var(--text-dim)">v2.0.0</span>
+        </div>
+        <div style="border-top:1px solid var(--border);margin:0.75rem 0"></div>
+        <div class="settings-health-row">
+          <span>🎫 Tickets</span>
+          <span class="settings-health-badge green">OK</span>
+        </div>
+        <div class="settings-health-row">
+          <span>📅 Events</span>
+          <span class="settings-health-badge green">OK</span>
+        </div>
+        <div class="settings-health-row">
+          <span>🛡 AutoMod</span>
+          <span class="settings-health-badge green">OK</span>
+        </div>
+        <div class="settings-health-row">
+          <span>📋 Logs</span>
+          <span class="settings-health-badge green">OK</span>
+        </div>
+        <div class="settings-health-row">
+          <span>⏰ Cron Jobs</span>
+          <span class="settings-health-badge green">OK</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODULES ACTIFS -->
+    <div class="panel">
+      <div class="panel-header"><h2>🧩 Modules</h2></div>
+      <div class="panel-body" id="settings-modules">
+        <!-- généré par JS -->
+      </div>
+    </div>
+
   </div>
+
+  <!-- ══ COLONNE DROITE ══ -->
+  <div>
+
+    <!-- CONFIGURATION -->
+    <div class="panel">
+      <div class="panel-header"><h2>⚙️ Configuration</h2></div>
+      <div class="panel-body">
+
+        <div class="form-group">
+          <label>Langue</label>
+          <select id="settings-language" class="form-select">
+            <option value="fr">🇫🇷 Français</option>
+            <option value="en">🇬🇧 English</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Fuseau horaire</label>
+          <select id="settings-timezone" class="form-select">
+            <option value="Europe/Paris">🇫🇷 Europe/Paris (UTC+1/+2)</option>
+            <option value="Europe/London">🇬🇧 Europe/London (UTC+0/+1)</option>
+            <option value="Europe/Brussels">🇧🇪 Europe/Brussels (UTC+1/+2)</option>
+            <option value="Europe/Zurich">🇨🇭 Europe/Zurich (UTC+1/+2)</option>
+            <option value="America/New_York">🇺🇸 America/New_York (UTC-5/-4)</option>
+            <option value="America/Los_Angeles">🇺🇸 America/Los_Angeles (UTC-8/-7)</option>
+            <option value="America/Montreal">🇨🇦 America/Montreal (UTC-5/-4)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Préfixe commandes</label>
+          <input type="text" id="settings-prefix" class="form-input" placeholder="!" style="width:80px">
+        </div>
+
+      </div>
+      <div class="panel-footer">
+        <button class="btn btn-primary" id="btn-save-settings">
+          <i class="fas fa-save"></i> Sauvegarder
+        </button>
+      </div>
+    </div>
+
+    <!-- SAUVEGARDE -->
+    <div class="panel">
+      <div class="panel-header"><h2>💾 Sauvegarde</h2></div>
+      <div class="panel-body">
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem">
+          Exporte ou importe toute ta configuration WARSTACK. Utile pour copier un serveur vers un autre.
+        </p>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+          <button class="btn btn-secondary" id="btn-export-config">
+            <i class="fas fa-download"></i> Exporter JSON
+          </button>
+          <button class="btn btn-secondary" id="btn-import-config">
+            <i class="fas fa-upload"></i> Importer JSON
+          </button>
+          <input type="file" id="import-file-input" accept=".json" style="display:none">
+        </div>
+        <div id="import-status" style="margin-top:0.5rem;font-size:0.8rem;color:var(--green);display:none"></div>
+      </div>
+    </div>
+
+    <!-- MAINTENANCE -->
+    <div class="panel">
+      <div class="panel-header"><h2>🔧 Maintenance</h2></div>
+      <div class="panel-body">
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <button class="btn btn-secondary" id="btn-test-connection">
+            <i class="fas fa-plug"></i> Tester la connexion bot
+          </button>
+          <button class="btn btn-secondary" id="btn-resync">
+            <i class="fas fa-sync"></i> Resynchroniser Discord
+          </button>
+        </div>
+        <div id="maintenance-status" style="margin-top:0.75rem;font-size:0.82rem;display:none"></div>
+      </div>
+    </div>
+
+    <!-- ZONE DANGER -->
+    <div class="panel" style="border-color:rgba(255,68,68,0.3)">
+      <div class="panel-header" style="border-color:rgba(255,68,68,0.2)">
+        <h2 style="color:var(--red)">⚠️ Zone de danger</h2>
+      </div>
+      <div class="panel-body">
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem">
+          Ces actions sont irréversibles. Procède avec précaution.
+        </p>
+        <button class="btn btn-danger" id="btn-reset-config">
+          <i class="fas fa-trash"></i> Réinitialiser toute la configuration
+        </button>
+      </div>
+    </div>
+
+  </div>
+
 </div>

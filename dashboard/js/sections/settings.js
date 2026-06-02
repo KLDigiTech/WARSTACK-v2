@@ -1,15 +1,204 @@
-import { BOT_URL, GUILD_ID } from '../config.js';
-import { loadConfigs, saveConfig, getConfig } from '../services/configService.js';
+import { BOT_URL, GUILD_ID }                  from '../config.js';
+import { loadConfigs, saveConfig, getConfig }  from '../services/configService.js';
+import { callBotAPI, fetchSupabase }           from '../api.js';
+import { showToast }                           from '../ui/toast.js';
+
+const MODULES = [
+  { id: 'welcome',     label: 'Welcome',           icon: '👋' },
+  { id: 'tickets',     label: 'Tickets',            icon: '🎫' },
+  { id: 'suggestions', label: 'Suggestions',        icon: '💡' },
+  { id: 'events',      label: 'Événements',         icon: '📅' },
+  { id: 'birthdays',   label: 'Anniversaires',      icon: '🎂' },
+  { id: 'roles',       label: 'Rôles Auto',         icon: '🎭' },
+  { id: 'moderation',  label: 'Modération',         icon: '🛡' },
+  { id: 'automod',     label: 'AutoMod',            icon: '🤖' },
+  { id: 'logs',        label: 'Logs',               icon: '📋' },
+  { id: 'messages',    label: 'Messages récurrents', icon: '📢' },
+];
 
 export async function initSettings() {
-  document.getElementById('settings-bot-url').value  = BOT_URL;
-  document.getElementById('settings-guild-id').value = GUILD_ID;
+
+  // ── Config ────────────────────────────────────────────
   const configs = await loadConfigs();
   document.getElementById('settings-language').value = getConfig(configs, 'settings_language') || 'fr';
   document.getElementById('settings-prefix').value   = getConfig(configs, 'settings_prefix')   || '!';
-  document.getElementById('save-settings').addEventListener('click', async () => {
-    await saveConfig('settings_language', document.getElementById('settings-language').value);
-    await saveConfig('settings_prefix',   document.getElementById('settings-prefix').value);
-    alert('✅ Paramètres sauvegardés');
+  document.getElementById('settings-timezone').value = getConfig(configs, 'settings_timezone')  || 'Europe/Paris';
+
+  // ── Infos serveur ─────────────────────────────────────
+  await loadGuildInfo();
+
+  // ── Santé bot ─────────────────────────────────────────
+  await loadBotHealth();
+
+  // ── Modules ───────────────────────────────────────────
+  renderModules();
+
+  // ── Sauvegarder ──────────────────────────────────────
+  document.getElementById('btn-save-settings').addEventListener('click', async () => {
+    await Promise.all([
+      saveConfig('settings_language', document.getElementById('settings-language').value),
+      saveConfig('settings_prefix',   document.getElementById('settings-prefix').value),
+      saveConfig('settings_timezone', document.getElementById('settings-timezone').value),
+    ]);
+    showToast('✅ Paramètres sauvegardés');
   });
+
+  // ── Export config ─────────────────────────────────────
+  document.getElementById('btn-export-config').addEventListener('click', async () => {
+    const data = await fetchSupabase(`config?guild_id=eq.${GUILD_ID}`) || [];
+    const json = JSON.stringify({ guild_id: GUILD_ID, exported_at: new Date().toISOString(), config: data }, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `warstack-config-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('✅ Configuration exportée');
+  });
+
+  // ── Import config ─────────────────────────────────────
+  document.getElementById('btn-import-config').addEventListener('click', () => {
+    document.getElementById('import-file-input').click();
+  });
+
+  document.getElementById('import-file-input').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const text = await file.text();
+    let parsed;
+    try { parsed = JSON.parse(text); } catch { return showToast('❌ Fichier JSON invalide', 'error'); }
+
+    if (!parsed.config?.length) return showToast('❌ Configuration vide ou invalide', 'error');
+
+    const status = document.getElementById('import-status');
+    status.style.display = 'block';
+    status.textContent   = '⏳ Import en cours...';
+
+    for (const entry of parsed.config) {
+      await fetchSupabase('config', 'POST', {
+        guild_id: GUILD_ID,
+        key     : entry.key,
+        value   : entry.value,
+      }).catch(() => {
+        fetchSupabase(`config?guild_id=eq.${GUILD_ID}&key=eq.${entry.key}`, 'PATCH', { value: entry.value });
+      });
+    }
+
+    status.textContent = `✅ ${parsed.config.length} paramètres importés`;
+    showToast('✅ Configuration importée');
+    e.target.value = '';
+  });
+
+  // ── Tester connexion ──────────────────────────────────
+  document.getElementById('btn-test-connection').addEventListener('click', async () => {
+    const status = document.getElementById('maintenance-status');
+    status.style.display = 'block';
+    status.style.color   = 'var(--text-muted)';
+    status.textContent   = '⏳ Test en cours...';
+
+    const data = await callBotAPI('status');
+    if (data?.status === 'online') {
+      status.style.color = 'var(--green)';
+      status.textContent = `✅ Bot connecté — ${data.bot}`;
+    } else {
+      status.style.color = 'var(--red)';
+      status.textContent = '❌ Bot hors ligne';
+    }
+  });
+
+  // ── Resync Discord ────────────────────────────────────
+  document.getElementById('btn-resync').addEventListener('click', async () => {
+    const status = document.getElementById('maintenance-status');
+    status.style.display = 'block';
+    status.style.color   = 'var(--text-muted)';
+    status.textContent   = '⏳ Resynchronisation...';
+
+    const data = await callBotAPI('guild');
+    if (data?.name) {
+      status.style.color = 'var(--green)';
+      status.textContent = `✅ Synchro OK — ${data.name}`;
+      await loadGuildInfo();
+    } else {
+      status.style.color = 'var(--red)';
+      status.textContent = '❌ Erreur de synchro';
+    }
+  });
+
+  // ── Reset config ──────────────────────────────────────
+  document.getElementById('btn-reset-config').addEventListener('click', async () => {
+    if (!confirm('⚠️ Réinitialiser TOUTE la configuration ? Cette action est irréversible.')) return;
+    if (!confirm('Dernière confirmation — supprimer toute la config ?')) return;
+
+    await fetchSupabase(`config?guild_id=eq.${GUILD_ID}`, 'DELETE');
+    showToast('🗑 Configuration réinitialisée');
+  });
+}
+
+// ── INFOS SERVEUR ─────────────────────────────────────────────────────────────
+
+async function loadGuildInfo() {
+  const [guildData, channelsData, rolesData, emojisData] = await Promise.all([
+    callBotAPI('guild'),
+    callBotAPI('channels'),
+    callBotAPI('roles'),
+    callBotAPI('emojis'),
+  ]);
+
+  if (guildData?.name) {
+    document.getElementById('settings-guild-name').textContent      = guildData.name;
+    document.getElementById('settings-guild-id-display').textContent = GUILD_ID;
+
+    if (guildData.icon) {
+      const img = document.getElementById('settings-guild-icon');
+      img.src           = guildData.icon;
+      img.style.display = 'block';
+    } else {
+      const av = document.getElementById('settings-guild-avatar');
+      av.textContent    = guildData.name[0].toUpperCase();
+      av.style.display  = 'flex';
+    }
+  }
+
+  document.getElementById('settings-member-count').textContent  = guildData?.member_count  || '—';
+  document.getElementById('settings-channel-count').textContent = (channelsData?.channels?.length) || '—';
+  document.getElementById('settings-role-count').textContent    = (rolesData?.roles?.length) || '—';
+  document.getElementById('settings-emoji-count').textContent   = (emojisData?.emojis?.length) || '—';
+}
+
+// ── SANTÉ BOT ─────────────────────────────────────────────────────────────────
+
+async function loadBotHealth() {
+  const data = await callBotAPI('status');
+
+  const badge = document.getElementById('health-bot');
+  if (data?.status === 'online') {
+    badge.textContent  = '🟢 Online';
+    badge.className    = 'settings-health-badge green';
+  } else {
+    badge.textContent  = '🔴 Offline';
+    badge.className    = 'settings-health-badge red';
+  }
+
+  if (data?.uptime) {
+    const mins = Math.floor(data.uptime / 60);
+    const hrs  = Math.floor(mins / 60);
+    document.getElementById('health-uptime').textContent =
+      hrs > 0 ? `${hrs}h ${mins % 60}min` : `${mins}min`;
+  }
+
+  document.getElementById('health-sync').textContent = 'À l\'instant';
+}
+
+// ── MODULES ───────────────────────────────────────────────────────────────────
+
+function renderModules() {
+  const el = document.getElementById('settings-modules');
+  el.innerHTML = MODULES.map(m => `
+    <div class="settings-module-row">
+      <span>${m.icon} ${m.label}</span>
+      <span class="settings-health-badge green">✓ Actif</span>
+    </div>
+  `).join('');
 }

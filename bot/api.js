@@ -61,7 +61,12 @@ router.get('/tracker/:pseudo', async (req, res) => {
 router.get('/guild', async (req, res) => {
   const guild = global.botClient.guilds.cache.first();
   if (!guild) return res.status(404).json({ error: 'Serveur introuvable' });
-  res.json({ name: guild.name, icon: guild.iconURL({ dynamic: true, size: 256 }) });
+  res.json({
+    name        : guild.name,
+    icon        : guild.iconURL({ dynamic: true, size: 256 }),
+    member_count: guild.memberCount,
+    created_at  : guild.createdAt,
+  });
 });
 
 // VÉRIF MEMBRE DU SERVEUR

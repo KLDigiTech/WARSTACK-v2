@@ -847,5 +847,22 @@ router.post('/ticket/transcript', auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// EMOJIS CUSTOM DU SERVEUR
+router.get('/emojis', auth, async (req, res) => {
+  try {
+    const guild = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
+    const emojis = guild.emojis.cache.map(e => ({
+      id    : e.id,
+      name  : e.name,
+      url   : e.imageURL({ size: 32 }),
+      string: e.animated ? `<a:${e.name}:${e.id}>` : `<:${e.name}:${e.id}>`,
+    }));
+
+    res.json({ emojis });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 module.exports = router;

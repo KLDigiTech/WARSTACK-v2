@@ -1,9 +1,10 @@
 // app.js — Router + init dashboard
 
-import { initModal } from './ui/modal.js';
-import { $ } from './utils/dom.js';
-import { getBotStatus } from './services/botService.js';
+import { initModal }          from './ui/modal.js';
+import { $ }                  from './utils/dom.js';
+import { getBotStatus }       from './services/botService.js';
 import { getUserPermissions } from './services/permissionService.js';
+import { loadEmojis, attachEmojiPicker } from './components/emojiPicker.js';
 
 initModal();
 
@@ -20,7 +21,7 @@ updateClock();
 async function checkBotStatus() {
   try {
     const data = await getBotStatus();
-    const dot = $('#status-dot');
+    const dot   = $('#status-dot');
     const label = $('#status-label');
     if (data?.status === 'online') {
       dot?.classList.add('online');
@@ -59,14 +60,12 @@ const sections = {
   origine:     () => import('./sections/origine.js').then(m => m.initOrigine()),
 };
 
-// Sections toujours visibles (pas de restriction de permissions)
 const PUBLIC_SECTIONS = [
   'overview', 'players', 'tournament', 'welcome', 'roles',
   'birthdays', 'suggestions', 'events', 'origine',
   'messages', 'reactions', 'channels', 'ocr-test',
 ];
 
-// Sections restreintes aux permissions
 const RESTRICTED_SECTIONS = [
   'moderation', 'automod', 'tickets', 'logs', 'access', 'settings',
 ];
@@ -92,7 +91,25 @@ async function navigate(section) {
 
   if (sections[section]) await sections[section]();
 
+  // Attacher emoji picker sur tous les textareas de la section
+  attachAllEmojiPickers();
+
   window.location.hash = section;
+}
+
+// EMOJI PICKER — attacher sur tous les textareas visibles
+function attachAllEmojiPickers() {
+  document.querySelectorAll('textarea.form-textarea').forEach(ta => {
+    if (ta.dataset.emojiAttached) return; // éviter les doublons
+    ta.dataset.emojiAttached = '1';
+    attachEmojiPicker(ta.id || generateId(ta));
+  });
+}
+
+function generateId(el) {
+  const id = 'ta-' + Math.random().toString(36).slice(2, 7);
+  el.id = id;
+  return id;
 }
 
 // PERMISSIONS
@@ -102,14 +119,8 @@ async function applyPermissions() {
 
     document.querySelectorAll('.nav-item').forEach(item => {
       const section = item.dataset.section;
-
-      // Liens externes (pas de data-section) — toujours visibles
-      if (!section) { item.style.display = 'flex'; return; }
-
-      // Sections publiques — toujours visibles
+      if (!section)                          { item.style.display = 'flex'; return; }
       if (PUBLIC_SECTIONS.includes(section)) { item.style.display = 'flex'; return; }
-
-      // Sections restreintes — visibles seulement si permission ou liste vide
       if (!permissions || permissions.length === 0) {
         item.style.display = 'flex';
       } else {
@@ -117,7 +128,6 @@ async function applyPermissions() {
       }
     });
   } catch {
-    // En cas d'erreur, tout afficher
     document.querySelectorAll('.nav-item').forEach(i => i.style.display = 'flex');
   }
 }
@@ -134,6 +144,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
 // INIT
 async function initDashboard() {
   await applyPermissions();
+  await loadEmojis(); // charger les emojis custom du serveur
   const initial = window.location.hash?.replace('#', '') || 'overview';
   await navigate(initial);
 }

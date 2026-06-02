@@ -865,4 +865,72 @@ router.get('/emojis', auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// REACTION ROLES — ENVOYER PANEL
+router.post('/reaction-roles/send', auth, async (req, res) => {
+  try {
+    const { menu_id, channel_id, message, type, component, roles } = req.body;
+    const guild = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
+
+    const channel = guild.channels.cache.get(channel_id);
+    if (!channel) return res.status(404).json({ error: 'Salon introuvable' });
+
+    const { ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
+
+    let components = [];
+
+    if (component === 'buttons') {
+      const styles = [ButtonStyle.Primary, ButtonStyle.Secondary, ButtonStyle.Success, ButtonStyle.Danger];
+      const chunks = [];
+      for (let i = 0; i < roles.length; i += 5) chunks.push(roles.slice(i, i + 5));
+      for (const chunk of chunks) {
+        const row = new ActionRowBuilder().addComponents(
+          chunk.map((r, idx) =>
+            new ButtonBuilder()
+              .setCustomId(`rxrole_${r.roleId}`)
+              .setLabel(r.roleName)
+              .setEmoji(r.emoji)
+              .setStyle(styles[idx % styles.length])
+          )
+        );
+        components.push(row);
+        if (components.length >= 4) break;
+      }
+    } else if (component === 'select') {
+      const row = new ActionRowBuilder().addComponents(
+        new StringSelectMenuBuilder()
+          .setCustomId(`rxmenu_${menu_id}`)
+          .setPlaceholder('Choisis un rôle...')
+          .setMinValues(1)
+          .setMaxValues(type === 'multi' ? Math.min(roles.length, 25) : 1)
+          .addOptions(roles.map(r => ({
+            label : r.roleName,
+            value : r.roleId,
+            emoji : r.emoji,
+          })))
+      );
+      components.push(row);
+    }
+
+    const msg = await channel.send({ content: message, components });
+
+    // Réactions classiques
+    if (component === 'reactions') {
+      for (const r of roles) {
+        await msg.react(r.emoji).catch(() => {});
+      }
+    }
+
+    // Sauvegarder le message_id
+    await supabase
+      .from('reaction_menus')
+      .update({ message_id: msg.id })
+      .eq('id', menu_id);
+
+    res.json({ success: true, message_id: msg.id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 module.exports = router;

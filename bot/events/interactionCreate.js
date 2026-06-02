@@ -362,5 +362,95 @@ module.exports = {
       }
       return;
     }
+    // ── BOUTONS REACTION ROLES ────────────────────────────
+    if (interaction.isButton() && interaction.customId.startsWith('rxrole_')) {
+      const roleId = interaction.customId.replace('rxrole_', '');
+      const member = interaction.member;
+
+      await interaction.deferReply({ ephemeral: true });
+
+      try {
+        const role = interaction.guild.roles.cache.get(roleId);
+        if (!role) return interaction.editReply({ content: '❌ Rôle introuvable.' });
+
+        // Charger le menu pour savoir si unique ou multi
+        const { data: menu } = await supabase
+          .from('reaction_menus')
+          .select('*, reaction_roles(*)')
+          .eq('message_id', interaction.message.id)
+          .single();
+
+        if (menu?.type === 'unique') {
+          // Retirer les autres rôles du même menu
+          const otherRoleIds = (menu.reaction_roles || [])
+            .map(r => r.role_id)
+            .filter(id => id !== roleId);
+          for (const id of otherRoleIds) {
+            const r = interaction.guild.roles.cache.get(id);
+            if (r && member.roles.cache.has(id)) await member.roles.remove(r).catch(() => {});
+          }
+        }
+
+        if (member.roles.cache.has(roleId)) {
+          await member.roles.remove(role);
+          await interaction.editReply({ content: `✅ Rôle **${role.name}** retiré.` });
+        } else {
+          await member.roles.add(role);
+          await interaction.editReply({ content: `✅ Rôle **${role.name}** obtenu !` });
+        }
+      } catch (err) {
+        console.error('❌ rxrole error:', err.message);
+        await interaction.editReply({ content: '❌ Erreur.' });
+      }
+      return;
+    }
+
+    // ── SELECT MENU REACTION ROLES ────────────────────────
+    if (interaction.isStringSelectMenu() && interaction.customId.startsWith('rxmenu_')) {
+      const menuId  = interaction.customId.replace('rxmenu_', '');
+      const member  = interaction.member;
+      const selected = interaction.values;
+
+      await interaction.deferReply({ ephemeral: true });
+
+      try {
+        const { data: menu } = await supabase
+          .from('reaction_menus')
+          .select('*, reaction_roles(*)')
+          .eq('id', menuId)
+          .single();
+
+        if (!menu) return interaction.editReply({ content: '❌ Menu introuvable.' });
+
+        const allRoleIds = (menu.reaction_roles || []).map(r => r.role_id);
+
+        if (menu.type === 'unique') {
+          // Retirer tous les anciens rôles du menu
+          for (const id of allRoleIds) {
+            const r = interaction.guild.roles.cache.get(id);
+            if (r && member.roles.cache.has(id)) await member.roles.remove(r).catch(() => {});
+          }
+          // Ajouter le sélectionné
+          for (const id of selected) {
+            const r = interaction.guild.roles.cache.get(id);
+            if (r) await member.roles.add(r).catch(() => {});
+          }
+        } else {
+          // Toggle chaque rôle sélectionné
+          for (const id of selected) {
+            const r = interaction.guild.roles.cache.get(id);
+            if (!r) continue;
+            if (member.roles.cache.has(id)) await member.roles.remove(r).catch(() => {});
+            else await member.roles.add(r).catch(() => {});
+          }
+        }
+
+        await interaction.editReply({ content: `✅ Rôles mis à jour !` });
+      } catch (err) {
+        console.error('❌ rxmenu error:', err.message);
+        await interaction.editReply({ content: '❌ Erreur.' });
+      }
+      return;
+    }
   }
 };

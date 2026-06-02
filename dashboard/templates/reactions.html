@@ -1,21 +1,148 @@
-<div class="panel">
-  <div class="panel-header">
-    <h2>😀 Rôles Réactions</h2>
+<!-- STATS -->
+<div class="suggestions-stats" style="grid-template-columns:repeat(4,1fr)">
+  <div class="stat-card">
+    <div class="stat-icon">🎭</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-rx-menus">0</div>
+      <div class="stat-label">Menus</div>
+    </div>
   </div>
-  <div class="panel-body">
-    <div class="form-grid">
-      <div class="form-group">
-        <label>Salon réactions</label>
-        <input type="text" class="form-input" placeholder="roles">
+  <div class="stat-card">
+    <div class="stat-icon">🟢</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-rx-active">0</div>
+      <div class="stat-label">Actifs</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">🎮</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-rx-roles">0</div>
+      <div class="stat-label">Rôles configurés</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">📨</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-rx-sent">0</div>
+      <div class="stat-label">Panels envoyés</div>
+    </div>
+  </div>
+</div>
+
+<div class="msg-layout">
+
+  <!-- ══ COLONNE GAUCHE — LISTE ══ -->
+  <div>
+    <div class="panel">
+      <div class="panel-header" style="justify-content:space-between">
+        <h2>🎭 Menus de rôles</h2>
+        <button class="btn btn-primary btn-sm" id="btn-new-menu">
+          <i class="fas fa-plus"></i> Nouveau
+        </button>
       </div>
-      <div class="form-group full">
-        <label>Message réactions</label>
-        <textarea class="form-textarea" rows="4" placeholder="Réagis pour obtenir un rôle."></textarea>
-      </div>
-      <div class="form-group full">
-        <label>Emoji → rôle</label>
-        <textarea class="form-textarea" rows="5" placeholder="🎮 Joueur&#10;🏆 Compétitif"></textarea>
+      <div class="panel-body">
+        <div id="menus-list">
+          <div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>
+        </div>
       </div>
     </div>
+  </div>
+
+  <!-- ══ COLONNE DROITE — ÉDITEUR ══ -->
+  <div>
+
+    <!-- ÉDITEUR -->
+    <div class="panel" id="menu-editor" style="display:none">
+      <div class="panel-header">
+        <h2 id="rx-editor-title">✏️ Nouveau menu</h2>
+      </div>
+      <div class="panel-body">
+
+        <div class="form-group">
+          <label>Nom du menu</label>
+          <input type="text" id="rx-name" class="form-input" placeholder="Ex: Choisis ton style de jeu">
+        </div>
+
+        <div class="form-group">
+          <label>Salon Discord</label>
+          <select id="rx-channel" class="form-select">
+            <option value="">Choisir un salon...</option>
+          </select>
+        </div>
+
+        <div class="form-grid" style="grid-template-columns:1fr 1fr">
+          <div class="form-group">
+            <label>Type de sélection</label>
+            <select id="rx-type" class="form-select">
+              <option value="multi">✅ Multi — plusieurs rôles</option>
+              <option value="unique">🔁 Unique — un seul rôle</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Composant Discord</label>
+            <select id="rx-component" class="form-select">
+              <option value="buttons">🔘 Boutons</option>
+              <option value="select">📋 Menu déroulant</option>
+              <option value="reactions">😀 Réactions</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Message du panel</label>
+          <textarea id="rx-message" class="form-textarea" rows="3" placeholder="🎭 Choisis tes rôles en cliquant ci-dessous !"></textarea>
+        </div>
+
+        <!-- RÔLES -->
+        <div class="welcome-section-title" style="margin:1rem 0 0.5rem;display:flex;justify-content:space-between;align-items:center">
+          <span>Emoji → Rôle</span>
+          <button class="btn btn-secondary btn-sm" id="btn-add-role-row">
+            <i class="fas fa-plus"></i> Ajouter
+          </button>
+        </div>
+
+        <div id="rx-roles-list" style="margin-bottom:0.75rem">
+          <!-- généré par JS -->
+        </div>
+
+        <!-- APERÇU DISCORD -->
+        <div class="form-group">
+          <label>Aperçu Discord</label>
+          <div class="discord-preview">
+            <div class="discord-preview-avatar">W</div>
+            <div class="discord-preview-content">
+              <div class="discord-preview-name">WARSTACK <span class="discord-bot-tag">BOT</span></div>
+              <div class="discord-preview-text" id="rx-preview-text">Votre message apparaîtra ici...</div>
+              <div id="rx-preview-buttons" style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.5rem"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer" style="justify-content:space-between">
+        <button class="btn btn-danger btn-sm" id="btn-delete-menu" style="display:none">
+          <i class="fas fa-trash"></i> Supprimer
+        </button>
+        <div style="display:flex;gap:0.5rem">
+          <button class="btn btn-secondary" id="btn-send-menu" style="display:none">
+            <i class="fas fa-paper-plane"></i> Envoyer dans Discord
+          </button>
+          <button class="btn btn-secondary" id="btn-cancel-menu">Annuler</button>
+          <button class="btn btn-primary" id="btn-save-menu">
+            <i class="fas fa-save"></i> Sauvegarder
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLACEHOLDER -->
+    <div id="menu-placeholder" class="panel">
+      <div class="panel-body" style="text-align:center;padding:3rem 1rem;color:var(--text-muted)">
+        <div style="font-size:2rem;margin-bottom:0.75rem">🎭</div>
+        <div style="font-size:0.9rem">Sélectionne un menu ou crées-en un nouveau</div>
+      </div>
+    </div>
+
   </div>
 </div>

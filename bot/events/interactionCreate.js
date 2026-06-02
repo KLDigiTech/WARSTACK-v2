@@ -229,11 +229,18 @@ module.exports = {
             .setStyle(ButtonStyle.Danger),
         );
 
-        // Modifier le message original
+        // Modifier le message original — contenu + boutons
         try {
-          const messages = await interaction.channel.messages.fetch({ limit: 10 });
-          const botMsg   = messages.find(m => m.author.bot && m.components?.length > 0);
-          if (botMsg) await botMsg.edit({ components: [rowUpdated] });
+          const messages  = await interaction.channel.messages.fetch({ limit: 10 });
+          const botMsg    = messages.find(m => m.author.bot && m.components?.length > 0);
+          const ticketType = TICKET_TYPES[`ticket_${ticket.type}`] || { emoji: '🎫', label: ticket.type };
+          if (botMsg) {
+            await botMsg.edit({
+              content: botMsg.content +
+                `\n\n✅ **Pris en charge par ${interaction.member} (${staffName})**`,
+              components: [rowUpdated],
+            });
+          }
         } catch {}
 
         await interaction.editReply({

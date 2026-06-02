@@ -11,9 +11,8 @@ const TICKET_TYPES = [
   { id: 'other',        emoji: '❓', label: 'Autre',              color: '#7fa38a' },
 ];
 
-let currentTicket  = null;
-let currentFilter  = 'all';
-let allMembers     = [];
+let currentTicket = null;
+let currentFilter = 'all';
 
 export async function initTickets() {
 
@@ -28,26 +27,32 @@ export async function initTickets() {
   const roles        = rolesData?.roles || [];
 
   // ── Dropdowns ────────────────────────────────────────────
-  const chOpts  = `<option value="">Aucun</option>` + textChannels.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  const chOpts  = `<option value="">Aucun</option>`  + textChannels.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
   const catOpts = `<option value="">Aucune</option>` + categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  const roleOpts = `<option value="">Aucun</option>` + roles.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
 
-  document.getElementById('ticket-create-channel').innerHTML = chOpts;
-  document.getElementById('ticket-logs-channel').innerHTML   = chOpts;
-  document.getElementById('ticket-category').innerHTML       = catOpts;
-  document.getElementById('ticket-staff-role').innerHTML     =
-    `<option value="">Aucun</option>` + roles.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+  document.getElementById('ticket-create-channel').innerHTML    = chOpts;
+  document.getElementById('ticket-logs-channel').innerHTML      = chOpts;
+  document.getElementById('ticket-staff-role').innerHTML        = roleOpts;
+  document.getElementById('ticket-leader-role').innerHTML       = roleOpts;
+  document.getElementById('ticket-category-waiting').innerHTML  = catOpts;
+  document.getElementById('ticket-category-active').innerHTML   = catOpts;
+  document.getElementById('ticket-category-closed').innerHTML   =
+    `<option value="">Aucune (suppression auto)</option>` + categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
 
   // Assignation modal
-  const membersData = await callBotAPI('channels'); // on utilisera les roles pour assigner
   document.getElementById('ticket-assign-select').innerHTML =
     `<option value="">Non assigné</option>` + roles.map(r => `<option value="${r.name}">${r.name}</option>`).join('');
 
   // ── Config sauvegardée ───────────────────────────────────
-  document.getElementById('ticket-create-channel').value = getConfig(configs, 'ticket_create_channel') || '';
-  document.getElementById('ticket-category').value       = getConfig(configs, 'ticket_category')       || '';
-  document.getElementById('ticket-logs-channel').value   = getConfig(configs, 'ticket_logs_channel')   || '';
-  document.getElementById('ticket-staff-role').value     = getConfig(configs, 'ticket_staff_role')     || '';
-  document.getElementById('ticket-transcript').checked   = getConfig(configs, 'ticket_transcript') !== 'false';
+  document.getElementById('ticket-create-channel').value   = getConfig(configs, 'ticket_create_channel') || '';
+  document.getElementById('ticket-logs-channel').value     = getConfig(configs, 'ticket_logs_channel')   || '';
+  document.getElementById('ticket-staff-role').value       = getConfig(configs, 'ticket_staff_role')     || '';
+  document.getElementById('ticket-leader-role').value      = getConfig(configs, 'ticket_leader_role')    || '';
+  document.getElementById('ticket-category-waiting').value = getConfig(configs, 'ticket_category_waiting') || '';
+  document.getElementById('ticket-category-active').value  = getConfig(configs, 'ticket_category_active')  || '';
+  document.getElementById('ticket-category-closed').value  = getConfig(configs, 'ticket_category_closed')  || '';
+  document.getElementById('ticket-transcript').checked     = getConfig(configs, 'ticket_transcript') !== 'false';
 
   // ── Types de tickets ─────────────────────────────────────
   renderTicketTypes();
@@ -55,11 +60,14 @@ export async function initTickets() {
   // ── Sauvegarder ──────────────────────────────────────────
   document.getElementById('btn-save-tickets').addEventListener('click', async () => {
     await Promise.all([
-      saveConfig('ticket_create_channel', document.getElementById('ticket-create-channel').value),
-      saveConfig('ticket_category',       document.getElementById('ticket-category').value),
-      saveConfig('ticket_logs_channel',   document.getElementById('ticket-logs-channel').value),
-      saveConfig('ticket_staff_role',     document.getElementById('ticket-staff-role').value),
-      saveConfig('ticket_transcript',     String(document.getElementById('ticket-transcript').checked)),
+      saveConfig('ticket_create_channel',    document.getElementById('ticket-create-channel').value),
+      saveConfig('ticket_logs_channel',      document.getElementById('ticket-logs-channel').value),
+      saveConfig('ticket_staff_role',        document.getElementById('ticket-staff-role').value),
+      saveConfig('ticket_leader_role',       document.getElementById('ticket-leader-role').value),
+      saveConfig('ticket_category_waiting',  document.getElementById('ticket-category-waiting').value),
+      saveConfig('ticket_category_active',   document.getElementById('ticket-category-active').value),
+      saveConfig('ticket_category_closed',   document.getElementById('ticket-category-closed').value),
+      saveConfig('ticket_transcript',        String(document.getElementById('ticket-transcript').checked)),
     ]);
     showToast('✅ Configuration sauvegardée !');
   });
@@ -197,8 +205,8 @@ async function loadTickets() {
         </div>
         <div class="ticket-card-meta">
           <span>📅 ${new Date(t.created_at).toLocaleDateString('fr-FR')}</span>
-          ${t.assigned_to ? `<span>👤 ${t.assigned_to}</span>` : '<span style="color:var(--text-muted)">Non assigné</span>'}
-          ${t.reason ? `<span style="color:var(--text-muted);font-size:0.75rem">${t.reason.slice(0, 40)}...</span>` : ''}
+          ${t.assigned_to ? `<span>🎖️ ${t.assigned_to}</span>` : '<span style="color:var(--text-muted)">Non assigné</span>'}
+          ${t.taken_by_id ? `<span style="color:var(--green);font-size:0.72rem">✅ Pris en charge</span>` : ''}
         </div>
       </div>
     `;
@@ -233,7 +241,8 @@ async function openTicket(id, list) {
       <div><span class="meta-label">Type</span><span>${type.emoji} ${type.label}</span></div>
       <div><span class="meta-label">Statut</span><span>${statusLabel(currentTicket.status)}</span></div>
       <div><span class="meta-label">Ouvert le</span><span>${new Date(currentTicket.created_at).toLocaleString('fr-FR')}</span></div>
-      ${currentTicket.reason ? `<div><span class="meta-label">Raison</span><span>${currentTicket.reason}</span></div>` : ''}
+      ${currentTicket.assigned_to ? `<div><span class="meta-label">Pris en charge par</span><span>🎖️ ${currentTicket.assigned_to}</span></div>` : ''}
+      ${currentTicket.taken_at ? `<div><span class="meta-label">Pris en charge le</span><span>${new Date(currentTicket.taken_at).toLocaleString('fr-FR')}</span></div>` : ''}
     </div>
   `;
 
@@ -286,8 +295,9 @@ async function addTicketNote() {
 async function loadStats() {
   const data = await fetchSupabase('tickets?select=status,created_at,closed_at') || [];
 
-  const open   = data.filter(t => t.status === 'open').length;
-  const closed = data.filter(t => t.status === 'closed');
+  const open       = data.filter(t => t.status === 'open').length;
+  const inProgress = data.filter(t => t.status === 'in_progress').length;
+  const closed     = data.filter(t => t.status === 'closed');
 
   let avgTime = '—';
   if (closed.length) {
@@ -295,16 +305,17 @@ async function loadStats() {
       .filter(t => t.closed_at)
       .map(t => new Date(t.closed_at) - new Date(t.created_at));
     if (times.length) {
-      const avg = times.reduce((a, b) => a + b, 0) / times.length;
+      const avg  = times.reduce((a, b) => a + b, 0) / times.length;
       const mins = Math.round(avg / 60000);
-      avgTime = mins < 60 ? `${mins}min` : `${Math.round(mins/60)}h`;
+      avgTime = mins < 60 ? `${mins}min` : `${Math.round(mins / 60)}h`;
     }
   }
 
-  document.getElementById('stat-tickets-total').textContent  = data.length;
-  document.getElementById('stat-tickets-open').textContent   = open;
-  document.getElementById('stat-tickets-closed').textContent = closed.length;
-  document.getElementById('stat-tickets-time').textContent   = avgTime;
+  document.getElementById('stat-tickets-total').textContent      = data.length;
+  document.getElementById('stat-tickets-open').textContent       = open;
+  document.getElementById('stat-tickets-inprogress').textContent = inProgress;
+  document.getElementById('stat-tickets-closed').textContent     = closed.length;
+  document.getElementById('stat-tickets-time').textContent       = avgTime;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

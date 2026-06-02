@@ -1,0 +1,67 @@
+/* ═══════════════════════════════════════
+   LOGS
+═══════════════════════════════════════ */
+
+.logs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.logs-table thead tr {
+  border-bottom: 1px solid var(--border);
+}
+
+.logs-table th {
+  text-align: left;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.logs-table td {
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  vertical-align: middle;
+}
+
+.log-row:hover td {
+  background: var(--surface-3);
+}
+
+.log-time {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.log-action {
+  color: var(--text-dim);
+}
+
+.log-author {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.log-channel {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.log-type-badge {
+  font-size: 0.68rem;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.log-type-message    { background: rgba(88,101,242,.15); color: #5865f2; }
+.log-type-moderation { background: rgba(255,68,68,.12);  color: #ff4444; }
+.log-type-member     { background: rgba(0,255,102,.1);   color: var(--green); }
+.log-type-ticket     { background: rgba(255,189,46,.12); color: #ffbd2e; }
+.log-type-suggestion { background: rgba(255,107,53,.12); color: #ff6b35; }

@@ -1,23 +1,137 @@
-<div class="panel">
-  <div class="panel-header">
-    <h2>📋 Logs</h2>
+<!-- STATS -->
+<div class="suggestions-stats">
+  <div class="stat-card">
+    <div class="stat-icon">📋</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-logs-total">0</div>
+      <div class="stat-label">Total</div>
+    </div>
   </div>
-  <div class="panel-body">
-    <div class="form-group">
-      <label>Salon logs</label>
-      <input type="text" class="form-input" placeholder="logs">
+  <div class="stat-card">
+    <div class="stat-icon">🗑</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-logs-message">0</div>
+      <div class="stat-label">Messages</div>
     </div>
-    <div class="toggle-row">
-      <div><strong>Logs suppressions</strong><p>Messages supprimés</p></div>
-      <div class="toggle" id="toggle-delete"></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">🛡</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-logs-moderation">0</div>
+      <div class="stat-label">Modération</div>
     </div>
-    <div class="toggle-row">
-      <div><strong>Logs éditions</strong><p>Messages modifiés</p></div>
-      <div class="toggle" id="toggle-edit"></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">👥</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-logs-member">0</div>
+      <div class="stat-label">Membres</div>
     </div>
-    <div class="toggle-row">
-      <div><strong>Logs sanctions</strong><p>Bans et kicks</p></div>
-      <div class="toggle" id="toggle-sanctions"></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">🎫</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-logs-ticket">0</div>
+      <div class="stat-label">Tickets</div>
     </div>
+  </div>
+</div>
+
+<div class="tickets-layout">
+
+  <!-- ══ COLONNE GAUCHE ══ -->
+  <div>
+    <div class="panel">
+      <div class="panel-header"><h2>⚙️ Configuration</h2></div>
+      <div class="panel-body">
+
+        <div class="form-group">
+          <label>📨 Salon logs messages</label>
+          <select id="log-channel-message" class="form-select">
+            <option value="">Aucun</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>🛡 Salon logs modération</label>
+          <select id="log-channel-moderation" class="form-select">
+            <option value="">Aucun</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>👥 Salon logs membres</label>
+          <select id="log-channel-member" class="form-select">
+            <option value="">Aucun</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>🎫 Salon logs tickets</label>
+          <select id="log-channel-ticket" class="form-select">
+            <option value="">Aucun</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>💡 Salon logs suggestions</label>
+          <select id="log-channel-suggestion" class="form-select">
+            <option value="">Aucun</option>
+          </select>
+        </div>
+
+      </div>
+      <div class="panel-footer">
+        <button class="btn btn-primary" id="btn-save-logs">
+          <i class="fas fa-save"></i> Sauvegarder
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ COLONNE DROITE ══ -->
+  <div>
+    <div class="panel">
+      <div class="panel-header">
+        <h2>📋 Audit Log</h2>
+        <div class="suggestions-filters">
+          <button class="log-filter-btn active" data-filter="all">Tous</button>
+          <button class="log-filter-btn" data-filter="message">🗑 Messages</button>
+          <button class="log-filter-btn" data-filter="moderation">🛡 Modération</button>
+          <button class="log-filter-btn" data-filter="member">👥 Membres</button>
+          <button class="log-filter-btn" data-filter="ticket">🎫 Tickets</button>
+          <button class="log-filter-btn" data-filter="suggestion">💡 Suggestions</button>
+        </div>
+      </div>
+      <div class="panel-body">
+
+        <div style="margin-bottom:0.75rem">
+          <input type="text" id="log-search" class="form-input" placeholder="🔍 Rechercher par pseudo, action, salon...">
+        </div>
+
+        <div id="logs-table-container">
+          <div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>
+        </div>
+
+        <div style="display:flex;justify-content:center;gap:0.5rem;margin-top:0.75rem">
+          <button class="btn btn-secondary btn-sm" id="btn-logs-prev" disabled>← Précédent</button>
+          <span id="logs-page-info" style="font-size:0.8rem;color:var(--text-muted);align-self:center">Page 1</span>
+          <button class="btn btn-secondary btn-sm" id="btn-logs-next">Suivant →</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL LOG DETAIL -->
+<div id="modal-log" class="modal-overlay" style="display:none">
+  <div class="modal-box" style="max-width:500px">
+    <div class="modal-header">
+      <h3 id="modal-log-title">Détail</h3>
+      <button class="btn btn-secondary btn-sm" id="modal-log-close">✕</button>
+    </div>
+    <div class="modal-body" id="modal-log-body"></div>
   </div>
 </div>

@@ -17,12 +17,22 @@ module.exports = {
         .select('*')
         .eq('guild_id', guild.id);
 
+      // ── Audit log ──────────────────────────────────────
+      await supabase.from('audit_logs').insert({
+        guild_id    : guild.id,
+        type        : 'member',
+        action      : 'member_join',
+        author_id   : member.user.id,
+        author_name : member.user.username,
+        extra       : { account_created: member.user.createdAt },
+      }).catch(() => {});
+
       // ── Anti Raid ──────────────────────────────────────
       const raidEnabled = getConfig(configs, 'automod_raid_enabled') === 'true';
       if (raidEnabled) {
-        const raidAge      = parseInt(getConfig(configs, 'automod_raid_age')       || '7');
-        const raidNoAvatar = getConfig(configs, 'automod_raid_no_avatar')          === 'true';
-        const raidAction   = getConfig(configs, 'automod_raid_action')             || 'kick';
+        const raidAge      = parseInt(getConfig(configs, 'automod_raid_age')      || '7');
+        const raidNoAvatar = getConfig(configs, 'automod_raid_no_avatar')         === 'true';
+        const raidAction   = getConfig(configs, 'automod_raid_action')            || 'kick';
         const logChannelId = getConfig(configs, 'automod_logs_channel');
 
         const accountAge  = (Date.now() - member.user.createdTimestamp) / (1000 * 60 * 60 * 24);
@@ -51,7 +61,15 @@ module.exports = {
             active        : true,
           });
 
-          // Log salon
+          await supabase.from('audit_logs').insert({
+            guild_id    : guild.id,
+            type        : 'moderation',
+            action      : `automod_${raidAction}`,
+            author_id   : member.user.id,
+            author_name : member.user.username,
+            content     : reason,
+          }).catch(() => {});
+
           if (logChannelId) {
             const logChannel = guild.channels.cache.get(logChannelId);
             if (logChannel) {
@@ -61,7 +79,7 @@ module.exports = {
             }
           }
 
-          return; // Stop — pas de bienvenue pour un raider
+          return;
         }
       }
 
@@ -104,7 +122,6 @@ module.exports = {
           if (role) await member.roles.add(role).catch(() => {});
         }
 
-        // DM autorole
         const autorole_dm    = getConfig(configs, 'autorole_dm') === 'true';
         const autorole_dmMsg = getConfig(configs, 'autorole_dm_message');
         if (autorole_dm && autorole_dmMsg) {

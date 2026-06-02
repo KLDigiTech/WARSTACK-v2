@@ -17,6 +17,17 @@ module.exports = {
         .select('*')
         .eq('guild_id', guild.id);
 
+      // ── Audit log ──────────────────────────────────────
+      await supabase.from('audit_logs').insert({
+        guild_id    : guild.id,
+        type        : 'member',
+        action      : 'member_leave',
+        author_id   : member.user.id,
+        author_name : member.user.username,
+        extra       : { roles: member.roles.cache.map(r => r.name).filter(r => r !== '@everyone') },
+      }).catch(() => {});
+
+      // ── Message départ ─────────────────────────────────
       const channelId = getConfig(configs, 'leave_channel');
       const message   = getConfig(configs, 'leave_message');
 

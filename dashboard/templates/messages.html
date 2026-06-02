@@ -1,25 +1,160 @@
-<div class="panel">
-  <div class="panel-header">
-    <h2>🕐 Messages récurrents</h2>
+<!-- STATS -->
+<div class="suggestions-stats" style="grid-template-columns:repeat(4,1fr)">
+  <div class="stat-card">
+    <div class="stat-icon">📢</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-msg-total">0</div>
+      <div class="stat-label">Campagnes</div>
+    </div>
   </div>
-  <div class="panel-body">
-    <div class="form-grid">
-      <div class="form-group">
-        <label>Salon</label>
-        <input type="text" class="form-input" placeholder="annonces">
+  <div class="stat-card">
+    <div class="stat-icon">🟢</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-msg-active">0</div>
+      <div class="stat-label">Actives</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">📨</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-msg-sent">0</div>
+      <div class="stat-label">Envois total</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">⏰</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-msg-next">—</div>
+      <div class="stat-label">Prochain envoi</div>
+    </div>
+  </div>
+</div>
+
+<div class="msg-layout">
+
+  <!-- ══ COLONNE GAUCHE — LISTE ══ -->
+  <div>
+    <div class="panel">
+      <div class="panel-header" style="justify-content:space-between">
+        <h2>📢 Campagnes</h2>
+        <button class="btn btn-primary btn-sm" id="btn-new-campaign">
+          <i class="fas fa-plus"></i> Nouvelle
+        </button>
       </div>
-      <div class="form-group">
-        <label>Fréquence</label>
-        <select class="form-select">
-          <option>Daily</option>
-          <option>Weekly</option>
-          <option>Monthly</option>
-        </select>
-      </div>
-      <div class="form-group full">
-        <label>Message</label>
-        <textarea class="form-textarea" rows="4" placeholder="Message automatique..."></textarea>
+      <div class="panel-body">
+        <div id="campaigns-list">
+          <div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>
+        </div>
       </div>
     </div>
   </div>
+
+  <!-- ══ COLONNE DROITE — ÉDITEUR ══ -->
+  <div>
+    <div class="panel" id="campaign-editor" style="display:none">
+      <div class="panel-header">
+        <h2 id="editor-title">✏️ Nouvelle campagne</h2>
+      </div>
+      <div class="panel-body">
+
+        <div class="form-group">
+          <label>Nom de la campagne</label>
+          <input type="text" id="campaign-name" class="form-input" placeholder="Ex: Annonce Tournoi BF6">
+        </div>
+
+        <div class="form-group">
+          <label>Salon Discord</label>
+          <select id="campaign-channel" class="form-select">
+            <option value="">Choisir un salon...</option>
+          </select>
+        </div>
+
+        <div class="form-grid" style="grid-template-columns:1fr 1fr 100px 100px">
+          <div class="form-group">
+            <label>Fréquence</label>
+            <select id="campaign-frequency" class="form-select">
+              <option value="hourly">Toutes les heures</option>
+              <option value="every3h">Toutes les 3h</option>
+              <option value="every6h">Toutes les 6h</option>
+              <option value="every12h">Toutes les 12h</option>
+              <option value="daily" selected>Tous les jours</option>
+              <option value="every2d">Tous les 2 jours</option>
+              <option value="every3d">Tous les 3 jours</option>
+              <option value="weekly">Toutes les semaines</option>
+              <option value="every2w">Toutes les 2 semaines</option>
+              <option value="monthly">Tous les mois</option>
+            </select>
+          </div>
+          <div class="form-group" id="weekday-group" style="display:none">
+            <label>Jour</label>
+            <select id="campaign-weekday" class="form-select">
+              <option value="1">Lundi</option>
+              <option value="2">Mardi</option>
+              <option value="3">Mercredi</option>
+              <option value="4">Jeudi</option>
+              <option value="5">Vendredi</option>
+              <option value="6">Samedi</option>
+              <option value="0">Dimanche</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Heure</label>
+            <input type="number" id="campaign-hour" class="form-input" min="0" max="23" value="9" style="text-align:center">
+          </div>
+          <div class="form-group">
+            <label>Minute</label>
+            <input type="number" id="campaign-minute" class="form-input" min="0" max="59" value="0" style="text-align:center">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label style="display:flex;justify-content:space-between;align-items:center">
+            <span>Message</span>
+            <span style="font-size:0.72rem;color:var(--text-muted)">Variables :</span>
+          </label>
+          <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.4rem">
+            <button class="var-btn" data-var="{server}">🏠 {server}</button>
+            <button class="var-btn" data-var="{membercount}">👥 {membercount}</button>
+            <button class="var-btn" data-var="{date}">📅 {date}</button>
+            <button class="var-btn" data-var="{time}">🕐 {time}</button>
+          </div>
+          <textarea id="campaign-message" class="form-textarea" rows="5" placeholder="Votre message...&#10;&#10;Utilisez {server}, {membercount}, {date}, {time}"></textarea>
+        </div>
+
+        <!-- APERÇU DISCORD -->
+        <div class="form-group">
+          <label>Aperçu Discord</label>
+          <div class="discord-preview">
+            <div class="discord-preview-avatar">W</div>
+            <div class="discord-preview-content">
+              <div class="discord-preview-name">WARSTACK <span class="discord-bot-tag">BOT</span></div>
+              <div class="discord-preview-text" id="preview-text">Votre message apparaîtra ici...</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer" style="justify-content:space-between">
+        <button class="btn btn-danger btn-sm" id="btn-delete-campaign" style="display:none">
+          <i class="fas fa-trash"></i> Supprimer
+        </button>
+        <div style="display:flex;gap:0.5rem">
+          <button class="btn btn-secondary" id="btn-cancel-campaign">Annuler</button>
+          <button class="btn btn-primary" id="btn-save-campaign">
+            <i class="fas fa-save"></i> Sauvegarder
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLACEHOLDER quand rien n'est sélectionné -->
+    <div id="campaign-placeholder" class="panel">
+      <div class="panel-body" style="text-align:center;padding:3rem 1rem;color:var(--text-muted)">
+        <div style="font-size:2rem;margin-bottom:0.75rem">📢</div>
+        <div style="font-size:0.9rem">Sélectionne une campagne ou crées-en une nouvelle</div>
+      </div>
+    </div>
+
+  </div>
+
 </div>

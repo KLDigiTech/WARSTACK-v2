@@ -2,6 +2,7 @@ const cron = require('node-cron');
 const { updateLeaderboard }        = require('../jobs/leaderboard');
 const { postMVP }                  = require('../jobs/mvp');
 const { autoCloseInactiveTickets } = require('../jobs/ticket-autoclose');
+const { sendRecurringMessages }    = require('../jobs/recurring-messages');
 
 module.exports = {
   name: 'clientReady',
@@ -30,6 +31,11 @@ module.exports = {
     cron.schedule('0 3 * * *', () => {
       console.log('⏰ Vérification tickets inactifs...');
       autoCloseInactiveTickets(client);
+    });
+
+    // Messages récurrents — toutes les minutes
+    cron.schedule('* * * * *', () => {
+      sendRecurringMessages(client);
     });
 
     console.log('✅ Cron jobs démarrés');

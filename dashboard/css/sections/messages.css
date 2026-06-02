@@ -1,0 +1,123 @@
+/* ═══════════════════════════════════════
+   MESSAGES RÉCURRENTS
+═══════════════════════════════════════ */
+
+.msg-layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* CAMPAIGN CARD */
+.campaign-card {
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem 0.9rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.campaign-card:hover  { border-color: var(--border-hover); }
+.campaign-card.active { border-color: var(--green); background: var(--green-glow); }
+
+.campaign-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.campaign-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.campaign-meta {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+}
+
+.campaign-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* VARIABLES */
+.var-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.2rem 0.5rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: monospace;
+}
+
+.var-btn:hover {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+/* APERÇU DISCORD */
+.discord-preview {
+  display: flex;
+  gap: 0.75rem;
+  background: #313338;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+}
+
+.discord-preview-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--green);
+  color: #000;
+  font-weight: 700;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.discord-preview-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.discord-bot-tag {
+  background: #5865f2;
+  color: #fff;
+  font-size: 0.6rem;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.discord-preview-text {
+  font-size: 0.85rem;
+  color: #dbdee1;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media (max-width: 960px) {
+  .msg-layout { grid-template-columns: 1fr; }
+}

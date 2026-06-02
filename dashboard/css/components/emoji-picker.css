@@ -20,9 +20,9 @@
 }
 
 .emoji-picker-dropdown {
-  position: absolute;
+  position: fixed;
   z-index: 9999;
-  width: 300px;
+  width: 260px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);

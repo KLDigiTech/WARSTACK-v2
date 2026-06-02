@@ -42,7 +42,9 @@
   <!-- ══ COLONNE GAUCHE ══ -->
   <div>
     <div class="panel">
-      <div class="panel-header"><h2>⚙️ Configuration</h2></div>
+      <div class="panel-header">
+        <h2>⚙️ Configuration</h2>
+      </div>
       <div class="panel-body">
 
         <div class="form-group">
@@ -93,6 +95,7 @@
   <div>
     <div class="panel">
       <div class="panel-header">
+        <div class="panel-header" style="flex-wrap:wrap;gap:0.5rem"></div>
         <h2>📋 Audit Log</h2>
         <div class="suggestions-filters">
           <button class="log-filter-btn active" data-filter="all">Tous</button>
@@ -106,7 +109,8 @@
       <div class="panel-body">
 
         <div style="margin-bottom:0.75rem">
-          <input type="text" id="log-search" class="form-input" placeholder="🔍 Rechercher par pseudo, action, salon...">
+          <input type="text" id="log-search" class="form-input"
+            placeholder="🔍 Rechercher par pseudo, action, salon...">
         </div>
 
         <div id="logs-table-container">

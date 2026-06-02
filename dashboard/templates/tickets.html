@@ -126,9 +126,24 @@
     <div class="panel">
       <div class="panel-header"><h2>🏷️ Types de tickets</h2></div>
       <div class="panel-body">
+
         <div class="ticket-types-list" id="ticket-types-list">
           <!-- généré par JS -->
         </div>
+
+        <div class="welcome-section-title" style="margin:1rem 0 0.5rem">Ajouter un type</div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center">
+          <input type="text" id="new-ticket-emoji" class="form-input" placeholder="🎫" style="width:60px;text-align:center" maxlength="2">
+          <input type="text" id="new-ticket-label" class="form-input" placeholder="Nom du type..." style="flex:1;min-width:120px">
+          <input type="color" id="new-ticket-color" value="#5865f2" style="width:40px;height:36px;border:none;border-radius:6px;cursor:pointer;background:none">
+          <button class="btn btn-primary btn-sm" id="btn-add-ticket-type">
+            <i class="fas fa-plus"></i> Ajouter
+          </button>
+        </div>
+        <div style="font-size:0.72rem;color:var(--text-muted);margin-top:0.4rem">
+          Ces types s'affichent sur le panel Discord. Envoie le panel après modification.
+        </div>
+
       </div>
     </div>
 

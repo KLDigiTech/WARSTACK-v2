@@ -25,12 +25,11 @@ router.post('/leaderboard', auth, async (req, res) => {
   catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// LEADERBOARD TOURNOI — appelé après chaque approbation de soumission
+// LEADERBOARD TOURNOI
 router.post('/leaderboard/tournament', auth, async (req, res) => {
   try {
     const { tournament_id } = req.body;
     if (!tournament_id) return res.status(400).json({ error: 'tournament_id manquant' });
-
     await postTournamentLeaderboard(global.botClient, tournament_id);
     res.json({ success: true, message: 'Leaderboard tournoi mis à jour !' });
   } catch (error) {
@@ -64,8 +63,6 @@ router.get('/guild', async (req, res) => {
   if (!guild) return res.status(404).json({ error: 'Serveur introuvable' });
   res.json({ name: guild.name, icon: guild.iconURL({ dynamic: true, size: 256 }) });
 });
-
-// À ajouter dans bot/api.js après la route /guild
 
 // VÉRIF MEMBRE DU SERVEUR
 router.get('/member/:discordId', async (req, res) => {
@@ -173,7 +170,6 @@ async function postTournamentLeaderboard(client, tournamentId) {
     return;
   }
 
-  // Infos tournoi
   const { data: tournoi } = await supabase
     .from('tournaments')
     .select('*')
@@ -182,7 +178,6 @@ async function postTournamentLeaderboard(client, tournamentId) {
 
   if (!tournoi) return;
 
-  // Scores
   const { data: scores } = await supabase
     .from('tournament_scores')
     .select('*')
@@ -191,7 +186,6 @@ async function postTournamentLeaderboard(client, tournamentId) {
 
   if (!scores?.length) return;
 
-  // Récupère les usernames depuis players
   const rows = await Promise.all(scores.map(async (s, i) => {
     const { data: player } = await supabase
       .from('players')
@@ -215,7 +209,6 @@ async function postTournamentLeaderboard(client, tournamentId) {
     .setFooter({ text: `⚔️ WARSTACK • Mis à jour après chaque validation` })
     .setTimestamp();
 
-  // Supprime l'ancien message du bot dans #tournoi-live (le dernier embed leaderboard)
   try {
     const messages    = await channel.messages.fetch({ limit: 10 });
     const botMessages = messages.filter(m => m.author.bot && m.embeds?.[0]?.title?.includes('CLASSEMENT LIVE'));
@@ -227,7 +220,6 @@ async function postTournamentLeaderboard(client, tournamentId) {
   await channel.send({ embeds: [embed] });
   console.log(`✅ Leaderboard tournoi ${tournoi.name} mis à jour dans #tournoi-live`);
 }
-
 
 // DISCORD USER INFO
 router.get("/user/:id", auth, async (req, res) => {
@@ -245,10 +237,6 @@ router.get("/user/:id", auth, async (req, res) => {
     res.status(404).json({ error: "Utilisateur introuvable : " + e.message });
   }
 });
-// ============================================================
-// À AJOUTER dans bot/api.js (coller avant module.exports)
-// Routes : recherche membre + appliquer permissions salons
-// ============================================================
 
 // RECHERCHE MEMBRE par username
 router.get('/member/search', auth, async (req, res) => {
@@ -259,7 +247,7 @@ router.get('/member/search', auth, async (req, res) => {
     const guild = global.botClient.guilds.cache.first();
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
-    await guild.members.fetch(); // fetch tous les membres
+    await guild.members.fetch();
     const members = guild.members.cache
       .filter(m =>
         !m.user.bot &&
@@ -281,8 +269,6 @@ router.get('/member/search', auth, async (req, res) => {
 });
 
 // APPLIQUER PERMISSIONS SALONS pour un rôle Discord
-// Reçoit : { discord_role_name, channel_ids_allow, channel_ids_deny }
-// Crée le rôle Discord si inexistant, puis applique les overwrites
 router.post('/role/apply-channels', auth, async (req, res) => {
   try {
     const { role_name, color, channel_ids_allow = [], channel_ids_deny = [] } = req.body;
@@ -293,7 +279,6 @@ router.post('/role/apply-channels', auth, async (req, res) => {
 
     const { PermissionFlagsBits } = require('discord.js');
 
-    // Trouve ou crée le rôle Discord
     let discordRole = guild.roles.cache.find(r => r.name === role_name);
     if (!discordRole) {
       discordRole = await guild.roles.create({
@@ -303,22 +288,16 @@ router.post('/role/apply-channels', auth, async (req, res) => {
       });
     }
 
-    // Applique ViewChannel = allow sur les salons autorisés
     for (const channelId of channel_ids_allow) {
       const channel = guild.channels.cache.get(channelId);
       if (!channel) continue;
-      await channel.permissionOverwrites.edit(discordRole, {
-        ViewChannel: true
-      });
+      await channel.permissionOverwrites.edit(discordRole, { ViewChannel: true });
     }
 
-    // Applique ViewChannel = deny sur les salons refusés
     for (const channelId of channel_ids_deny) {
       const channel = guild.channels.cache.get(channelId);
       if (!channel) continue;
-      await channel.permissionOverwrites.edit(discordRole, {
-        ViewChannel: false
-      });
+      await channel.permissionOverwrites.edit(discordRole, { ViewChannel: false });
     }
 
     res.json({ success: true, role_id: discordRole.id, role_name: discordRole.name });
@@ -342,15 +321,12 @@ router.post('/role/assign', auth, async (req, res) => {
     const discordRole = guild.roles.cache.find(r => r.name === role_name);
     if (!discordRole) return res.status(404).json({ error: `Rôle "${role_name}" introuvable sur Discord` });
 
-    // Retire tous les rôles WARSTACK custom (sauf @everyone et rôles système Discord)
     const wrstackRoles = member.roles.cache.filter(r =>
       r.name !== '@everyone' &&
       !r.managed &&
-      r.name !== 'Admin' // garde Admin Discord natif si présent
+      r.name !== 'Admin'
     );
     if (wrstackRoles.size) await member.roles.remove(wrstackRoles);
-
-    // Assigne le nouveau rôle
     await member.roles.add(discordRole);
 
     res.json({ success: true, member: member.user.username, role: role_name });
@@ -379,6 +355,7 @@ router.post('/role/remove', auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 // LISTE DES RÔLES
 router.get('/roles', auth, async (req, res) => {
   try {
@@ -425,7 +402,6 @@ router.post('/welcome/test', auth, async (req, res) => {
   }
 });
 
-
 // TEST AUTOROLE
 router.post('/autorole/test', auth, async (req, res) => {
   try {
@@ -459,7 +435,7 @@ router.post('/autorole/test', auth, async (req, res) => {
   }
 });
 
-// COMPTEUR MEMBRES — mise à jour du salon vocal
+// COMPTEUR MEMBRES
 router.post('/counter/update', auth, async (req, res) => {
   try {
     const guild = global.botClient.guilds.cache.first();
@@ -474,11 +450,8 @@ router.post('/counter/update', auth, async (req, res) => {
     if (!channel) {
       channel = await guild.channels.create({
         name,
-        type: 2, // vocal
-        permissionOverwrites: [{
-          id  : guild.roles.everyone,
-          deny: ['Connect']
-        }]
+        type: 2,
+        permissionOverwrites: [{ id: guild.roles.everyone, deny: ['Connect'] }]
       });
     } else {
       await channel.setName(name);
@@ -489,7 +462,6 @@ router.post('/counter/update', auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // TEST ANNIVERSAIRE
 router.post('/birthday/test', auth, async (req, res) => {
@@ -515,7 +487,8 @@ router.post('/birthday/test', auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-// SUGGESTION — CHANGER STATUT + ÉDITER MESSAGE DISCORD
+
+// SUGGESTION — CHANGER STATUT
 router.post('/suggestion/status', auth, async (req, res) => {
   try {
     const { suggestion_id, status } = req.body;
@@ -541,14 +514,12 @@ router.post('/suggestion/status', auth, async (req, res) => {
     const s = statusMap[status] || { emoji: '❓', label: status };
 
     if (suggestions.message_id) {
-      // Trouver le message dans tous les salons texte
       const channels = guild.channels.cache.filter(c => c.type === 0);
       for (const [, channel] of channels) {
         try {
           const msg = await channel.messages.fetch(suggestions.message_id);
           if (msg) {
-            const newContent = msg.content + `\n\n${s.emoji} **Statut : ${s.label}**`;
-            await msg.edit(newContent).catch(() => {});
+            await msg.edit(msg.content + `\n\n${s.emoji} **Statut : ${s.label}**`).catch(() => {});
             break;
           }
         } catch {}
@@ -560,6 +531,7 @@ router.post('/suggestion/status', auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 // ANNONCER ÉVÉNEMENT
 router.post('/event/announce', auth, async (req, res) => {
   try {
@@ -616,13 +588,10 @@ router.post('/event/cancel', auth, async (req, res) => {
       .eq('event_id', event_id)
       .eq('status', 'present');
 
-    // DM tous les participants
     for (const p of participants || []) {
       const member = await guild.members.fetch(p.discord_id).catch(() => null);
       if (member) {
-        await member.send(
-          `❌ L'événement **${event?.title}** a été annulé.`
-        ).catch(() => {});
+        await member.send(`❌ L'événement **${event?.title}** a été annulé.`).catch(() => {});
       }
     }
 
@@ -643,41 +612,12 @@ router.post('/event/contact', auth, async (req, res) => {
     for (const id of discord_ids || []) {
       const member = await guild.members.fetch(id).catch(() => null);
       if (member) {
-        await member.send(
-          `📢 **${event_title}**\n\n${message}`
-        ).catch(() => {});
+        await member.send(`📢 **${event_title}**\n\n${message}`).catch(() => {});
         sent++;
       }
     }
 
     res.json({ success: true, sent });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// RECHERCHE MEMBRE
-router.get('/member/search', auth, async (req, res) => {
-  try {
-    const query = req.query.q?.toLowerCase();
-    if (!query) return res.json({ members: [] });
-
-    const guild = global.botClient.guilds.cache.first();
-    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
-
-    await guild.members.fetch();
-
-    const members = guild.members.cache
-      .filter(m => m.user.username.toLowerCase().includes(query) ||
-                   m.displayName.toLowerCase().includes(query))
-      .map(m => ({
-        id      : m.user.id,
-        username: m.user.username,
-        avatar  : m.user.displayAvatarURL({ size: 64 }),
-      }))
-      .slice(0, 10);
-
-    res.json({ members });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -695,7 +635,6 @@ router.post('/moderation/sanction', auth, async (req, res) => {
       return res.status(404).json({ error: 'Membre introuvable' });
     }
 
-    // Enregistrer en BDD
     const { data: sanction } = await supabase
       .from('sanctions')
       .insert({
@@ -712,48 +651,27 @@ router.post('/moderation/sanction', auth, async (req, res) => {
       .select()
       .single();
 
-    // Appliquer sur Discord
     switch (type) {
       case 'warn':
         await member?.send(`⚠️ Tu as reçu un avertissement sur **${guild.name}**\nRaison : ${reason}`).catch(() => {});
         break;
-
       case 'mute':
-        if (member && duration) {
-          await member.timeout(duration * 60 * 1000, reason);
-        }
-        break;
-
       case 'timeout':
-        if (member && duration) {
-          await member.timeout(duration * 60 * 1000, reason);
-        }
+        if (member && duration) await member.timeout(duration * 60 * 1000, reason);
         break;
-
       case 'kick':
         await member?.kick(reason);
         break;
-
       case 'ban':
         await guild.members.ban(discord_id, { reason });
         break;
-
       case 'unban':
         await guild.members.unban(discord_id, reason).catch(() => {});
-        await supabase
-          .from('sanctions')
-          .update({ active: false })
-          .eq('discord_id', discord_id)
-          .eq('type', 'ban');
+        await supabase.from('sanctions').update({ active: false }).eq('discord_id', discord_id).eq('type', 'ban');
         break;
     }
 
-    // Log dans salon modération
-    const { data: configs } = await supabase
-      .from('config')
-      .select('*')
-      .eq('guild_id', guild.id);
-
+    const { data: configs } = await supabase.from('config').select('*').eq('guild_id', guild.id);
     const getConfig = (key) => configs?.find(c => c.key === key)?.value;
     const logChannelId = getConfig('mod_logs_channel');
 
@@ -762,9 +680,7 @@ router.post('/moderation/sanction', auth, async (req, res) => {
       const icons = { warn: '⚠️', mute: '🔇', kick: '👢', ban: '🔨', timeout: '⏰', unban: '✅' };
       if (logChannel) {
         await logChannel.send(
-          `${icons[type] || '❓'} **${type.toUpperCase()}** — ${username}\n` +
-          `Raison : ${reason}\n` +
-          `Par : Dashboard`
+          `${icons[type] || '❓'} **${type.toUpperCase()}** — ${username}\nRaison : ${reason}\nPar : Dashboard`
         );
       }
     }
@@ -782,7 +698,6 @@ router.post('/moderation/lift', auth, async (req, res) => {
     const guild = global.botClient.guilds.cache.first();
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
-    // Essayer de lever le timeout
     const member = await guild.members.fetch(discord_id).catch(() => null);
     if (member) await member.timeout(null).catch(() => {});
 
@@ -791,6 +706,7 @@ router.post('/moderation/lift', auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 // ENVOYER PANEL TICKETS
 router.post('/ticket/panel', auth, async (req, res) => {
   try {
@@ -803,32 +719,42 @@ router.post('/ticket/panel', auth, async (req, res) => {
 
     const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
 
+    const { data: categories } = await supabase
+      .from('ticket_categories')
+      .select('*')
+      .eq('guild_id', guild.id)
+      .eq('active', true)
+      .order('position', { ascending: true });
+
+    const cats = categories && categories.length > 0 ? categories : [
+      { id: 'fallback_support', emoji: '🔧', label: 'Support', color: '#5865f2' },
+      { id: 'fallback_other',   emoji: '❓', label: 'Autre',   color: '#7fa38a' },
+    ];
+
     const embed = new EmbedBuilder()
       .setTitle('🎫 Support WARSTACK')
       .setDescription('Clique sur le bouton correspondant à ta demande pour ouvrir un ticket.')
       .setColor(0x00ff66)
-      .addFields(
-        { name: '🔧 Support Technique', value: 'Problème technique ou question', inline: true },
-        { name: '🐛 Signaler un Bug',   value: 'Bug dans le bot ou le dashboard', inline: true },
-        { name: '⚖️ Appel de Sanction', value: 'Contester une sanction reçue', inline: true },
-        { name: '🤝 Partenariat',       value: 'Proposition de partenariat', inline: true },
-        { name: '📝 Candidature Staff', value: 'Rejoindre l\'équipe WARSTACK', inline: true },
-        { name: '❓ Autre',             value: 'Toute autre demande', inline: true },
+      .addFields(cats.map(c => ({ name: `${c.emoji} ${c.label}`, value: '\u200b', inline: true })));
+
+    const rows = [];
+    const styles = [ButtonStyle.Primary, ButtonStyle.Secondary, ButtonStyle.Success, ButtonStyle.Danger, ButtonStyle.Secondary];
+    for (let i = 0; i < cats.length; i += 5) {
+      const chunk = cats.slice(i, i + 5);
+      const row = new ActionRowBuilder().addComponents(
+        chunk.map((c, idx) =>
+          new ButtonBuilder()
+            .setCustomId(`ticket_cat_${c.id}`)
+            .setLabel(c.label)
+            .setEmoji(c.emoji)
+            .setStyle(styles[idx % styles.length])
+        )
       );
+      rows.push(row);
+      if (rows.length >= 4) break;
+    }
 
-    const row1 = new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setCustomId('ticket_support')     .setLabel('Support')     .setEmoji('🔧').setStyle(ButtonStyle.Primary),
-      new ButtonBuilder().setCustomId('ticket_bug')         .setLabel('Bug')          .setEmoji('🐛').setStyle(ButtonStyle.Danger),
-      new ButtonBuilder().setCustomId('ticket_appeal')      .setLabel('Appel')        .setEmoji('⚖️').setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder().setCustomId('ticket_partnership') .setLabel('Partenariat')  .setEmoji('🤝').setStyle(ButtonStyle.Success),
-    );
-
-    const row2 = new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setCustomId('ticket_application') .setLabel('Candidature') .setEmoji('📝').setStyle(ButtonStyle.Primary),
-      new ButtonBuilder().setCustomId('ticket_other')       .setLabel('Autre')       .setEmoji('❓').setStyle(ButtonStyle.Secondary),
-    );
-
-    await channel.send({ embeds: [embed], components: [row1, row2] });
+    await channel.send({ embeds: [embed], components: rows });
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -846,19 +772,13 @@ router.post('/ticket/close', auth, async (req, res) => {
     if (!channel) return res.json({ success: true });
 
     if (transcript) {
-      // Récupérer les messages
       const messages = await channel.messages.fetch({ limit: 100 });
       const lines = [...messages.values()]
         .reverse()
         .map(m => `[${new Date(m.createdTimestamp).toLocaleString('fr-FR')}] ${m.author.username}: ${m.content}`)
         .join('\n');
 
-      // Chercher salon logs
-      const { data: configs } = await supabase
-        .from('config')
-        .select('*')
-        .eq('guild_id', guild.id);
-
+      const { data: configs } = await supabase.from('config').select('*').eq('guild_id', guild.id);
       const logChId = configs?.find(c => c.key === 'ticket_logs_channel')?.value;
       if (logChId) {
         const logCh = guild.channels.cache.get(logChId);
@@ -871,7 +791,21 @@ router.post('/ticket/close', auth, async (req, res) => {
       }
     }
 
-    await channel.send('✅ Ce ticket a été fermé. Le salon sera supprimé dans 5 secondes.');
+    try {
+      const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+      const allMessages = await channel.messages.fetch({ limit: 20 });
+      const botMsg = allMessages.find(m => m.author.bot && m.components?.length > 0);
+      if (botMsg) {
+        const disabledRow = new ActionRowBuilder().addComponents(
+          new ButtonBuilder().setCustomId('ticket_take_staff') .setLabel('Pris en charge').setEmoji('✅').setStyle(ButtonStyle.Success)  .setDisabled(true),
+          new ButtonBuilder().setCustomId('ticket_take_leader').setLabel('Leader')        .setEmoji('👑').setStyle(ButtonStyle.Secondary).setDisabled(true),
+          new ButtonBuilder().setCustomId('ticket_close')      .setLabel('Fermé')         .setEmoji('🔒').setStyle(ButtonStyle.Danger)   .setDisabled(true),
+        );
+        await botMsg.edit({ components: [disabledRow] });
+      }
+    } catch {}
+
+    await channel.send('✅ Ce ticket a été fermé par le dashboard. Le salon sera supprimé dans 5 secondes.');
     setTimeout(() => channel.delete().catch(() => {}), 5000);
 
     res.json({ success: true });
@@ -896,11 +830,7 @@ router.post('/ticket/transcript', auth, async (req, res) => {
       .map(m => `[${new Date(m.createdTimestamp).toLocaleString('fr-FR')}] ${m.author.username}: ${m.content}`)
       .join('\n');
 
-    const { data: configs } = await supabase
-      .from('config')
-      .select('*')
-      .eq('guild_id', guild.id);
-
+    const { data: configs } = await supabase.from('config').select('*').eq('guild_id', guild.id);
     const logChId = configs?.find(c => c.key === 'ticket_logs_channel')?.value;
     if (logChId) {
       const logCh = guild.channels.cache.get(logChId);

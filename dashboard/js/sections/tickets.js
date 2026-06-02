@@ -2,17 +2,13 @@ import { loadConfigs, saveConfig, getConfig } from '../services/configService.js
 import { callBotAPI, fetchSupabase }           from '../api.js';
 import { showToast }                           from '../ui/toast.js';
 
-const TICKET_TYPES = [
-  { id: 'support',      emoji: '🔧', label: 'Support Technique', color: '#5865f2' },
-  { id: 'bug',          emoji: '🐛', label: 'Signaler un Bug',    color: '#ff4444' },
-  { id: 'appeal',       emoji: '⚖️', label: 'Appel de Sanction',  color: '#ffbd2e' },
-  { id: 'partnership',  emoji: '🤝', label: 'Partenariat',        color: '#00ff66' },
-  { id: 'application',  emoji: '📝', label: 'Candidature Staff',  color: '#ff6b35' },
-  { id: 'other',        emoji: '❓', label: 'Autre',              color: '#7fa38a' },
-];
+let currentTicket    = null;
+let currentFilter    = 'all';
+let ticketCategories = [];
 
-let currentTicket = null;
-let currentFilter = 'all';
+const GUILD_ID = '1501685144501620798';
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
 
 export async function initTickets() {
 
@@ -26,53 +22,49 @@ export async function initTickets() {
   const categories   = (channelsData?.channels || []).filter(c => c.type === 'category');
   const roles        = rolesData?.roles || [];
 
-  // ── Dropdowns ────────────────────────────────────────────
-  const chOpts  = `<option value="">Aucun</option>`  + textChannels.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-  const catOpts = `<option value="">Aucune</option>` + categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-  const roleOpts = `<option value="">Aucun</option>` + roles.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+  const chOpts   = `<option value="">Aucun</option>`  + textChannels.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  const catOpts  = `<option value="">Aucune</option>` + categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  const roleOpts = `<option value="">Aucun</option>`  + roles.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
 
-  document.getElementById('ticket-create-channel').innerHTML    = chOpts;
-  document.getElementById('ticket-logs-channel').innerHTML      = chOpts;
-  document.getElementById('ticket-staff-role').innerHTML        = roleOpts;
-  document.getElementById('ticket-leader-role').innerHTML       = roleOpts;
-  document.getElementById('ticket-category-waiting').innerHTML  = catOpts;
-  document.getElementById('ticket-category-active').innerHTML   = catOpts;
-  document.getElementById('ticket-category-closed').innerHTML   =
+  document.getElementById('ticket-create-channel').innerHTML   = chOpts;
+  document.getElementById('ticket-logs-channel').innerHTML     = chOpts;
+  document.getElementById('ticket-staff-role').innerHTML       = roleOpts;
+  document.getElementById('ticket-leader-role').innerHTML      = roleOpts;
+  document.getElementById('ticket-category-waiting').innerHTML = catOpts;
+  document.getElementById('ticket-category-active').innerHTML  = catOpts;
+  document.getElementById('ticket-category-closed').innerHTML  =
     `<option value="">Aucune (suppression auto)</option>` + categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
 
-  // Assignation modal
   document.getElementById('ticket-assign-select').innerHTML =
     `<option value="">Non assigné</option>` + roles.map(r => `<option value="${r.name}">${r.name}</option>`).join('');
 
-  // ── Config sauvegardée ───────────────────────────────────
-  document.getElementById('ticket-create-channel').value   = getConfig(configs, 'ticket_create_channel') || '';
-  document.getElementById('ticket-logs-channel').value     = getConfig(configs, 'ticket_logs_channel')   || '';
-  document.getElementById('ticket-staff-role').value       = getConfig(configs, 'ticket_staff_role')     || '';
-  document.getElementById('ticket-leader-role').value      = getConfig(configs, 'ticket_leader_role')    || '';
+  document.getElementById('ticket-create-channel').value   = getConfig(configs, 'ticket_create_channel')   || '';
+  document.getElementById('ticket-logs-channel').value     = getConfig(configs, 'ticket_logs_channel')     || '';
+  document.getElementById('ticket-staff-role').value       = getConfig(configs, 'ticket_staff_role')       || '';
+  document.getElementById('ticket-leader-role').value      = getConfig(configs, 'ticket_leader_role')      || '';
   document.getElementById('ticket-category-waiting').value = getConfig(configs, 'ticket_category_waiting') || '';
   document.getElementById('ticket-category-active').value  = getConfig(configs, 'ticket_category_active')  || '';
   document.getElementById('ticket-category-closed').value  = getConfig(configs, 'ticket_category_closed')  || '';
   document.getElementById('ticket-transcript').checked     = getConfig(configs, 'ticket_transcript') !== 'false';
 
-  // ── Types de tickets ─────────────────────────────────────
-  renderTicketTypes();
+  await loadTicketCategories();
 
-  // ── Sauvegarder ──────────────────────────────────────────
+  document.getElementById('btn-add-ticket-type').addEventListener('click', addTicketCategory);
+
   document.getElementById('btn-save-tickets').addEventListener('click', async () => {
     await Promise.all([
-      saveConfig('ticket_create_channel',    document.getElementById('ticket-create-channel').value),
-      saveConfig('ticket_logs_channel',      document.getElementById('ticket-logs-channel').value),
-      saveConfig('ticket_staff_role',        document.getElementById('ticket-staff-role').value),
-      saveConfig('ticket_leader_role',       document.getElementById('ticket-leader-role').value),
-      saveConfig('ticket_category_waiting',  document.getElementById('ticket-category-waiting').value),
-      saveConfig('ticket_category_active',   document.getElementById('ticket-category-active').value),
-      saveConfig('ticket_category_closed',   document.getElementById('ticket-category-closed').value),
-      saveConfig('ticket_transcript',        String(document.getElementById('ticket-transcript').checked)),
+      saveConfig('ticket_create_channel',   document.getElementById('ticket-create-channel').value),
+      saveConfig('ticket_logs_channel',     document.getElementById('ticket-logs-channel').value),
+      saveConfig('ticket_staff_role',       document.getElementById('ticket-staff-role').value),
+      saveConfig('ticket_leader_role',      document.getElementById('ticket-leader-role').value),
+      saveConfig('ticket_category_waiting', document.getElementById('ticket-category-waiting').value),
+      saveConfig('ticket_category_active',  document.getElementById('ticket-category-active').value),
+      saveConfig('ticket_category_closed',  document.getElementById('ticket-category-closed').value),
+      saveConfig('ticket_transcript',       String(document.getElementById('ticket-transcript').checked)),
     ]);
     showToast('✅ Configuration sauvegardée !');
   });
 
-  // ── Envoyer panel ─────────────────────────────────────────
   document.getElementById('btn-send-panel').addEventListener('click', async () => {
     const channelId = document.getElementById('ticket-create-channel').value;
     if (!channelId) return showToast('❌ Choisis un salon d\'abord', 'error');
@@ -81,7 +73,6 @@ export async function initTickets() {
     else showToast('❌ Erreur', 'error');
   });
 
-  // ── Filtres ──────────────────────────────────────────────
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -91,12 +82,11 @@ export async function initTickets() {
     });
   });
 
-  // ── Modal ────────────────────────────────────────────────
   document.getElementById('modal-ticket-close').addEventListener('click', closeTicketModal);
 
   document.getElementById('btn-close-ticket').addEventListener('click', async () => {
     if (!currentTicket) return;
-    if (!confirm('Fermer ce ticket ?')) return;
+    if (!confirm('Fermer ce ticket ? Le salon Discord sera supprimé.')) return;
 
     await fetchSupabase(`tickets?id=eq.${currentTicket.id}`, 'PATCH', {
       status   : 'closed',
@@ -151,23 +141,78 @@ export async function initTickets() {
   await loadStats();
 }
 
-// ── Types de tickets ─────────────────────────────────────────────────────────
+// ── CATÉGORIES CUSTOM ─────────────────────────────────────────────────────────
 
-function renderTicketTypes() {
-  const el = document.getElementById('ticket-types-list');
-  el.innerHTML = TICKET_TYPES.map(t => `
-    <div class="ticket-type-row">
-      <span class="ticket-type-emoji">${t.emoji}</span>
-      <span class="ticket-type-label">${t.label}</span>
-      <label class="toggle-switch" style="flex-shrink:0">
-        <input type="checkbox" checked data-type="${t.id}">
-        <span class="toggle-slider"></span>
-      </label>
-    </div>
-  `).join('');
+async function loadTicketCategories() {
+  const data = await fetchSupabase(`ticket_categories?guild_id=eq.${GUILD_ID}&order=position.asc`) || [];
+  ticketCategories = data;
+  renderTicketCategories();
 }
 
-// ── Charger tickets ──────────────────────────────────────────────────────────
+function renderTicketCategories() {
+  const el = document.getElementById('ticket-types-list');
+
+  if (!ticketCategories.length) {
+    el.innerHTML = `<div style="color:var(--text-muted);font-size:0.85rem;padding:0.5rem 0">Aucun type configuré. Ajoute-en un ci-dessous.</div>`;
+    return;
+  }
+
+  el.innerHTML = ticketCategories.map(t => `
+    <div class="ticket-type-row" data-id="${t.id}">
+      <span class="ticket-type-emoji">${t.emoji}</span>
+      <span class="ticket-type-label" style="flex:1">${t.label}</span>
+      <span style="width:12px;height:12px;border-radius:50%;background:${t.color};display:inline-block;margin-right:0.5rem;flex-shrink:0"></span>
+      <label class="toggle-switch" style="flex-shrink:0;margin-right:0.4rem">
+        <input type="checkbox" ${t.active ? 'checked' : ''} data-id="${t.id}" class="toggle-category">
+        <span class="toggle-slider"></span>
+      </label>
+      <button class="btn btn-danger btn-sm btn-delete-category" data-id="${t.id}" style="padding:0.2rem 0.5rem;font-size:0.75rem">🗑</button>
+    </div>
+  `).join('');
+
+  el.querySelectorAll('.toggle-category').forEach(chk => {
+    chk.addEventListener('change', async () => {
+      await fetchSupabase(`ticket_categories?id=eq.${chk.dataset.id}`, 'PATCH', { active: chk.checked });
+      showToast(chk.checked ? '✅ Type activé' : '⚠️ Type désactivé');
+      await loadTicketCategories();
+    });
+  });
+
+  el.querySelectorAll('.btn-delete-category').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('Supprimer ce type de ticket ?')) return;
+      await fetchSupabase(`ticket_categories?id=eq.${btn.dataset.id}`, 'DELETE');
+      showToast('🗑 Type supprimé');
+      await loadTicketCategories();
+    });
+  });
+}
+
+async function addTicketCategory() {
+  const emoji = document.getElementById('new-ticket-emoji').value.trim() || '🎫';
+  const label = document.getElementById('new-ticket-label').value.trim();
+  const color = document.getElementById('new-ticket-color').value       || '#5865f2';
+
+  if (!label) return showToast('❌ Donne un nom au type', 'error');
+
+  await fetchSupabase('ticket_categories', 'POST', {
+    guild_id: GUILD_ID,
+    emoji,
+    label,
+    color,
+    active  : true,
+    position: ticketCategories.length,
+  });
+
+  document.getElementById('new-ticket-emoji').value = '';
+  document.getElementById('new-ticket-label').value = '';
+  document.getElementById('new-ticket-color').value = '#5865f2';
+
+  showToast('✅ Type ajouté');
+  await loadTicketCategories();
+}
+
+// ── TICKETS LIST ──────────────────────────────────────────────────────────────
 
 async function loadTickets() {
   const el = document.getElementById('tickets-list');
@@ -183,19 +228,21 @@ async function loadTickets() {
     return;
   }
 
-  const typeMap = Object.fromEntries(TICKET_TYPES.map(t => [t.id, t]));
+  const catMap = {};
+  ticketCategories.forEach(t => { catMap[t.id] = t; });
+
   const priorityColors = { low: '#00ff66', normal: '#ffbd2e', high: '#ff6b35', critical: '#ff4444' };
 
   el.innerHTML = data.map(t => {
-    const type = typeMap[t.type] || { emoji: '🎫', label: t.type };
+    const cat = catMap[t.type] || { emoji: '🎫', label: t.type };
     return `
       <div class="ticket-card" data-id="${t.id}">
         <div class="ticket-card-header">
           <div class="ticket-card-info">
-            <span class="ticket-emoji">${type.emoji}</span>
+            <span class="ticket-emoji">${cat.emoji}</span>
             <div>
               <div class="ticket-username">${t.username}</div>
-              <div class="ticket-type-name">${type.label}</div>
+              <div class="ticket-type-name">${cat.label}</div>
             </div>
           </div>
           <div style="text-align:right">
@@ -217,36 +264,39 @@ async function loadTickets() {
   });
 }
 
-// ── Ouvrir ticket ────────────────────────────────────────────────────────────
+// ── MODAL TICKET ──────────────────────────────────────────────────────────────
 
 async function openTicket(id, list) {
   currentTicket = list.find(t => t.id === id);
   if (!currentTicket) return;
 
-  const type = TICKET_TYPES.find(t => t.id === currentTicket.type) || { emoji: '🎫', label: currentTicket.type };
+  const catMap = {};
+  ticketCategories.forEach(t => { catMap[t.id] = t; });
+  const cat = catMap[currentTicket.type] || { emoji: '🎫', label: currentTicket.type };
 
-  document.getElementById('modal-ticket-title').textContent = `${type.emoji} Ticket — ${currentTicket.username}`;
+  document.getElementById('modal-ticket-title').textContent = `${cat.emoji} Ticket — ${currentTicket.username}`;
   document.getElementById('modal-ticket').style.display = 'flex';
-
   document.getElementById('ticket-assign-select').value = currentTicket.assigned_to || '';
 
-  // Priorité active
   document.querySelectorAll('.priority-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.priority === currentTicket.priority);
   });
 
-  // Meta
   document.getElementById('ticket-detail-meta').innerHTML = `
     <div class="ticket-meta-grid">
-      <div><span class="meta-label">Type</span><span>${type.emoji} ${type.label}</span></div>
+      <div><span class="meta-label">Type</span><span>${cat.emoji} ${cat.label}</span></div>
       <div><span class="meta-label">Statut</span><span>${statusLabel(currentTicket.status)}</span></div>
       <div><span class="meta-label">Ouvert le</span><span>${new Date(currentTicket.created_at).toLocaleString('fr-FR')}</span></div>
-      ${currentTicket.assigned_to ? `<div><span class="meta-label">Pris en charge par</span><span>🎖️ ${currentTicket.assigned_to}</span></div>` : ''}
-      ${currentTicket.taken_at ? `<div><span class="meta-label">Pris en charge le</span><span>${new Date(currentTicket.taken_at).toLocaleString('fr-FR')}</span></div>` : ''}
+      ${currentTicket.assigned_to ? `<div><span class="meta-label">Assigné à</span><span>🎖️ ${currentTicket.assigned_to}</span></div>` : ''}
+      ${currentTicket.taken_at    ? `<div><span class="meta-label">Pris en charge le</span><span>${new Date(currentTicket.taken_at).toLocaleString('fr-FR')}</span></div>` : ''}
+      ${currentTicket.closed_at   ? `<div><span class="meta-label">Fermé le</span><span>${new Date(currentTicket.closed_at).toLocaleString('fr-FR')}</span></div>` : ''}
     </div>
   `;
 
-  // Notes
+  const btnClose = document.getElementById('btn-close-ticket');
+  btnClose.disabled     = currentTicket.status === 'closed';
+  btnClose.style.opacity = currentTicket.status === 'closed' ? '0.4' : '';
+
   await loadTicketNotes(currentTicket.id);
 }
 
@@ -255,7 +305,7 @@ function closeTicketModal() {
   currentTicket = null;
 }
 
-// ── Notes ticket ─────────────────────────────────────────────────────────────
+// ── NOTES ─────────────────────────────────────────────────────────────────────
 
 async function loadTicketNotes(ticketId) {
   const data = await fetchSupabase(`mod_notes?discord_id=eq.ticket_${ticketId}&order=created_at.desc`) || [];
@@ -290,7 +340,7 @@ async function addTicketNote() {
   await loadTicketNotes(currentTicket.id);
 }
 
-// ── Stats ────────────────────────────────────────────────────────────────────
+// ── STATS ─────────────────────────────────────────────────────────────────────
 
 async function loadStats() {
   const data = await fetchSupabase('tickets?select=status,created_at,closed_at') || [];
@@ -318,7 +368,7 @@ async function loadStats() {
   document.getElementById('stat-tickets-time').textContent       = avgTime;
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── HELPERS ───────────────────────────────────────────────────────────────────
 
 function statusLabel(s) {
   return { open: '🟢 Ouvert', in_progress: '🔵 En cours', closed: '✅ Fermé' }[s] || s;

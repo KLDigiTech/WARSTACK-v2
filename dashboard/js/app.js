@@ -6,6 +6,7 @@ import { getBotStatus }       from './services/botService.js';
 import { getUserPermissions } from './services/permissionService.js';
 import { loadEmojis, attachEmojiPicker } from './components/emojiPicker.js';
 import { initTooltips } from './components/tooltip.js';
+import { initNotifications } from './components/notifications.js';
 
 initModal();
 
@@ -149,6 +150,7 @@ async function initDashboard() {
   const initial = window.location.hash?.replace('#', '') || 'overview';
   await navigate(initial);
   initTooltips();
+  await initNotifications();
 }
 
 initDashboard();

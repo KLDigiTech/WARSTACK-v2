@@ -1,48 +1,125 @@
-<div class="dashboard-container">
+<!-- LIGNE 1 — STATS SERVEUR -->
+<div class="ov-stats-grid">
+  <div class="ov-stat-card">
+    <div class="ov-stat-icon">👥</div>
+    <div class="ov-stat-info">
+      <div class="ov-stat-value" id="ov-members">—</div>
+      <div class="ov-stat-label">Membres</div>
+    </div>
+    <div class="ov-stat-trend" id="ov-members-trend"></div>
+  </div>
+  <div class="ov-stat-card">
+    <div class="ov-stat-icon">🎫</div>
+    <div class="ov-stat-info">
+      <div class="ov-stat-value" id="ov-tickets">—</div>
+      <div class="ov-stat-label">Tickets ouverts</div>
+    </div>
+  </div>
+  <div class="ov-stat-card">
+    <div class="ov-stat-icon">💡</div>
+    <div class="ov-stat-info">
+      <div class="ov-stat-value" id="ov-suggestions">—</div>
+      <div class="ov-stat-label">Suggestions</div>
+    </div>
+  </div>
+  <div class="ov-stat-card">
+    <div class="ov-stat-icon">📅</div>
+    <div class="ov-stat-info">
+      <div class="ov-stat-value" id="ov-events">—</div>
+      <div class="ov-stat-label">Events actifs</div>
+    </div>
+  </div>
+  <div class="ov-stat-card">
+    <div class="ov-stat-icon">🛡</div>
+    <div class="ov-stat-info">
+      <div class="ov-stat-value" id="ov-automod">—</div>
+      <div class="ov-stat-label">Actions AutoMod</div>
+    </div>
+  </div>
+  <div class="ov-stat-card">
+    <div class="ov-stat-icon">⚠️</div>
+    <div class="ov-stat-info">
+      <div class="ov-stat-value" id="ov-warns">—</div>
+      <div class="ov-stat-label">Sanctions semaine</div>
+    </div>
+  </div>
+</div>
 
-  <div class="cards-grid">
+<!-- LIGNE 2 — LAYOUT PRINCIPAL -->
+<div class="ov-main-layout">
 
-    <div class="card">
-      <div class="card-icon"><i class="fas fa-users"></i></div>
-      <div class="card-content">
-        <div class="card-value" id="ov-players">—</div>
-        <div class="card-label">Base de Donées</div>
+  <!-- ACTIVITÉ RÉCENTE -->
+  <div>
+    <div class="panel">
+      <div class="panel-header">
+        <h2>⚡ Activité récente</h2>
+        <span style="font-size:0.72rem;color:var(--text-muted)">Temps réel</span>
+      </div>
+      <div class="panel-body" id="ov-activity-list">
+        <div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-icon"><i class="fas fa-crosshairs"></i></div>
-      <div class="card-content">
-        <div class="card-value" id="ov-kills">—</div>
-        <div class="card-label">Kills totaux</div>
+    <!-- SANTÉ DU BOT -->
+    <div class="panel">
+      <div class="panel-header"><h2>💚 Santé système</h2></div>
+      <div class="panel-body">
+        <div class="ov-health-row">
+          <span>🤖 Bot Discord</span>
+          <span class="ov-health-badge" id="ov-bot-status">—</span>
+        </div>
+        <div class="ov-health-row">
+          <span>🗄 Supabase</span>
+          <span class="ov-health-badge green">🟢 OK</span>
+        </div>
+        <div class="ov-health-row">
+          <span>⏰ Cron Jobs</span>
+          <span class="ov-health-badge green">🟢 OK</span>
+        </div>
+        <div class="ov-health-row">
+          <span>⏱ Uptime</span>
+          <span id="ov-uptime" style="font-size:0.8rem;color:var(--text-dim)">—</span>
+        </div>
       </div>
     </div>
-
-    <div class="card">
-      <div class="card-icon"><i class="fas fa-chart-line"></i></div>
-      <div class="card-content">
-        <div class="card-value" id="ov-kd">—</div>
-        <div class="card-label">Meilleur K/D</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-icon"><i class="fas fa-star"></i></div>
-      <div class="card-content">
-        <div class="card-value" id="ov-mvp">—</div>
-        <div class="card-label">MVP actuel</div>
-      </div>
-    </div>
-
   </div>
 
-  <div class="panel">
-    <div class="panel-header">
-      <h2>🏆 Top 5 Joueurs</h2>
+  <!-- COLONNE DROITE -->
+  <div>
+
+    <!-- TICKETS URGENTS -->
+    <div class="panel">
+      <div class="panel-header" style="justify-content:space-between">
+        <h2>🎫 Tickets ouverts</h2>
+        <a href="#tickets" class="ov-link">Voir tout →</a>
+      </div>
+      <div class="panel-body" id="ov-tickets-list">
+        <div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>
+      </div>
     </div>
-    <div class="panel-body">
-      <div id="top5-list"></div>
+
+    <!-- SUGGESTIONS RÉCENTES -->
+    <div class="panel">
+      <div class="panel-header" style="justify-content:space-between">
+        <h2>💡 Suggestions récentes</h2>
+        <a href="#suggestions" class="ov-link">Voir tout →</a>
+      </div>
+      <div class="panel-body" id="ov-suggestions-list">
+        <div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>
+      </div>
     </div>
+
+    <!-- EVENTS À VENIR -->
+    <div class="panel">
+      <div class="panel-header" style="justify-content:space-between">
+        <h2>📅 Events à venir</h2>
+        <a href="#events" class="ov-link">Voir tout →</a>
+      </div>
+      <div class="panel-body" id="ov-events-list">
+        <div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>
+      </div>
+    </div>
+
   </div>
 
 </div>

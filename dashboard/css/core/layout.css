@@ -2,7 +2,7 @@
   margin-left: var(--sidebar-width);
   width: calc(100% - var(--sidebar-width));
   min-height: 100vh;
-  padding: 82px 34px 26px 34px;
+  padding: 26px 34px;
   display: flex;
   flex-direction: column;
   background:
@@ -25,10 +25,6 @@
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 24px;
   margin-bottom: 10px;
-}
-
-.dash-header {
-  margin-bottom: 32px;
 }
 
 #section-content {

@@ -12,12 +12,10 @@
   border-bottom: 1px solid var(--border);
   background: var(--surface);
   flex-shrink: 0;
-  position: fixed;
+  position: sticky;
   top: 0;
-  right: 0;
-  margin-left: var(--sidebar-width);
-  width: calc(100% - var(--sidebar-width));
   z-index: 99;
+  margin: -26px -34px 26px -34px;
 }
 
 .dash-header-right {
@@ -83,9 +81,9 @@
 
 /* ── Dropdown ── */
 .notif-dropdown {
-  position: fixed;
-  top: 64px;
-  right: 1.5rem;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
   width: 340px;
   background: var(--surface);
   border: 1px solid var(--border);

@@ -47,10 +47,10 @@ async function loadNotifications() {
   const tomorrow  = dayFromNow(1);
 
   const [tickets, suggestions, sanctions, auditLogs, onboardingLogs, events] = await Promise.all([
-    fetchSupabase(`tickets?guild_id=eq.${GUILD_ID}&status=eq.open&order=created_at.desc&limit=5`),
-    fetchSupabase(`suggestions?guild_id=eq.${GUILD_ID}&status=eq.pending&order=created_at.desc&limit=3`),
-    fetchSupabase(`sanctions?guild_id=eq.${GUILD_ID}&active=eq.true&created_at=gte.${yesterday}&order=created_at.desc&limit=3`),
-    fetchSupabase(`audit_logs?guild_id=eq.${GUILD_ID}&type=eq.moderation&action=in.(automod_ban,automod_kick)&created_at=gte.${oneHour}&order=created_at.desc&limit=3`),
+    fetchSupabase(`tickets?guild_id=eq.${GUILD_ID}&status=eq.open&order=created_at.desc&limit=5`).catch(() => []),
+    fetchSupabase(`suggestions?guild_id=eq.${GUILD_ID}&status=eq.pending&order=created_at.desc&limit=3`).catch(() => []),
+    fetchSupabase(`sanctions?guild_id=eq.${GUILD_ID}&active=eq.true&created_at=gte.${yesterday}&order=created_at.desc&limit=3`).catch(() => []),
+    fetchSupabase(`audit_logs?guild_id=eq.${GUILD_ID}&type=eq.moderation&action=in.(automod_ban,automod_kick)&created_at=gte.${oneHour}&order=created_at.desc&limit=3`).catch(() => []),
     fetchSupabase(`onboarding_logs?guild_id=eq.${GUILD_ID}&created_at=gte.${yesterday}&order=created_at.desc&limit=5`).catch(() => []),
     fetchSupabase(`events?guild_id=eq.${GUILD_ID}&start_date=lte.${tomorrow}&start_date=gte.${new Date().toISOString()}&status=eq.active&order=start_date.asc&limit=3`).catch(() => []),
   ]);
@@ -58,7 +58,7 @@ async function loadNotifications() {
   const newNotifs = [];
 
   // 🎫 Tickets ouverts
-  for (const t of tickets || []) {
+  for (const t of (Array.isArray(tickets) ? tickets : [])) {
     const id = `ticket_${t.id}`;
     if (!notifications.find(n => n.id === id)) {
       newNotifs.push({
@@ -76,7 +76,7 @@ async function loadNotifications() {
   }
 
   // 💡 Suggestions en attente
-  for (const s of suggestions || []) {
+  for (const s of (Array.isArray(suggestions) ? suggestions : [])) {
     const id = `sug_${s.id}`;
     if (!notifications.find(n => n.id === id)) {
       newNotifs.push({
@@ -95,7 +95,7 @@ async function loadNotifications() {
 
   // 🛡 Sanctions récentes
   const sanctIcons = { ban: '🔨', kick: '👢', warn: '⚠️', mute: '🔇', timeout: '⏰' };
-  for (const s of sanctions || []) {
+  for (const s of (Array.isArray(sanctions) ? sanctions : [])) {
     const id = `sanc_${s.id}`;
     if (!notifications.find(n => n.id === id)) {
       newNotifs.push({
@@ -113,7 +113,7 @@ async function loadNotifications() {
   }
 
   // 🚨 AutoMod raids
-  for (const l of auditLogs || []) {
+  for (const l of (Array.isArray(auditLogs) ? auditLogs : [])) {
     const id = `automod_${l.id}`;
     if (!notifications.find(n => n.id === id)) {
       newNotifs.push({
@@ -131,7 +131,7 @@ async function loadNotifications() {
   }
 
   // ✅ Nouveaux membres vérifiés (onboarding)
-  for (const o of onboardingLogs || []) {
+  for (const o of (Array.isArray(onboardingLogs) ? onboardingLogs : [])) {
     const id = `ob_${o.id}`;
     if (!notifications.find(n => n.id === id)) {
       newNotifs.push({
@@ -149,7 +149,7 @@ async function loadNotifications() {
   }
 
   // 📅 Events à venir (dans les 24h)
-  for (const e of events || []) {
+  for (const e of (Array.isArray(events) ? events : [])) {
     const id = `event_${e.id}`;
     if (!notifications.find(n => n.id === id)) {
       const diffH = Math.round((new Date(e.start_date) - Date.now()) / 3600000);
@@ -190,7 +190,6 @@ function renderNotifications() {
     return;
   }
 
-  // Grouper par type pour l'affichage
   const typeOrder = ['security', 'ticket', 'moderation', 'onboarding', 'event', 'suggestion'];
   const sorted = [...notifications].sort((a, b) => {
     const ai = typeOrder.indexOf(a.type);
@@ -215,7 +214,6 @@ function renderNotifications() {
     item.addEventListener('click', () => {
       const section = item.dataset.section;
       const id      = item.dataset.id;
-      // Marquer cette notif comme lue
       const notif = notifications.find(n => n.id === id);
       if (notif && !notif.read) {
         notif.read = true;

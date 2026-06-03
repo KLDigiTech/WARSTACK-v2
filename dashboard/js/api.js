@@ -19,8 +19,13 @@ export async function fetchSupabase(endpoint, method = 'GET', body = null, retur
 
   const json = await res.json();
 
+  // Erreur HTTP (400, 401, 404, 500...) → log + retour propre
+  if (!res.ok) {
+    console.warn(`⚠️ Supabase [${res.status}] ${endpoint}`, json?.message || json);
+    return returnData ? { data: null, error: json } : null;
+  }
+
   if (returnData) {
-    // Retourne { data, error } pour les inserts
     if (Array.isArray(json)) return { data: json[0] || null, error: null };
     if (json?.code)          return { data: null, error: json };
     return { data: json, error: null };

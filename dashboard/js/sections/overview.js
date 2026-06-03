@@ -11,7 +11,7 @@ export async function initOverview() {
     loadSuggestions(),
     loadEvents(),
   ]);
-    // Navigation au clic sur les stat cards
+
   document.querySelectorAll('.ov-stat-card').forEach(card => {
     const section = card.dataset.section;
     if (section) {
@@ -22,7 +22,6 @@ export async function initOverview() {
     }
   });
 
-  // Liens "Voir tout"
   document.querySelectorAll('.ov-link').forEach(link => {
     link.addEventListener('click', e => {
       e.preventDefault();
@@ -37,24 +36,24 @@ export async function initOverview() {
 async function loadServerStats() {
   const [guildData, tickets, suggestions, events, sanctions, automodLogs] = await Promise.all([
     callBotAPI('guild'),
-    fetchSupabase(`tickets?guild_id=eq.${GUILD_ID}&status=eq.open&select=id`),
-    fetchSupabase(`suggestions?guild_id=eq.${GUILD_ID}&select=id`),
-    fetchSupabase(`events?guild_id=eq.${GUILD_ID}&status=eq.active&select=id`),
-    fetchSupabase(`sanctions?guild_id=eq.${GUILD_ID}&created_at=gte.${weekAgo()}&select=id`),
-    fetchSupabase(`audit_logs?guild_id=eq.${GUILD_ID}&type=eq.moderation&created_at=gte.${weekAgo()}&select=id`),
+    fetchSupabase(`tickets?guild_id=eq.${GUILD_ID}&status=eq.open&select=id`).catch(() => []),
+    fetchSupabase(`suggestions?select=id`).catch(() => []),
+    fetchSupabase(`events?select=id`).catch(() => []),
+    fetchSupabase(`sanctions?guild_id=eq.${GUILD_ID}&created_at=gte.${weekAgo()}&select=id`).catch(() => []),
+    fetchSupabase(`audit_logs?guild_id=eq.${GUILD_ID}&type=eq.moderation&created_at=gte.${weekAgo()}&select=id`).catch(() => []),
   ]);
 
   document.getElementById('ov-members').textContent     = guildData?.member_count  || '—';
-  document.getElementById('ov-tickets').textContent     = tickets?.length          || '0';
-  document.getElementById('ov-suggestions').textContent = suggestions?.length      || '0';
-  document.getElementById('ov-events').textContent      = events?.length           || '0';
-  document.getElementById('ov-warns').textContent       = sanctions?.length        || '0';
-  document.getElementById('ov-automod').textContent     = automodLogs?.length      || '0';
+  document.getElementById('ov-tickets').textContent     = Array.isArray(tickets)     ? tickets.length     : '0';
+  document.getElementById('ov-suggestions').textContent = Array.isArray(suggestions) ? suggestions.length : '0';
+  document.getElementById('ov-events').textContent      = Array.isArray(events)      ? events.length      : '0';
+  document.getElementById('ov-warns').textContent       = Array.isArray(sanctions)   ? sanctions.length   : '0';
+  document.getElementById('ov-automod').textContent     = Array.isArray(automodLogs) ? automodLogs.length : '0';
 
-  // Couleur tickets si urgents
   const ticketEl = document.getElementById('ov-tickets');
-  if ((tickets?.length || 0) > 5) ticketEl.style.color = 'var(--red)';
-  else if ((tickets?.length || 0) > 0) ticketEl.style.color = 'var(--orange)';
+  const tCount   = Array.isArray(tickets) ? tickets.length : 0;
+  if (tCount > 5)     ticketEl.style.color = 'var(--red)';
+  else if (tCount > 0) ticketEl.style.color = 'var(--orange)';
 }
 
 // ── SANTÉ BOT ─────────────────────────────────────────────────────────────────
@@ -84,7 +83,7 @@ async function loadBotHealth() {
 async function loadActivity() {
   const logs = await fetchSupabase(
     `audit_logs?guild_id=eq.${GUILD_ID}&order=created_at.desc&limit=10`
-  ) || [];
+  ).catch(() => []) || [];
 
   const el = document.getElementById('ov-activity-list');
 
@@ -126,7 +125,7 @@ async function loadActivity() {
 async function loadTickets() {
   const tickets = await fetchSupabase(
     `tickets?guild_id=eq.${GUILD_ID}&status=neq.closed&order=created_at.desc&limit=5`
-  ) || [];
+  ).catch(() => []) || [];
 
   const el = document.getElementById('ov-tickets-list');
 
@@ -158,8 +157,8 @@ async function loadTickets() {
 
 async function loadSuggestions() {
   const suggestions = await fetchSupabase(
-    `suggestions?guild_id=eq.${GUILD_ID}&order=created_at.desc&limit=4`
-  ) || [];
+    `suggestions?order=created_at.desc&limit=4`
+  ).catch(() => []) || [];
 
   const el = document.getElementById('ov-suggestions-list');
 
@@ -195,8 +194,8 @@ async function loadSuggestions() {
 
 async function loadEvents() {
   const events = await fetchSupabase(
-    `events?guild_id=eq.${GUILD_ID}&order=date.asc&limit=3`
-  ) || [];
+    `events?order=date.asc&limit=3`
+  ).catch(() => []) || [];
 
   const el = document.getElementById('ov-events-list');
 

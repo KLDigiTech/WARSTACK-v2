@@ -12,6 +12,12 @@
   border-bottom: 1px solid var(--border);
   background: var(--surface);
   flex-shrink: 0;
+  position: fixed;
+  top: 0;
+  right: 0;
+  margin-left: var(--sidebar-width);
+  width: calc(100% - var(--sidebar-width));
+  z-index: 99;
 }
 
 .dash-header-right {
@@ -77,15 +83,15 @@
 
 /* ── Dropdown ── */
 .notif-dropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
+  position: fixed;
+  top: 64px;
+  right: 1.5rem;
   width: 340px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: 0 12px 40px rgba(0,0,0,0.5);
-  z-index: 9998;
+  z-index: 9999;
   flex-direction: column;
   overflow: hidden;
   animation: notifIn 0.15s ease;
@@ -156,7 +162,6 @@
 .notif-item.read         { opacity: 0.5; }
 .notif-item:last-child   { border-bottom: none; }
 
-/* Accent couleur à gauche selon type */
 .notif-item:not(.read)::before {
   content: '';
   position: absolute;

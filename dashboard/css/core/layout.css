@@ -2,7 +2,7 @@
   margin-left: var(--sidebar-width);
   width: calc(100% - var(--sidebar-width));
   min-height: 100vh;
-  padding: 26px 34px;
+  padding: 82px 34px 26px 34px;
   display: flex;
   flex-direction: column;
   background:

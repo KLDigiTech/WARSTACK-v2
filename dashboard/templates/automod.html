@@ -19,7 +19,9 @@
     <!-- ANTI SPAM -->
     <div class="panel">
       <div class="panel-header">
-        <h2>💬 Anti Spam</h2>
+        <h2>💬 Anti Spam <span class="tooltip-icon"
+            data-tooltip="Détecte et sanctionne les membres qui envoient trop de messages en trop peu de temps.">ⓘ</span>
+        </h2>
         <label class="toggle-switch">
           <input type="checkbox" id="spam-enabled">
           <span class="toggle-slider"></span>
@@ -28,11 +30,13 @@
       <div class="panel-body">
         <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:1rem">
           <div class="form-group">
-            <label>Max messages</label>
+            <label>Max messages <span class="tooltip-icon"
+                data-tooltip="Nombre maximum de messages autorisés dans la période définie. Au-delà, l'action se déclenche.">ⓘ</span></label>
             <input type="number" id="spam-max" class="form-input" value="5" min="2" max="20">
           </div>
           <div class="form-group">
-            <label>Période (secondes)</label>
+            <label>Période (secondes) <span class="tooltip-icon"
+                data-tooltip="Fenêtre de temps en secondes dans laquelle les messages sont comptés.">ⓘ</span></label>
             <input type="number" id="spam-period" class="form-input" value="10" min="3" max="60">
           </div>
         </div>
@@ -70,7 +74,9 @@
     <!-- ANTI RAID -->
     <div class="panel">
       <div class="panel-header">
-        <h2>🚨 Anti Raid</h2>
+        <h2>🚨 Anti Raid <span class="tooltip-icon"
+            data-tooltip="Protège le serveur contre les raids en bloquant les comptes suspects à l'arrivée.">ⓘ</span>
+        </h2>
         <label class="toggle-switch">
           <input type="checkbox" id="raid-enabled">
           <span class="toggle-slider"></span>
@@ -78,7 +84,8 @@
       </div>
       <div class="panel-body">
         <div class="form-group">
-          <label>Bloquer les comptes de moins de</label>
+          <label>Bloquer les comptes de moins de <span class="tooltip-icon"
+              data-tooltip="Les comptes Discord créés récemment sont souvent utilisés pour raider. Ce filtre les bloque automatiquement.">ⓘ</span></label>
           <select id="raid-age" class="form-select">
             <option value="1">1 jour</option>
             <option value="3">3 jours</option>
@@ -88,7 +95,8 @@
         </div>
         <div class="form-group">
           <div class="toggle-row">
-            <label>Bloquer comptes sans avatar</label>
+            <label>Bloquer comptes sans avatar <span class="tooltip-icon"
+                data-tooltip="La majorité des bots de raid n'ont pas d'avatar. Cette option les bloque dès leur arrivée.">ⓘ</span></label>
             <label class="toggle-switch">
               <input type="checkbox" id="raid-no-avatar">
               <span class="toggle-slider"></span>
@@ -109,7 +117,9 @@
     <!-- ANTI LIENS -->
     <div class="panel">
       <div class="panel-header">
-        <h2>🔗 Anti Liens</h2>
+        <h2>🔗 Anti Liens <span class="tooltip-icon"
+            data-tooltip="Filtre les liens externes. Tu peux choisir d'autoriser certains domaines en liste blanche.">ⓘ</span>
+        </h2>
         <label class="toggle-switch">
           <input type="checkbox" id="links-enabled">
           <span class="toggle-slider"></span>
@@ -140,7 +150,9 @@
     <!-- ANTI MENTIONS -->
     <div class="panel">
       <div class="panel-header">
-        <h2>📣 Anti Mass Mention</h2>
+        <h2>📣 Anti Mass Mention <span class="tooltip-icon"
+            data-tooltip="Bloque les messages qui mentionnent trop de membres à la fois, souvent utilisés pour du spam ou du harcèlement.">ⓘ</span>
+        </h2>
         <label class="toggle-switch">
           <input type="checkbox" id="mentions-enabled">
           <span class="toggle-slider"></span>
@@ -165,7 +177,9 @@
     <!-- ANTI CAPS -->
     <div class="panel">
       <div class="panel-header">
-        <h2>🔠 Anti Caps</h2>
+        <h2>🔠 Anti Capslock <span class="tooltip-icon"
+            data-tooltip="Supprime ou warn les messages contenant un pourcentage trop élevé de majuscules.">ⓘ</span>
+        </h2>
         <label class="toggle-switch">
           <input type="checkbox" id="caps-enabled">
           <span class="toggle-slider"></span>

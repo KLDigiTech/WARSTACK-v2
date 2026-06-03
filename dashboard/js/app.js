@@ -5,6 +5,7 @@ import { $ }                  from './utils/dom.js';
 import { getBotStatus }       from './services/botService.js';
 import { getUserPermissions } from './services/permissionService.js';
 import { loadEmojis, attachEmojiPicker } from './components/emojiPicker.js';
+import { initTooltips } from './components/tooltip.js';
 
 initModal();
 
@@ -147,6 +148,7 @@ async function initDashboard() {
   await loadEmojis(); // charger les emojis custom du serveur
   const initial = window.location.hash?.replace('#', '') || 'overview';
   await navigate(initial);
+  initTooltips();
 }
 
 initDashboard();

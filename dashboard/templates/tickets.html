@@ -44,32 +44,38 @@
 
     <!-- CONFIG -->
     <div class="panel">
-      <div class="panel-header"><h2>⚙️ Configuration</h2></div>
+      <div class="panel-header">
+        <h2>⚙️ Configuration</h2>
+      </div>
       <div class="panel-body">
 
         <div class="form-group">
-          <label>Salon de création</label>
+          <label>Salon de création <span class="tooltip-icon"
+              data-tooltip="Salon où le bot envoie le panel avec les boutons pour ouvrir un ticket.">ⓘ</span></label>
           <select id="ticket-create-channel" class="form-select">
             <option value="">Aucun</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label>Salon logs</label>
+          <label>Salon logs <span class="tooltip-icon"
+              data-tooltip="Salon où le bot envoie les transcriptions et notifications à la fermeture des tickets.">ⓘ</span></label>
           <select id="ticket-logs-channel" class="form-select">
             <option value="">Aucun</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label>Rôle Staff <span style="color:var(--text-muted);font-size:0.75rem">(bouton 🎖️)</span></label>
+          <label>Rôle Staff <span class="tooltip-icon"
+              data-tooltip="Ce rôle peut voir tous les tickets et cliquer sur le bouton 🎖️ Prendre en charge.">ⓘ</span></label>
           <select id="ticket-staff-role" class="form-select">
             <option value="">Aucun</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label>Rôle Leader <span style="color:var(--text-muted);font-size:0.75rem">(bouton 👑)</span></label>
+          <label>Rôle Leader <span class="tooltip-icon"
+              data-tooltip="Ce rôle est mentionné quand un membre clique sur 👑 Contacter un Leader.">ⓘ</span></label>
           <select id="ticket-leader-role" class="form-select">
             <option value="">Aucun</option>
           </select>
@@ -81,21 +87,24 @@
         </div>
 
         <div class="form-group">
-          <label>📥 À prendre en charge</label>
+          <label>📥 À prendre en charge <span class="tooltip-icon"
+              data-tooltip="Catégorie Discord où sont déplacés les nouveaux tickets en attente de prise en charge.">ⓘ</span></label>
           <select id="ticket-category-waiting" class="form-select">
             <option value="">Aucune</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label>🔵 Pris en charge</label>
+          <label>🔵 Pris en charge <span class="tooltip-icon"
+              data-tooltip="Catégorie Discord où sont déplacés les tickets quand un staff clique sur Prendre en charge.">ⓘ</span></label>
           <select id="ticket-category-active" class="form-select">
             <option value="">Aucune</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label>🔒 Clôturé</label>
+          <label>🔒 Clôturé <span class="tooltip-icon"
+              data-tooltip="Catégorie Discord où sont archivés les tickets fermés. Si vide, le salon est supprimé automatiquement.">ⓘ</span></label>
           <select id="ticket-category-closed" class="form-select">
             <option value="">Aucune (suppression auto)</option>
           </select>
@@ -103,7 +112,9 @@
 
         <div class="form-group">
           <div class="toggle-row">
-            <label>Transcription à la fermeture</label>
+            <label style="display:flex;align-items:center;gap:0.3rem">Transcription à la fermeture <span
+                class="tooltip-icon"
+                data-tooltip="Quand activé, le bot envoie un fichier .txt avec tout l'historique du ticket dans le salon logs.">ⓘ</span></label>
             <label class="toggle-switch">
               <input type="checkbox" id="ticket-transcript" checked>
               <span class="toggle-slider"></span>
@@ -124,7 +135,9 @@
 
     <!-- TYPES DE TICKETS -->
     <div class="panel">
-      <div class="panel-header"><h2>🏷️ Types de tickets</h2></div>
+      <div class="panel-header">
+        <h2>🏷️ Types de tickets</h2>
+      </div>
       <div class="panel-body">
 
         <div class="ticket-types-list" id="ticket-types-list">
@@ -133,9 +146,12 @@
 
         <div class="welcome-section-title" style="margin:1rem 0 0.5rem">Ajouter un type</div>
         <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center">
-          <input type="text" id="new-ticket-emoji" class="form-input" placeholder="🎫" style="width:60px;text-align:center" maxlength="2">
-          <input type="text" id="new-ticket-label" class="form-input" placeholder="Nom du type..." style="flex:1;min-width:120px">
-          <input type="color" id="new-ticket-color" value="#5865f2" style="width:40px;height:36px;border:none;border-radius:6px;cursor:pointer;background:none">
+          <input type="text" id="new-ticket-emoji" class="form-input" placeholder="🎫"
+            style="width:60px;text-align:center" maxlength="2">
+          <input type="text" id="new-ticket-label" class="form-input" placeholder="Nom du type..."
+            style="flex:1;min-width:120px">
+          <input type="color" id="new-ticket-color" value="#5865f2"
+            style="width:40px;height:36px;border:none;border-radius:6px;cursor:pointer;background:none">
           <button class="btn btn-primary btn-sm" id="btn-add-ticket-type">
             <i class="fas fa-plus"></i> Ajouter
           </button>

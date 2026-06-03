@@ -73,7 +73,8 @@
             <input type="number" id="event-max" class="form-input" placeholder="64" min="1">
           </div>
           <div class="form-group">
-            <label>Salon d'annonce</label>
+            <label>Salon annonces <span class="tooltip-icon"
+                data-tooltip="Salon où le bot publie l'annonce de l'événement avec les boutons RSVP.">ⓘ</span></label>
             <select id="event-channel" class="form-select">
               <option value="">Aucun</option>
             </select>
@@ -105,7 +106,8 @@
 
         <div class="form-group">
           <div class="toggle-row">
-            <label>Check-in 30min avant l'événement</label>
+            <label>Check-in <span class="tooltip-icon"
+                data-tooltip="Quand activé, les participants doivent confirmer leur présence peu avant l'événement.">ⓘ</span></label>
             <label class="toggle-switch">
               <input type="checkbox" id="event-checkin">
               <span class="toggle-slider"></span>
@@ -203,8 +205,8 @@
 
         <!-- Liste participants -->
         <div class="welcome-section-title">Participants</div>
-        <input type="text" id="participant-search" class="form-input"
-          placeholder="Rechercher un participant..." style="margin-bottom:0.75rem">
+        <input type="text" id="participant-search" class="form-input" placeholder="Rechercher un participant..."
+          style="margin-bottom:0.75rem">
         <div id="participants-list">
           <div style="color:var(--text-muted);font-size:0.85rem">Sélectionne un événement.</div>
         </div>
@@ -231,8 +233,7 @@
       <button class="btn btn-secondary btn-sm" id="modal-contact-close">✕</button>
     </div>
     <div class="modal-body">
-      <textarea id="contact-message" class="form-textarea" rows="5"
-        placeholder="Votre message..."></textarea>
+      <textarea id="contact-message" class="form-textarea" rows="5" placeholder="Votre message..."></textarea>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" id="modal-contact-cancel">Annuler</button>

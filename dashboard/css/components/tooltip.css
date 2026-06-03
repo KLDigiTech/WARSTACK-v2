@@ -1,0 +1,51 @@
+/* ═══════════════════════════════════════
+   TOOLTIP
+═══════════════════════════════════════ */
+
+.tooltip-bubble {
+  position: absolute;
+  z-index: 99999;
+  background: #1a1d23;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  max-width: 260px;
+  line-height: 1.5;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.15s, transform 0.15s;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  white-space: normal;
+}
+
+.tooltip-bubble.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.tooltip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  font-weight: 700;
+  cursor: help;
+  margin-left: 0.3rem;
+  vertical-align: middle;
+  flex-shrink: 0;
+  transition: background 0.15s;
+  font-style: normal;
+}
+
+.tooltip-icon:hover {
+  background: var(--green-glow);
+  color: var(--green);
+}

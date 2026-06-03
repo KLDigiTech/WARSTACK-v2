@@ -45,6 +45,7 @@ const sections = {
   players:     () => import('./sections/players.js').then(m => m.initPlayers()),
   tournament:  () => import('./sections/tournament.js').then(m => m.initTournament()),
   welcome:     () => import('./sections/welcome.js').then(m => m.initWelcome()),
+  onboarding:  () => import('./sections/onboarding.js').then(m => m.initOnboarding()),
   roles:       () => import('./sections/roles.js').then(m => m.initRoles()),
   birthdays:   () => import('./sections/birthdays.js').then(m => m.initBirthdays()),
   suggestions: () => import('./sections/suggestions.js').then(m => m.initSuggestions()),
@@ -63,7 +64,7 @@ const sections = {
 };
 
 const PUBLIC_SECTIONS = [
-  'overview', 'players', 'tournament', 'welcome', 'roles',
+  'overview', 'players', 'tournament', 'welcome', 'onboarding', 'roles',
   'birthdays', 'suggestions', 'events', 'origine',
   'messages', 'reactions', 'channels', 'ocr-test',
 ];

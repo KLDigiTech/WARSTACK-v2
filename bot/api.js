@@ -5,6 +5,7 @@ const { updateLeaderboard }     = require('./jobs/leaderboard');
 const { postMVP }               = require('./jobs/mvp');
 const { postTournamentResults } = require('./jobs/tournament-results');
 const supabase                  = require('./services/supabase');
+const { postOnboardingPanel }   = require('./services/onboarding');
 
 const router  = express.Router();
 const API_KEY = process.env.API_KEY || 'warstack-secret-2026';
@@ -938,4 +939,24 @@ router.post('/reaction-roles/send', auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// ── ONBOARDING — Poster le panel ──────────────────────
+router.post('/onboarding/post', auth, async (req, res) => {
+  try {
+    const { channel_id, ...payload } = req.body;
+    if (!channel_id) return res.status(400).json({ error: 'channel_id manquant' });
+
+    const guild   = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
+
+    const channel = guild.channels.cache.get(channel_id);
+    if (!channel) return res.status(404).json({ error: 'Salon introuvable' });
+
+    await postOnboardingPanel(channel, payload);
+    res.json({ success: true, message: 'Panel onboarding envoyé !' });
+  } catch (err) {
+    console.error('❌ onboarding/post error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

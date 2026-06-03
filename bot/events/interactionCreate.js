@@ -1,4 +1,5 @@
 const supabase = require('../services/supabase');
+const { handleOnboardingInteraction } = require('../services/onboarding');
 
 module.exports = {
   name: 'interactionCreate',
@@ -27,6 +28,20 @@ module.exports = {
         }
       }
       return;
+    }
+
+    // ── ONBOARDING ────────────────────────────────────────
+    if (
+      (interaction.isButton() || interaction.isStringSelectMenu()) &&
+      (
+        interaction.customId === 'ob_accept_rules' ||
+        interaction.customId.startsWith('ob_team_') ||
+        interaction.customId.startsWith('ob_plat_') ||
+        interaction.customId === 'ob_games_select'
+      )
+    ) {
+      const handled = await handleOnboardingInteraction(interaction);
+      if (handled) return;
     }
 
     // ── BOUTONS OUVERTURE TICKET (ticket_cat_{uuid}) ──────

@@ -1,0 +1,554 @@
+/* ═══════════════════════════════════════
+   ONBOARDING — Vérification membres
+═══════════════════════════════════════ */
+
+.onboarding-layout {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* ── Hint texte gris ── */
+.ob-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+/* ══ ÉQUIPES ═══════════════════════════ */
+
+.ob-teams-list,
+.ob-games-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.ob-team-item,
+.ob-game-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.85rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color 0.2s;
+}
+
+.ob-team-item:hover,
+.ob-game-item:hover {
+  border-color: var(--border-hover);
+}
+
+.ob-item-emoji {
+  font-size: 1.1rem;
+  width: 1.5rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.ob-item-name {
+  flex: 1;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.5px;
+}
+
+.ob-item-role {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  background: var(--surface-3);
+  padding: 2px 6px;
+  border-radius: 2px;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ob-item-delete {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 4px 6px;
+  border-radius: var(--radius);
+  transition: color 0.2s, background 0.2s;
+  flex-shrink: 0;
+}
+
+.ob-item-delete:hover {
+  color: var(--red);
+  background: rgba(255, 68, 68, 0.08);
+}
+
+/* Formulaire ajout équipe/jeu */
+.ob-team-add-form {
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.ob-team-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.ob-emoji-input {
+  width: 56px !important;
+  text-align: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+/* ══ PLATEFORMES ══════════════════════ */
+
+.ob-platforms-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.ob-platform-item {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.85rem 0.75rem;
+  transition: border-color 0.2s;
+}
+
+.ob-platform-item:hover {
+  border-color: var(--border-hover);
+}
+
+.ob-platform-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: 1px;
+  margin-bottom: 0.65rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.ob-sublabel {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* ══ VARIABLES BAR (réutilisée) ═══════ */
+
+.variables-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+  align-items: center;
+}
+
+.var-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-right: 0.25rem;
+}
+
+.var-btn {
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  color: var(--green);
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius);
+  font-size: 0.78rem;
+  cursor: pointer;
+  font-family: 'Courier New', monospace;
+  transition: all 0.15s;
+}
+
+.var-btn:hover {
+  background: var(--green);
+  color: #000;
+  border-color: var(--green);
+}
+
+/* ══ TOGGLE (réutilisé) ═══════════════ */
+
+.toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.toggle-slider:before {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  left: 3px;
+  bottom: 3px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  transition: 0.2s;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background: var(--green);
+  border-color: var(--green);
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+  background: #000;
+}
+
+/* ══ APERÇU DISCORD ═══════════════════ */
+
+.ob-preview-steps {
+  position: relative;
+  min-height: 200px;
+}
+
+.ob-preview-step {
+  display: none;
+}
+
+.ob-preview-step.active {
+  display: block;
+}
+
+.ob-step-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-muted);
+  margin-bottom: 0.6rem;
+}
+
+.ob-step-mockup {
+  background: #313338;
+  border-radius: 6px;
+  padding: 0.85rem 1rem;
+}
+
+.ob-mock-msg {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.ob-mock-head {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.3rem;
+}
+
+.ob-mock-botname {
+  font-weight: 700;
+  color: #fff;
+  font-size: 0.88rem;
+}
+
+.ob-mock-badge {
+  background: #5865F2;
+  color: #fff;
+  font-size: 0.58rem;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-weight: 700;
+}
+
+.ob-mock-body {
+  background: #2b2d31;
+  border-radius: 4px;
+  padding: 0.75rem;
+}
+
+.ob-mock-rules-preview {
+  font-size: 0.78rem;
+  color: #dbdee1;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+.ob-mock-btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}
+
+.ob-mock-btn-accept {
+  background: #57f287;
+  color: #000;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.3rem 0.75rem;
+  border-radius: 3px;
+  cursor: default;
+}
+
+.ob-mock-btn-team,
+.ob-mock-btn-platform,
+.ob-mock-btn-game {
+  background: #4f545c;
+  color: #fff;
+  font-size: 0.72rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 3px;
+  cursor: default;
+}
+
+.ob-mock-btn-valid {
+  background: #57f287;
+  color: #000;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.3rem 0.75rem;
+  border-radius: 3px;
+  cursor: default;
+  margin-top: 0.4rem;
+  display: inline-block;
+}
+
+/* Navigation aperçu */
+.ob-preview-nav {
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+}
+
+.ob-prev-nav-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ob-prev-nav-btn:hover {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.ob-prev-nav-btn.active {
+  background: var(--green);
+  border-color: var(--green);
+  color: #000;
+  font-weight: 700;
+}
+
+/* ══ STATISTIQUES ═════════════════════ */
+
+.ob-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.ob-stat-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.85rem 0.5rem;
+  text-align: center;
+}
+
+.ob-stat-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: 1px;
+  line-height: 1;
+  margin-bottom: 0.3rem;
+}
+
+.ob-stat-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.ob-team-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ob-team-stat-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.ob-ts-label {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  min-width: 80px;
+}
+
+.ob-ts-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: var(--surface-3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.ob-ts-bar {
+  height: 100%;
+  background: var(--green);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.ob-ts-count {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  min-width: 20px;
+  text-align: right;
+}
+
+/* ══ LISTE VÉRIFICATIONS ══════════════ */
+
+.ob-recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.ob-recent-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.75rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color 0.2s;
+}
+
+.ob-recent-item:hover {
+  border-color: var(--border-hover);
+}
+
+.ob-recent-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--surface-3);
+  flex-shrink: 0;
+  object-fit: cover;
+}
+
+.ob-recent-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ob-recent-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ob-recent-meta {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.ob-recent-badge {
+  font-size: 0.6rem;
+  padding: 2px 6px;
+  border-radius: 2px;
+  letter-spacing: 1px;
+  font-weight: 700;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  background: var(--green-glow);
+  border: 1px solid var(--green);
+  color: var(--green);
+}
+
+.ob-empty {
+  text-align: center;
+  padding: 2rem 1rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* ══ RESPONSIVE ═══════════════════════ */
+
+@media (max-width: 1100px) {
+  .onboarding-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .ob-platforms-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ob-stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .ob-team-row {
+    flex-wrap: wrap;
+  }
+}

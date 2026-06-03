@@ -2,6 +2,7 @@
    NOTIFICATIONS CENTER
 ═══════════════════════════════════════ */
 
+/* ── Header ── */
 .dash-header {
   display: flex;
   align-items: center;
@@ -25,7 +26,7 @@
   font-family: monospace;
 }
 
-/* BELL */
+/* ── Cloche ── */
 .notif-wrapper {
   position: relative;
 }
@@ -35,7 +36,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   color: var(--text-muted);
-  padding: 0.4rem 0.6rem;
+  padding: 0.4rem 0.65rem;
   cursor: pointer;
   font-size: 0.9rem;
   transition: all 0.15s;
@@ -56,26 +57,34 @@
   right: -6px;
   background: var(--red);
   color: #fff;
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   font-weight: 700;
-  width: 16px;
+  min-width: 16px;
   height: 16px;
-  border-radius: 50%;
+  border-radius: 8px;
+  padding: 0 3px;
+  display: flex;
   align-items: center;
   justify-content: center;
   border: 2px solid var(--surface);
+  animation: badgePop 0.2s ease;
 }
 
-/* DROPDOWN */
+@keyframes badgePop {
+  from { transform: scale(0.5); }
+  to   { transform: scale(1); }
+}
+
+/* ── Dropdown ── */
 .notif-dropdown {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  width: 320px;
+  width: 340px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
   z-index: 9998;
   flex-direction: column;
   overflow: hidden;
@@ -83,7 +92,7 @@
 }
 
 @keyframes notifIn {
-  from { opacity: 0; transform: translateY(4px); }
+  from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
@@ -91,37 +100,47 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 1rem;
+  padding: 0.7rem 1rem;
   border-bottom: 1px solid var(--border);
-  font-size: 0.82rem;
-  font-weight: 600;
+  background: var(--surface-2);
+}
+
+.notif-header span {
+  font-size: 0.8rem;
+  font-weight: 700;
   color: var(--text);
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
 .notif-clear {
   background: none;
   border: none;
   color: var(--text-muted);
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   cursor: pointer;
   transition: color 0.15s;
+  font-family: inherit;
 }
 
 .notif-clear:hover { color: var(--green); }
 
+/* ── Liste ── */
 .notif-list {
-  max-height: 380px;
+  max-height: 400px;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
 }
 
 .notif-empty {
-  padding: 1.5rem;
+  padding: 2rem 1rem;
   text-align: center;
   color: var(--text-muted);
   font-size: 0.82rem;
 }
 
-/* ITEMS */
+/* ── Items ── */
 .notif-item {
   display: flex;
   align-items: flex-start;
@@ -133,27 +152,47 @@
   position: relative;
 }
 
-.notif-item:hover { background: var(--surface-3); }
-.notif-item.read  { opacity: 0.55; }
-.notif-item:last-child { border-bottom: none; }
+.notif-item:hover        { background: var(--surface-2); }
+.notif-item.read         { opacity: 0.5; }
+.notif-item:last-child   { border-bottom: none; }
 
-.notif-item-icon {
-  font-size: 1.1rem;
-  flex-shrink: 0;
-  margin-top: 0.1rem;
+/* Accent couleur à gauche selon type */
+.notif-item:not(.read)::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: currentColor;
+  opacity: 0.3;
 }
 
-.notif-item-content { flex: 1; min-width: 0; }
+.notif-item-icon {
+  font-size: 1.05rem;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  width: 22px;
+  text-align: center;
+}
+
+.notif-item-content {
+  flex: 1;
+  min-width: 0;
+}
 
 .notif-item-title {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--text);
   margin-bottom: 0.15rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .notif-item-text {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
@@ -161,9 +200,10 @@
 }
 
 .notif-item-time {
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   color: var(--text-muted);
-  margin-top: 0.2rem;
+  margin-top: 0.25rem;
+  opacity: 0.7;
 }
 
 .notif-unread-dot {
@@ -172,10 +212,11 @@
   border-radius: 50%;
   background: var(--green);
   flex-shrink: 0;
-  margin-top: 0.3rem;
+  margin-top: 0.35rem;
+  box-shadow: 0 0 6px rgba(0,255,100,0.5);
 }
 
-/* STATUS BOT dans le header */
+/* ── Status bot header ── */
 .dash-status {
   display: flex;
   align-items: center;

@@ -1,17 +1,18 @@
 import { fetchSupabase } from '../api.js';
+import { GUILD_ID }      from '../config.js';
 
-const GUILD_ID = '1501685144501620798';
-let notifications  = [];
-let unreadCount    = 0;
+let notifications = [];
+let unreadCount   = 0;
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
 
 export async function initNotifications() {
   const bell     = document.getElementById('notif-bell');
   const dropdown = document.getElementById('notif-dropdown');
   const clearBtn = document.getElementById('notif-clear');
 
-  // Toggle dropdown
   bell.addEventListener('click', e => {
     e.stopPropagation();
     const open = dropdown.style.display === 'flex';
@@ -19,14 +20,12 @@ export async function initNotifications() {
     if (!open) markAllRead();
   });
 
-  // Fermer au clic extérieur
   document.addEventListener('click', e => {
     if (!document.getElementById('notif-wrapper').contains(e.target)) {
       dropdown.style.display = 'none';
     }
   });
 
-  // Tout marquer lu
   clearBtn.addEventListener('click', () => {
     notifications.forEach(n => n.read = true);
     unreadCount = 0;
@@ -34,26 +33,31 @@ export async function initNotifications() {
     renderNotifications();
   });
 
-  // Charger au démarrage
   await loadNotifications();
-
-  // Rafraîchir toutes les 30 secondes
   setInterval(loadNotifications, 30000);
 }
 
-// ── CHARGER ───────────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════
+// CHARGER
+// ════════════════════════════════════════════════════════
 
 async function loadNotifications() {
-  const [tickets, suggestions, sanctions, auditLogs] = await Promise.all([
+  const yesterday = hoursAgo(24);
+  const oneHour   = hoursAgo(1);
+  const tomorrow  = dayFromNow(1);
+
+  const [tickets, suggestions, sanctions, auditLogs, onboardingLogs, events] = await Promise.all([
     fetchSupabase(`tickets?guild_id=eq.${GUILD_ID}&status=eq.open&order=created_at.desc&limit=5`),
     fetchSupabase(`suggestions?guild_id=eq.${GUILD_ID}&status=eq.pending&order=created_at.desc&limit=3`),
-    fetchSupabase(`sanctions?guild_id=eq.${GUILD_ID}&active=eq.true&created_at=gte.${hoursAgo(24)}&order=created_at.desc&limit=3`),
-    fetchSupabase(`audit_logs?guild_id=eq.${GUILD_ID}&type=eq.moderation&action=in.(automod_ban,automod_kick)&created_at=gte.${hoursAgo(1)}&order=created_at.desc&limit=3`),
+    fetchSupabase(`sanctions?guild_id=eq.${GUILD_ID}&active=eq.true&created_at=gte.${yesterday}&order=created_at.desc&limit=3`),
+    fetchSupabase(`audit_logs?guild_id=eq.${GUILD_ID}&type=eq.moderation&action=in.(automod_ban,automod_kick)&created_at=gte.${oneHour}&order=created_at.desc&limit=3`),
+    fetchSupabase(`onboarding_logs?guild_id=eq.${GUILD_ID}&created_at=gte.${yesterday}&order=created_at.desc&limit=5`).catch(() => []),
+    fetchSupabase(`events?guild_id=eq.${GUILD_ID}&start_date=lte.${tomorrow}&start_date=gte.${new Date().toISOString()}&status=eq.active&order=start_date.asc&limit=3`).catch(() => []),
   ]);
 
   const newNotifs = [];
 
-  // Tickets ouverts critiques
+  // 🎫 Tickets ouverts
   for (const t of tickets || []) {
     const id = `ticket_${t.id}`;
     if (!notifications.find(n => n.id === id)) {
@@ -63,7 +67,7 @@ async function loadNotifications() {
         icon   : '🎫',
         color  : 'var(--orange)',
         title  : `Ticket ouvert — ${t.username}`,
-        text   : `Type : ${t.type}`,
+        text   : `Type : ${t.type || 'Général'}`,
         time   : t.created_at,
         section: 'tickets',
         read   : false,
@@ -71,7 +75,7 @@ async function loadNotifications() {
     }
   }
 
-  // Suggestions en attente
+  // 💡 Suggestions en attente
   for (const s of suggestions || []) {
     const id = `sug_${s.id}`;
     if (!notifications.find(n => n.id === id)) {
@@ -79,9 +83,9 @@ async function loadNotifications() {
         id,
         type   : 'suggestion',
         icon   : '💡',
-        color  : '#ffbd2e',
+        color  : 'var(--yellow)',
         title  : `Nouvelle suggestion`,
-        text   : s.content?.slice(0, 50) + '...',
+        text   : (s.content || '').slice(0, 60) + (s.content?.length > 60 ? '...' : ''),
         time   : s.created_at,
         section: 'suggestions',
         read   : false,
@@ -89,17 +93,17 @@ async function loadNotifications() {
     }
   }
 
-  // Sanctions récentes
+  // 🛡 Sanctions récentes
+  const sanctIcons = { ban: '🔨', kick: '👢', warn: '⚠️', mute: '🔇', timeout: '⏰' };
   for (const s of sanctions || []) {
     const id = `sanc_${s.id}`;
     if (!notifications.find(n => n.id === id)) {
-      const icons = { ban: '🔨', kick: '👢', warn: '⚠️', mute: '🔇', timeout: '⏰' };
       newNotifs.push({
         id,
         type   : 'moderation',
-        icon   : icons[s.type] || '🛡',
+        icon   : sanctIcons[s.type] || '🛡️',
         color  : 'var(--red)',
-        title  : `${s.type?.toUpperCase()} — ${s.username}`,
+        title  : `${(s.type || 'SANCTION').toUpperCase()} — ${s.username}`,
         text   : s.reason || 'Aucune raison',
         time   : s.created_at,
         section: 'moderation',
@@ -108,7 +112,7 @@ async function loadNotifications() {
     }
   }
 
-  // AutoMod raids
+  // 🚨 AutoMod raids
   for (const l of auditLogs || []) {
     const id = `automod_${l.id}`;
     if (!notifications.find(n => n.id === id)) {
@@ -126,9 +130,46 @@ async function loadNotifications() {
     }
   }
 
+  // ✅ Nouveaux membres vérifiés (onboarding)
+  for (const o of onboardingLogs || []) {
+    const id = `ob_${o.id}`;
+    if (!notifications.find(n => n.id === id)) {
+      newNotifs.push({
+        id,
+        type   : 'onboarding',
+        icon   : '✅',
+        color  : 'var(--green)',
+        title  : `Nouveau membre vérifié`,
+        text   : `${o.username}${o.team ? ` — ${o.team}` : ''}${o.platform ? ` • ${o.platform}` : ''}`,
+        time   : o.created_at,
+        section: 'onboarding',
+        read   : false,
+      });
+    }
+  }
+
+  // 📅 Events à venir (dans les 24h)
+  for (const e of events || []) {
+    const id = `event_${e.id}`;
+    if (!notifications.find(n => n.id === id)) {
+      const diffH = Math.round((new Date(e.start_date) - Date.now()) / 3600000);
+      newNotifs.push({
+        id,
+        type   : 'event',
+        icon   : '📅',
+        color  : '#5865F2',
+        title  : `Event dans ${diffH}h — ${e.name || 'Événement'}`,
+        text   : e.description ? e.description.slice(0, 60) + '...' : 'Pense à prévenir les participants.',
+        time   : e.created_at || new Date().toISOString(),
+        section: 'events',
+        read   : false,
+      });
+    }
+  }
+
   if (newNotifs.length) {
     notifications = [...newNotifs, ...notifications].slice(0, 30);
-    unreadCount += newNotifs.length;
+    unreadCount  += newNotifs.length;
     updateBadge();
     renderNotifications();
   } else if (!notifications.length) {
@@ -136,18 +177,30 @@ async function loadNotifications() {
   }
 }
 
-// ── RENDER ────────────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════
+// RENDER
+// ════════════════════════════════════════════════════════
 
 function renderNotifications() {
   const el = document.getElementById('notif-list');
+  if (!el) return;
 
   if (!notifications.length) {
     el.innerHTML = `<div class="notif-empty">✅ Aucune notification</div>`;
     return;
   }
 
-  el.innerHTML = notifications.map(n => `
-    <div class="notif-item ${n.read ? 'read' : ''}" data-section="${n.section}">
+  // Grouper par type pour l'affichage
+  const typeOrder = ['security', 'ticket', 'moderation', 'onboarding', 'event', 'suggestion'];
+  const sorted = [...notifications].sort((a, b) => {
+    const ai = typeOrder.indexOf(a.type);
+    const bi = typeOrder.indexOf(b.type);
+    if (ai !== bi) return ai - bi;
+    return new Date(b.time) - new Date(a.time);
+  });
+
+  el.innerHTML = sorted.map(n => `
+    <div class="notif-item ${n.read ? 'read' : ''}" data-section="${n.section}" data-id="${n.id}">
       <div class="notif-item-icon" style="color:${n.color}">${n.icon}</div>
       <div class="notif-item-content">
         <div class="notif-item-title">${n.title}</div>
@@ -158,22 +211,30 @@ function renderNotifications() {
     </div>
   `).join('');
 
-  // Clic sur une notif → naviguer vers la section
   el.querySelectorAll('.notif-item').forEach(item => {
     item.addEventListener('click', () => {
       const section = item.dataset.section;
-      if (section) {
-        document.getElementById('notif-dropdown').style.display = 'none';
-        document.querySelector(`[data-section="${section}"]`)?.click();
+      const id      = item.dataset.id;
+      // Marquer cette notif comme lue
+      const notif = notifications.find(n => n.id === id);
+      if (notif && !notif.read) {
+        notif.read = true;
+        unreadCount = Math.max(0, unreadCount - 1);
+        updateBadge();
       }
+      document.getElementById('notif-dropdown').style.display = 'none';
+      if (section) document.querySelector(`[data-section="${section}"]`)?.click();
     });
   });
 }
 
-// ── BADGE ─────────────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════
+// BADGE
+// ════════════════════════════════════════════════════════
 
 function updateBadge() {
   const badge = document.getElementById('notif-badge');
+  if (!badge) return;
   if (unreadCount > 0) {
     badge.textContent   = unreadCount > 9 ? '9+' : unreadCount;
     badge.style.display = 'flex';
@@ -189,15 +250,20 @@ function markAllRead() {
   renderNotifications();
 }
 
-// ── HELPERS ───────────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════════
 
 function hoursAgo(h) {
-  const d = new Date();
-  d.setHours(d.getHours() - h);
-  return d.toISOString();
+  return new Date(Date.now() - h * 3600000).toISOString();
+}
+
+function dayFromNow(d) {
+  return new Date(Date.now() + d * 86400000).toISOString();
 }
 
 function timeAgo(iso) {
+  if (!iso) return '—';
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
   if (mins < 1)  return 'À l\'instant';

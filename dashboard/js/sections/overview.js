@@ -11,6 +11,25 @@ export async function initOverview() {
     loadSuggestions(),
     loadEvents(),
   ]);
+    // Navigation au clic sur les stat cards
+  document.querySelectorAll('.ov-stat-card').forEach(card => {
+    const section = card.dataset.section;
+    if (section) {
+      card.style.cursor = 'pointer';
+      card.addEventListener('click', () => {
+        document.querySelector(`[data-section="${section}"]`)?.click();
+      });
+    }
+  });
+
+  // Liens "Voir tout"
+  document.querySelectorAll('.ov-link').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const section = link.getAttribute('href').replace('#', '');
+      document.querySelector(`[data-section="${section}"]`)?.click();
+    });
+  });
 }
 
 // ── STATS SERVEUR ─────────────────────────────────────────────────────────────

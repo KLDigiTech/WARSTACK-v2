@@ -45,14 +45,15 @@ async function loadNotifications() {
   const yesterday = hoursAgo(24);
   const oneHour   = hoursAgo(1);
   const tomorrow  = dayFromNow(1);
+  const now       = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
   const [tickets, suggestions, sanctions, auditLogs, onboardingLogs, events] = await Promise.all([
     fetchSupabase(`tickets?guild_id=eq.${GUILD_ID}&status=eq.open&order=created_at.desc&limit=5`).catch(() => []),
-    fetchSupabase(`suggestions?guild_id=eq.${GUILD_ID}&status=eq.pending&order=created_at.desc&limit=3`).catch(() => []),
+    fetchSupabase(`suggestions?status=eq.pending&order=created_at.desc&limit=3`).catch(() => []),
     fetchSupabase(`sanctions?guild_id=eq.${GUILD_ID}&active=eq.true&created_at=gte.${yesterday}&order=created_at.desc&limit=3`).catch(() => []),
     fetchSupabase(`audit_logs?guild_id=eq.${GUILD_ID}&type=eq.moderation&action=in.(automod_ban,automod_kick)&created_at=gte.${oneHour}&order=created_at.desc&limit=3`).catch(() => []),
     fetchSupabase(`onboarding_logs?guild_id=eq.${GUILD_ID}&created_at=gte.${yesterday}&order=created_at.desc&limit=5`).catch(() => []),
-    fetchSupabase(`events?guild_id=eq.${GUILD_ID}&start_date=lte.${tomorrow}&start_date=gte.${new Date().toISOString()}&status=eq.active&order=start_date.asc&limit=3`).catch(() => []),
+    fetchSupabase(`events?date=gte.${now}&status=eq.open&order=date.asc&limit=3`).catch(() => []),
   ]);
 
   const newNotifs = [];
@@ -148,18 +149,17 @@ async function loadNotifications() {
     }
   }
 
-  // 📅 Events à venir (dans les 24h)
+  // 📅 Events à venir
   for (const e of (Array.isArray(events) ? events : [])) {
     const id = `event_${e.id}`;
     if (!notifications.find(n => n.id === id)) {
-      const diffH = Math.round((new Date(e.start_date) - Date.now()) / 3600000);
       newNotifs.push({
         id,
         type   : 'event',
         icon   : '📅',
         color  : '#5865F2',
-        title  : `Event dans ${diffH}h — ${e.name || 'Événement'}`,
-        text   : e.description ? e.description.slice(0, 60) + '...' : 'Pense à prévenir les participants.',
+        title  : `Event à venir — ${e.title || 'Événement'}`,
+        text   : e.description ? e.description.slice(0, 60) + '...' : `📅 ${e.date || ''}${e.time ? ' à ' + e.time : ''}`,
         time   : e.created_at || new Date().toISOString(),
         section: 'events',
         read   : false,

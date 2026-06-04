@@ -19,7 +19,42 @@
   </div>
 </div>
 
-<!-- MODAL AJOUT JOUEUR -->
+<!-- ── TIMELINE PANEL (slide-in) ── -->
+<div id="timeline-overlay" style="display:none" onclick="if(event.target===this)closeTimeline()"></div>
+<div id="timeline-panel">
+  <div id="timeline-header">
+    <div id="timeline-identity">
+      <img id="tl-avatar" src="" alt="">
+      <div>
+        <div id="tl-username"></div>
+        <div id="tl-division"></div>
+      </div>
+    </div>
+    <button id="timeline-close" onclick="closeTimeline()"><i class="fas fa-times"></i></button>
+  </div>
+
+  <div id="tl-stats-bar">
+    <div class="tl-stat"><span>K/D</span><strong id="tl-kd">—</strong></div>
+    <div class="tl-stat"><span>KILLS</span><strong id="tl-kills">—</strong></div>
+    <div class="tl-stat"><span>WIN%</span><strong id="tl-winrate">—</strong></div>
+    <div class="tl-stat"><span>SCORE WS</span><strong id="tl-score" style="color:var(--green)">—</strong></div>
+  </div>
+
+  <div id="tl-filters">
+    <button class="tl-filter active" data-filter="all">Tout</button>
+    <button class="tl-filter" data-filter="member">Membre</button>
+    <button class="tl-filter" data-filter="moderation">Sanctions</button>
+    <button class="tl-filter" data-filter="tournament">Tournois</button>
+    <button class="tl-filter" data-filter="rank">Rang</button>
+  </div>
+
+  <div id="tl-body">
+    <div id="tl-loading"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
+    <div id="tl-list"></div>
+  </div>
+</div>
+
+<!-- ── MODAL AJOUT JOUEUR ── -->
 <div class="modal-overlay" id="modal-add-player" style="display:none">
   <div class="modal-add-box">
     <div class="modal-add-header">
@@ -28,7 +63,6 @@
     </div>
     <div class="modal-add-body">
 
-      <!-- DISCORD ID EN PREMIER → auto-fill username + avatar -->
       <div class="form-group">
         <label class="form-label">DISCORD ID <span style="color:var(--text-muted);font-size:0.75rem">(colle l'ID → username auto)</span></label>
         <div style="display:flex;gap:0.5rem">

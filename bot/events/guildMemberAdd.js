@@ -1,4 +1,5 @@
-const supabase = require('../services/supabase');
+const supabase          = require('../services/supabase');
+const { fireRules }     = require('../jobs/rule-engine');
 
 function getConfig(configs, key) {
   return configs?.find(c => c.key === key)?.value || null;
@@ -26,6 +27,9 @@ module.exports = {
         author_name : member.user.username,
         extra       : { account_created: member.user.createdAt },
       }).catch(() => {});
+
+      // ── Rule Engine ────────────────────────────────────
+      await fireRules(guild.id, 'member_join', { member, guild });
 
       // ── Anti Raid ──────────────────────────────────────
       const raidEnabled = getConfig(configs, 'automod_raid_enabled') === 'true';

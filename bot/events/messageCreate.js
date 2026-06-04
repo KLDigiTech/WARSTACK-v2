@@ -1,6 +1,7 @@
-const supabase = require('../services/supabase');
+const supabase      = require('../services/supabase');
+const { fireRules } = require('../jobs/rule-engine');
 
-const spamTracker = new Map(); // discord_id → { count, timer, violations }
+const spamTracker = new Map();
 
 function getConfig(configs, key) {
   return configs?.find(c => c.key === key)?.value || null;
@@ -12,7 +13,7 @@ async function applyAction(member, action, reason, guild, logChannelId) {
       case 'warn':
         await member.send(`⚠️ Avertissement sur **${guild.name}** : ${reason}`).catch(() => {});
         break;
-      case 'delete': break; // géré en amont
+      case 'delete': break;
       case 'timeout':
         await member.timeout(10 * 60 * 1000, reason);
         break;
@@ -24,7 +25,6 @@ async function applyAction(member, action, reason, guild, logChannelId) {
         break;
     }
 
-    // Log en BDD
     await supabase.from('sanctions').insert({
       guild_id      : guild.id,
       discord_id    : member.user.id,
@@ -36,7 +36,6 @@ async function applyAction(member, action, reason, guild, logChannelId) {
       active        : true,
     });
 
-    // Log salon
     if (logChannelId) {
       const logChannel = guild.channels.cache.get(logChannelId);
       if (logChannel) {
@@ -60,7 +59,6 @@ module.exports = {
 
     const guild = message.guild;
 
-    // Charger config
     const { data: configs } = await supabase
       .from('config')
       .select('*')
@@ -68,14 +66,12 @@ module.exports = {
 
     if (!configs?.length) return;
 
-    const logChannelId    = getConfig(configs, 'automod_logs_channel');
-    const exceptChannels  = JSON.parse(getConfig(configs, 'automod_except_channels') || '[]');
-    const exceptRoles     = JSON.parse(getConfig(configs, 'automod_except_roles')    || '[]');
+    const logChannelId   = getConfig(configs, 'automod_logs_channel');
+    const exceptChannels = JSON.parse(getConfig(configs, 'automod_except_channels') || '[]');
+    const exceptRoles    = JSON.parse(getConfig(configs, 'automod_except_roles')    || '[]');
 
-    // Exceptions salon
     if (exceptChannels.includes(message.channelId)) return;
 
-    // Exceptions rôle
     const member = message.member;
     if (!member) return;
     if (member.roles.cache.some(r => exceptRoles.includes(r.id))) return;
@@ -85,11 +81,11 @@ module.exports = {
 
     // ── ANTI SPAM ──────────────────────────────────────────
     if (getConfig(configs, 'automod_spam_enabled') === 'true') {
-      const maxMsg    = parseInt(getConfig(configs, 'automod_spam_max')    || '5');
-      const period    = parseInt(getConfig(configs, 'automod_spam_period') || '10') * 1000;
-      const action1   = getConfig(configs, 'automod_spam_action1') || 'warn';
-      const action2   = getConfig(configs, 'automod_spam_action2') || 'timeout';
-      const action3   = getConfig(configs, 'automod_spam_action3') || 'kick';
+      const maxMsg  = parseInt(getConfig(configs, 'automod_spam_max')    || '5');
+      const period  = parseInt(getConfig(configs, 'automod_spam_period') || '10') * 1000;
+      const action1 = getConfig(configs, 'automod_spam_action1') || 'warn';
+      const action2 = getConfig(configs, 'automod_spam_action2') || 'timeout';
+      const action3 = getConfig(configs, 'automod_spam_action3') || 'kick';
 
       const userId = message.author.id;
       if (!spamTracker.has(userId)) {
@@ -115,13 +111,14 @@ module.exports = {
                      : action3;
 
         await applyAction(member, action, `Spam détecté (${tracker.violations} violations)`, guild, logChannelId);
+        await fireRules(guild.id, 'message_spam', { member, guild, message, content });
       }
     }
 
     // ── ANTI LIENS ─────────────────────────────────────────
     if (getConfig(configs, 'automod_links_enabled') === 'true') {
-      const urlRegex    = /(https?:\/\/[^\s]+)/gi;
-      const whitelist   = (getConfig(configs, 'automod_links_whitelist') || '').split('\n').map(d => d.trim().toLowerCase()).filter(Boolean);
+      const urlRegex  = /(https?:\/\/[^\s]+)/gi;
+      const whitelist = (getConfig(configs, 'automod_links_whitelist') || '').split('\n').map(d => d.trim().toLowerCase()).filter(Boolean);
       const linksAction = getConfig(configs, 'automod_links_action') || 'delete';
 
       const urls = content.match(urlRegex);
@@ -181,9 +178,9 @@ module.exports = {
 
     // ── MOTS INTERDITS ─────────────────────────────────────
     if (getConfig(configs, 'automod_words_enabled') === 'true') {
-      const wordsList  = (getConfig(configs, 'automod_words_list') || '').split('\n').map(w => w.trim().toLowerCase()).filter(Boolean);
+      const wordsList   = (getConfig(configs, 'automod_words_list') || '').split('\n').map(w => w.trim().toLowerCase()).filter(Boolean);
       const wordsAction = getConfig(configs, 'automod_words_action') || 'delete';
-      const lower      = content.toLowerCase();
+      const lower       = content.toLowerCase();
 
       const found = wordsList.find(w => lower.includes(w));
       if (found) {
@@ -191,5 +188,13 @@ module.exports = {
         await applyAction(member, wordsAction, `Mot interdit détecté`, guild, logChannelId);
       }
     }
+
+    // ── RULE ENGINE — message_contains ─────────────────────
+    await fireRules(guild.id, 'message_contains', {
+      member,
+      guild,
+      message,
+      content,
+    });
   }
 };

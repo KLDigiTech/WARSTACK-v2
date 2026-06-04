@@ -1,0 +1,104 @@
+<div class="rb-header">
+  <div>
+    <p class="rb-subtitle">Automatise les actions de ton serveur sans coder</p>
+  </div>
+  <button class="btn btn-primary" id="btn-new-rule">
+    <i class="fas fa-plus"></i> Nouvelle règle
+  </button>
+</div>
+
+<div id="rb-rules-list"></div>
+
+<!-- ── MODAL ÉDITEUR ── -->
+<div id="rb-modal-overlay" style="display:none" onclick="if(event.target===this)closeRuleModal()"></div>
+<div id="rb-modal">
+  <div id="rb-modal-header">
+    <span id="rb-modal-title">Nouvelle règle</span>
+    <button onclick="closeRuleModal()"><i class="fas fa-times"></i></button>
+  </div>
+  <div id="rb-modal-body">
+
+    <div class="form-group">
+      <label class="form-label">NOM DE LA RÈGLE</label>
+      <input type="text" class="form-input" id="rb-name" placeholder="ex: Auto-kick après 3 warns">
+    </div>
+
+    <!-- TRIGGER -->
+    <div class="rb-block rb-block--trigger">
+      <div class="rb-block-header">
+        <i class="fas fa-bolt"></i> DÉCLENCHEUR — Si...
+      </div>
+      <div class="rb-block-body">
+        <div class="form-group">
+          <label class="form-label">ÉVÉNEMENT</label>
+          <select class="form-input" id="rb-trigger-type">
+            <option value="">— Choisir —</option>
+            <optgroup label="Membres">
+              <option value="member_join">Un membre rejoint</option>
+              <option value="member_leave">Un membre quitte</option>
+              <option value="member_warn">Un membre reçoit un warn</option>
+              <option value="member_warns_reach">Un membre atteint X warns</option>
+            </optgroup>
+            <optgroup label="Suggestions">
+              <option value="suggestion_approved">Suggestion approuvée</option>
+              <option value="suggestion_rejected">Suggestion rejetée</option>
+            </optgroup>
+            <optgroup label="Tickets">
+              <option value="ticket_open">Ticket ouvert</option>
+              <option value="ticket_close">Ticket fermé</option>
+            </optgroup>
+            <optgroup label="Messages">
+              <option value="message_contains">Message contient un mot</option>
+              <option value="message_spam">Spam détecté</option>
+            </optgroup>
+          </select>
+        </div>
+        <div id="rb-trigger-config"></div>
+      </div>
+    </div>
+
+    <!-- ARROW -->
+    <div class="rb-arrow"><i class="fas fa-arrow-down"></i></div>
+
+    <!-- ACTION -->
+    <div class="rb-block rb-block--action">
+      <div class="rb-block-header">
+        <i class="fas fa-cog"></i> ACTION — Alors...
+      </div>
+      <div class="rb-block-body">
+        <div class="form-group">
+          <label class="form-label">ACTION</label>
+          <select class="form-input" id="rb-action-type">
+            <option value="">— Choisir —</option>
+            <optgroup label="Membre">
+              <option value="send_dm">Envoyer un DM au membre</option>
+              <option value="add_role">Ajouter un rôle</option>
+              <option value="remove_role">Retirer un rôle</option>
+              <option value="kick_member">Kick le membre</option>
+              <option value="ban_member">Ban le membre</option>
+              <option value="mute_member">Mute le membre</option>
+            </optgroup>
+            <optgroup label="Salon">
+              <option value="send_message">Envoyer un message dans un salon</option>
+              <option value="delete_message">Supprimer le message</option>
+            </optgroup>
+            <optgroup label="Logs">
+              <option value="log_action">Logger l'action</option>
+            </optgroup>
+          </select>
+        </div>
+        <div id="rb-action-config"></div>
+      </div>
+    </div>
+
+    <div id="rb-modal-error" class="hint err" style="display:none"></div>
+
+    <div id="rb-modal-footer">
+      <button class="btn btn-secondary" onclick="closeRuleModal()">Annuler</button>
+      <button class="btn btn-primary" id="rb-save-btn">
+        <i class="fas fa-save"></i> Enregistrer
+      </button>
+    </div>
+
+  </div>
+</div>

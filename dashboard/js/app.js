@@ -62,12 +62,13 @@ const sections = {
   settings:    () => import('./sections/settings.js').then(m => m.initSettings()),
   'ocr-test':  () => import('./sections/ocr-test.js').then(m => m.initOcrTest()),
   origine:     () => import('./sections/origine.js').then(m => m.initOrigine()),
+  rulebuilder: () => import('./sections/rulebuilder.js').then(m => m.initRuleBuilder()),
 };
 
 const PUBLIC_SECTIONS = [
   'overview', 'players', 'analytics', 'tournament', 'welcome', 'onboarding', 'roles',
   'birthdays', 'suggestions', 'events', 'origine',
-  'messages', 'reactions', 'channels', 'ocr-test',
+  'messages', 'reactions', 'channels', 'ocr-test','rulebuilder',
 ];
 
 const RESTRICTED_SECTIONS = [

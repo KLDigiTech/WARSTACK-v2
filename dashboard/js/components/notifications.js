@@ -3,21 +3,65 @@ import { GUILD_ID }      from '../config.js';
 
 let notifications = [];
 let unreadCount   = 0;
+let activeFilter  = 'all';
 
-// ════════════════════════════════════════════════════════
-// INIT
-// ════════════════════════════════════════════════════════
+// ── INIT ──────────────────────────────────────────────────────────────────────
 
 export async function initNotifications() {
   const bell     = document.getElementById('notif-bell');
   const dropdown = document.getElementById('notif-dropdown');
   const clearBtn = document.getElementById('notif-clear');
 
+  // Remplacer le header basique par le header premium
+  const header = dropdown.querySelector('.notif-header');
+  if (header) {
+    header.innerHTML = `
+      <div class="notif-header-left">
+        <span class="notif-header-title">Notifications</span>
+        <span class="notif-count-badge" id="notif-count-badge" style="display:none">0</span>
+      </div>
+      <button class="notif-clear" id="notif-clear">Tout lire</button>
+    `;
+  }
+
+  // Injecter les filtres après le header
+  const filterBar = document.createElement('div');
+  filterBar.className = 'notif-filters';
+  filterBar.id = 'notif-filters';
+  filterBar.innerHTML = `
+    <button class="notif-filter-btn active" data-filter="all">Tout</button>
+    <button class="notif-filter-btn" data-filter="security">🚨 Sécurité</button>
+    <button class="notif-filter-btn" data-filter="ticket">🎫 Tickets</button>
+    <button class="notif-filter-btn" data-filter="moderation">🛡 Modération</button>
+    <button class="notif-filter-btn" data-filter="suggestion">💡 Suggestions</button>
+    <button class="notif-filter-btn" data-filter="onboarding">✅ Membres</button>
+    <button class="notif-filter-btn" data-filter="event">📅 Events</button>
+  `;
+  dropdown.insertBefore(filterBar, dropdown.querySelector('.notif-list'));
+
+  // Ajouter footer
+  const list = dropdown.querySelector('.notif-list');
+  const footer = document.createElement('div');
+  footer.className = 'notif-footer';
+  footer.innerHTML = `<button class="notif-footer-btn" id="notif-clear-all">🗑 Effacer tout l'historique</button>`;
+  dropdown.appendChild(footer);
+
+  // Events filtres
+  filterBar.querySelectorAll('.notif-filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBar.querySelectorAll('.notif-filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.dataset.filter;
+      renderNotifications();
+    });
+  });
+
+  // Toggle dropdown
   bell.addEventListener('click', e => {
     e.stopPropagation();
-    const open = dropdown.style.display === 'flex';
-    dropdown.style.display = open ? 'none' : 'flex';
-    if (!open) markAllRead();
+    const isOpen = dropdown.style.display === 'flex';
+    dropdown.style.display = isOpen ? 'none' : 'flex';
+    if (!isOpen) markAllRead();
   });
 
   document.addEventListener('click', e => {
@@ -26,26 +70,29 @@ export async function initNotifications() {
     }
   });
 
-  clearBtn.addEventListener('click', () => {
-    notifications.forEach(n => n.read = true);
-    unreadCount = 0;
-    updateBadge();
-    renderNotifications();
+  // Clear boutons
+  dropdown.addEventListener('click', e => {
+    if (e.target.id === 'notif-clear' || e.target.closest('#notif-clear')) {
+      markAllRead();
+    }
+    if (e.target.id === 'notif-clear-all' || e.target.closest('#notif-clear-all')) {
+      notifications = [];
+      unreadCount = 0;
+      updateBadge();
+      renderNotifications();
+    }
   });
 
   await loadNotifications();
   setInterval(loadNotifications, 30000);
 }
 
-// ════════════════════════════════════════════════════════
-// CHARGER
-// ════════════════════════════════════════════════════════
+// ── CHARGER ───────────────────────────────────────────────────────────────────
 
 async function loadNotifications() {
   const yesterday = hoursAgo(24);
   const oneHour   = hoursAgo(1);
-  const tomorrow  = dayFromNow(1);
-  const now       = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  const now       = new Date().toISOString().split('T')[0];
 
   const [tickets, suggestions, sanctions, auditLogs, onboardingLogs, events] = await Promise.all([
     fetchSupabase(`tickets?guild_id=eq.${GUILD_ID}&status=eq.open&order=created_at.desc&limit=5`).catch(() => []),
@@ -58,186 +105,179 @@ async function loadNotifications() {
 
   const newNotifs = [];
 
-  // 🎫 Tickets ouverts
-  for (const t of (Array.isArray(tickets) ? tickets : [])) {
-    const id = `ticket_${t.id}`;
+  const add = (id, notif) => {
     if (!notifications.find(n => n.id === id)) {
-      newNotifs.push({
-        id,
-        type   : 'ticket',
-        icon   : '🎫',
-        color  : 'var(--orange)',
-        title  : `Ticket ouvert — ${t.username}`,
-        text   : `Type : ${t.type || 'Général'}`,
-        time   : t.created_at,
-        section: 'tickets',
-        read   : false,
-      });
+      newNotifs.push({ id, ...notif, read: false });
     }
+  };
+
+  for (const t of arr(tickets)) {
+    add(`ticket_${t.id}`, {
+      type: 'ticket', icon: '🎫',
+      color: 'var(--warning)', bg: 'rgba(255,189,46,.12)',
+      title: `Ticket — ${t.username}`,
+      text: `Type : ${t.type || 'Général'}`,
+      time: t.created_at, section: 'tickets',
+    });
   }
 
-  // 💡 Suggestions en attente
-  for (const s of (Array.isArray(suggestions) ? suggestions : [])) {
-    const id = `sug_${s.id}`;
-    if (!notifications.find(n => n.id === id)) {
-      newNotifs.push({
-        id,
-        type   : 'suggestion',
-        icon   : '💡',
-        color  : 'var(--yellow)',
-        title  : `Nouvelle suggestion`,
-        text   : (s.content || '').slice(0, 60) + (s.content?.length > 60 ? '...' : ''),
-        time   : s.created_at,
-        section: 'suggestions',
-        read   : false,
-      });
-    }
+  for (const s of arr(suggestions)) {
+    add(`sug_${s.id}`, {
+      type: 'suggestion', icon: '💡',
+      color: 'var(--info)', bg: 'rgba(64,196,255,.1)',
+      title: 'Nouvelle suggestion',
+      text: (s.content || '').slice(0, 60) + (s.content?.length > 60 ? '…' : ''),
+      time: s.created_at, section: 'suggestions',
+    });
   }
 
-  // 🛡 Sanctions récentes
   const sanctIcons = { ban: '🔨', kick: '👢', warn: '⚠️', mute: '🔇', timeout: '⏰' };
-  for (const s of (Array.isArray(sanctions) ? sanctions : [])) {
-    const id = `sanc_${s.id}`;
-    if (!notifications.find(n => n.id === id)) {
-      newNotifs.push({
-        id,
-        type   : 'moderation',
-        icon   : sanctIcons[s.type] || '🛡️',
-        color  : 'var(--red)',
-        title  : `${(s.type || 'SANCTION').toUpperCase()} — ${s.username}`,
-        text   : s.reason || 'Aucune raison',
-        time   : s.created_at,
-        section: 'moderation',
-        read   : false,
-      });
-    }
+  for (const s of arr(sanctions)) {
+    add(`sanc_${s.id}`, {
+      type: 'moderation', icon: sanctIcons[s.type] || '🛡️',
+      color: 'var(--danger)', bg: 'var(--danger-soft)',
+      title: `${(s.type || 'SANCTION').toUpperCase()} — ${s.username}`,
+      text: s.reason || 'Aucune raison',
+      time: s.created_at, section: 'moderation',
+    });
   }
 
-  // 🚨 AutoMod raids
-  for (const l of (Array.isArray(auditLogs) ? auditLogs : [])) {
-    const id = `automod_${l.id}`;
-    if (!notifications.find(n => n.id === id)) {
-      newNotifs.push({
-        id,
-        type   : 'security',
-        icon   : '🚨',
-        color  : 'var(--red)',
-        title  : `AutoMod — ${l.action === 'automod_ban' ? 'Ban' : 'Kick'}`,
-        text   : `${l.author_name || 'Inconnu'} — Raid détecté`,
-        time   : l.created_at,
-        section: 'automod',
-        read   : false,
-      });
-    }
+  for (const l of arr(auditLogs)) {
+    add(`automod_${l.id}`, {
+      type: 'security', icon: '🚨',
+      color: 'var(--danger)', bg: 'var(--danger-soft)',
+      title: `AutoMod — ${l.action === 'automod_ban' ? 'Ban' : 'Kick'}`,
+      text: `${l.author_name || 'Inconnu'} — Raid détecté`,
+      time: l.created_at, section: 'automod',
+    });
   }
 
-  // ✅ Nouveaux membres vérifiés (onboarding)
-  for (const o of (Array.isArray(onboardingLogs) ? onboardingLogs : [])) {
-    const id = `ob_${o.id}`;
-    if (!notifications.find(n => n.id === id)) {
-      newNotifs.push({
-        id,
-        type   : 'onboarding',
-        icon   : '✅',
-        color  : 'var(--green)',
-        title  : `Nouveau membre vérifié`,
-        text   : `${o.username}${o.team ? ` — ${o.team}` : ''}${o.platform ? ` • ${o.platform}` : ''}`,
-        time   : o.created_at,
-        section: 'onboarding',
-        read   : false,
-      });
-    }
+  for (const o of arr(onboardingLogs)) {
+    add(`ob_${o.id}`, {
+      type: 'onboarding', icon: '✅',
+      color: 'var(--success)', bg: 'var(--success-soft)',
+      title: 'Nouveau membre vérifié',
+      text: `${o.username}${o.team ? ` — ${o.team}` : ''}${o.platform ? ` · ${o.platform}` : ''}`,
+      time: o.created_at, section: 'onboarding',
+    });
   }
 
-  // 📅 Events à venir
-  for (const e of (Array.isArray(events) ? events : [])) {
-    const id = `event_${e.id}`;
-    if (!notifications.find(n => n.id === id)) {
-      newNotifs.push({
-        id,
-        type   : 'event',
-        icon   : '📅',
-        color  : '#5865F2',
-        title  : `Event à venir — ${e.title || 'Événement'}`,
-        text   : e.description ? e.description.slice(0, 60) + '...' : `📅 ${e.date || ''}${e.time ? ' à ' + e.time : ''}`,
-        time   : e.created_at || new Date().toISOString(),
-        section: 'events',
-        read   : false,
-      });
-    }
+  for (const e of arr(events)) {
+    add(`event_${e.id}`, {
+      type: 'event', icon: '📅',
+      color: '#5865F2', bg: 'rgba(88,101,242,.12)',
+      title: `Event — ${e.title || 'Événement'}`,
+      text: `📅 ${e.date || ''}${e.time ? ' à ' + e.time : ''}`,
+      time: e.created_at || new Date().toISOString(), section: 'events',
+    });
   }
 
   if (newNotifs.length) {
-    notifications = [...newNotifs, ...notifications].slice(0, 30);
+    notifications = [...newNotifs, ...notifications].slice(0, 50);
     unreadCount  += newNotifs.length;
     updateBadge();
     renderNotifications();
+    // Shake la cloche
+    document.getElementById('notif-bell')?.classList.add('has-unread');
   } else if (!notifications.length) {
     renderNotifications();
   }
 }
 
-// ════════════════════════════════════════════════════════
-// RENDER
-// ════════════════════════════════════════════════════════
+// ── RENDER ────────────────────────────────────────────────────────────────────
 
 function renderNotifications() {
   const el = document.getElementById('notif-list');
   if (!el) return;
 
-  if (!notifications.length) {
-    el.innerHTML = `<div class="notif-empty">✅ Aucune notification</div>`;
+  // Filtre actif
+  const filtered = activeFilter === 'all'
+    ? notifications
+    : notifications.filter(n => n.type === activeFilter);
+
+  if (!filtered.length) {
+    el.innerHTML = `
+      <div class="notif-empty">
+        <i class="fas fa-bell-slash"></i>
+        ${activeFilter === 'all' ? 'Aucune notification' : 'Aucune notification dans cette catégorie'}
+      </div>`;
     return;
   }
 
-  const typeOrder = ['security', 'ticket', 'moderation', 'onboarding', 'event', 'suggestion'];
-  const sorted = [...notifications].sort((a, b) => {
+  // Tri priorité puis date
+  const typeOrder = ['security', 'moderation', 'ticket', 'onboarding', 'event', 'suggestion'];
+  const sorted = [...filtered].sort((a, b) => {
+    if (a.read !== b.read) return a.read ? 1 : -1; // non-lus en premier
     const ai = typeOrder.indexOf(a.type);
     const bi = typeOrder.indexOf(b.type);
     if (ai !== bi) return ai - bi;
     return new Date(b.time) - new Date(a.time);
   });
 
-  el.innerHTML = sorted.map(n => `
-    <div class="notif-item ${n.read ? 'read' : ''}" data-section="${n.section}" data-id="${n.id}">
-      <div class="notif-item-icon" style="color:${n.color}">${n.icon}</div>
-      <div class="notif-item-content">
-        <div class="notif-item-title">${n.title}</div>
-        <div class="notif-item-text">${n.text}</div>
-        <div class="notif-item-time">${timeAgo(n.time)}</div>
-      </div>
-      ${!n.read ? '<div class="notif-unread-dot"></div>' : ''}
-    </div>
-  `).join('');
+  // Groupement par date
+  const groups = {};
+  for (const n of sorted) {
+    const label = dateGroupLabel(n.time);
+    if (!groups[label]) groups[label] = [];
+    groups[label].push(n);
+  }
 
+  let html = '';
+  for (const [label, items] of Object.entries(groups)) {
+    html += `<div class="notif-group-label">${label}</div>`;
+    html += items.map(n => `
+      <div class="notif-item ${n.read ? 'read' : ''}"
+           data-section="${n.section}"
+           data-id="${n.id}"
+           style="--notif-color:${n.color}">
+        <div class="notif-item-icon" style="background:${n.bg || 'var(--surface-3)'}">
+          ${n.icon}
+        </div>
+        <div class="notif-item-content">
+          <div class="notif-item-title">${n.title}</div>
+          <div class="notif-item-text">${n.text}</div>
+          <div class="notif-item-time">${timeAgo(n.time)}</div>
+        </div>
+        ${!n.read ? '<div class="notif-unread-dot"></div>' : ''}
+      </div>
+    `).join('');
+  }
+
+  el.innerHTML = html;
+
+  // Clicks items
   el.querySelectorAll('.notif-item').forEach(item => {
     item.addEventListener('click', () => {
-      const section = item.dataset.section;
-      const id      = item.dataset.id;
-      const notif = notifications.find(n => n.id === id);
+      const notif = notifications.find(n => n.id === item.dataset.id);
       if (notif && !notif.read) {
         notif.read = true;
         unreadCount = Math.max(0, unreadCount - 1);
         updateBadge();
+        item.classList.add('read');
+        item.querySelector('.notif-unread-dot')?.remove();
       }
       document.getElementById('notif-dropdown').style.display = 'none';
+      const section = item.dataset.section;
       if (section) document.querySelector(`[data-section="${section}"]`)?.click();
     });
   });
 }
 
-// ════════════════════════════════════════════════════════
-// BADGE
-// ════════════════════════════════════════════════════════
+// ── BADGE ─────────────────────────────────────────────────────────────────────
 
 function updateBadge() {
-  const badge = document.getElementById('notif-badge');
-  if (!badge) return;
+  const badge      = document.getElementById('notif-badge');
+  const countBadge = document.getElementById('notif-count-badge');
+
   if (unreadCount > 0) {
-    badge.textContent   = unreadCount > 9 ? '9+' : unreadCount;
-    badge.style.display = 'flex';
+    const label = unreadCount > 9 ? '9+' : String(unreadCount);
+    if (badge)      { badge.textContent = label; badge.style.display = 'flex'; }
+    if (countBadge) { countBadge.textContent = `${unreadCount} non lues`; countBadge.style.display = 'inline-block'; }
+    document.getElementById('notif-bell')?.classList.add('has-unread');
   } else {
-    badge.style.display = 'none';
+    if (badge)      badge.style.display = 'none';
+    if (countBadge) countBadge.style.display = 'none';
+    document.getElementById('notif-bell')?.classList.remove('has-unread');
   }
 }
 
@@ -248,16 +288,12 @@ function markAllRead() {
   renderNotifications();
 }
 
-// ════════════════════════════════════════════════════════
-// HELPERS
-// ════════════════════════════════════════════════════════
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+
+function arr(v) { return Array.isArray(v) ? v : []; }
 
 function hoursAgo(h) {
   return new Date(Date.now() - h * 3600000).toISOString();
-}
-
-function dayFromNow(d) {
-  return new Date(Date.now() + d * 86400000).toISOString();
 }
 
 function timeAgo(iso) {
@@ -265,8 +301,20 @@ function timeAgo(iso) {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
   if (mins < 1)  return 'À l\'instant';
-  if (mins < 60) return `Il y a ${mins}min`;
+  if (mins < 60) return `${mins}min`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24)  return `Il y a ${hrs}h`;
-  return `Il y a ${Math.floor(hrs / 24)}j`;
+  if (hrs < 24)  return `${hrs}h`;
+  return `${Math.floor(hrs / 24)}j`;
+}
+
+function dateGroupLabel(iso) {
+  if (!iso) return 'Ancien';
+  const d    = new Date(iso);
+  const now  = new Date();
+  const diff = now - d;
+  const day  = 86400000;
+  if (diff < day)     return 'Aujourd\'hui';
+  if (diff < 2 * day) return 'Hier';
+  if (diff < 7 * day) return 'Cette semaine';
+  return 'Plus ancien';
 }

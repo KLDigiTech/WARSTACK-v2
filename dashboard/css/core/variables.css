@@ -1,25 +1,124 @@
+/* ═══════════════════════════════════════
+   WARSTACK DESIGN SYSTEM — TOKENS
+═══════════════════════════════════════ */
+
 :root {
+  /* ── COULEURS BACKGROUND ── */
   --bg:            #050805;
   --surface:       #0a0f0a;
   --surface-2:     #0f150f;
   --surface-3:     #141c14;
+  --surface-4:     #192019;
+
+  /* ── BORDERS ── */
   --border:        rgba(140,255,170,.18);
   --border-hover:  rgba(0,255,100,.45);
-  --green:         #00ff66;
-  --green-bright:  #7dff9b;
-  --green-soft:    #b7ffca;
-  --green-dim:     #7cbf8a;
-  --green-glow:    rgba(0,255,100,.08);
+  --border-active: rgba(0,255,100,.7);
+
+  /* ── PALETTE PRIMAIRE — GREEN ── */
+  --primary:        #00ff66;
+  --primary-bright: #7dff9b;
+  --primary-soft:   #b7ffca;
+  --primary-dim:    #7cbf8a;
+  --primary-glow:   rgba(0,255,100,.08);
+  --primary-glow-2: rgba(0,255,100,.18);
+
+  /* aliases legacy */
+  --green:         var(--primary);
+  --green-bright:  var(--primary-bright);
+  --green-soft:    var(--primary-soft);
+  --green-dim:     var(--primary-dim);
+  --green-glow:    var(--primary-glow);
+
+  /* ── PALETTE DANGER ── */
+  --danger:        #ff4444;
+  --danger-soft:   rgba(255,68,68,.12);
+  --danger-glow:   rgba(255,68,68,.25);
+  --red:           var(--danger);
+
+  /* ── PALETTE WARNING ── */
+  --warning:       #ffbd2e;
+  --warning-soft:  rgba(255,189,46,.12);
+  --warning-glow:  rgba(255,189,46,.25);
+  --yellow:        var(--warning);
+
+  /* ── PALETTE SUCCESS ── */
+  --success:       #00e676;
+  --success-soft:  rgba(0,230,118,.12);
+
+  /* ── PALETTE INFO ── */
+  --info:          #40c4ff;
+  --info-soft:     rgba(64,196,255,.12);
+
+  /* ── PALETTE ORANGE ── */
   --orange:        #FF6B35;
   --orange-glow:   rgba(255,107,53,.08);
-  --red:           #ff4444;
-  --yellow:        #ffbd2e;
+
+  /* ── TEXTE ── */
   --text:          #f2fff2;
   --text-dim:      #b8d8bf;
   --text-muted:    #7fa38a;
-  --sidebar-width: 250px;
-  --radius:        2px;
+  --text-disabled: #4a6655;
 
+  /* ── LAYOUT ── */
+  --sidebar-width:        250px;
+  --sidebar-width-mobile: 0px;
+  --topbar-height:        0px;
+  --bottomnav-height:     64px;
+
+  /* ── RADIUS ── */
+  --radius-xs:  2px;
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  16px;
+  --radius-xl:  22px;
+  --radius-2xl: 32px;
+  --radius:     var(--radius-xs); /* legacy */
+
+  /* ── SHADOWS ── */
+  --shadow-1: 0 1px 4px rgba(0,0,0,.4);
+  --shadow-2: 0 4px 16px rgba(0,0,0,.5);
+  --shadow-3: 0 8px 32px rgba(0,0,0,.6);
+  --shadow-green: 0 0 20px rgba(0,255,100,.15);
+  --shadow-danger: 0 0 20px rgba(255,68,68,.15);
+
+  /* ── TRANSITIONS ── */
+  --t-fast:   .12s ease;
+  --t-base:   .2s ease;
+  --t-slow:   .35s ease;
+
+  /* ── TYPOGRAPHY ── */
+  --font-base:  'Rajdhani', sans-serif;
+  --font-mono:  'Courier New', monospace;
+  --text-xs:    0.68rem;
+  --text-sm:    0.8rem;
+  --text-base:  0.9rem;
+  --text-md:    1rem;
+  --text-lg:    1.15rem;
+  --text-xl:    1.4rem;
+  --text-2xl:   1.75rem;
+  --text-3xl:   2.2rem;
+
+  /* ── SPACING ── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+
+  /* ── Z-INDEX ── */
+  --z-base:     1;
+  --z-dropdown: 50;
+  --z-sidebar:  100;
+  --z-topbar:   110;
+  --z-modal:    200;
+  --z-toast:    300;
+  --z-overlay:  150;
+
+  /* ── EFFETS ── */
   --scanline: repeating-linear-gradient(
     0deg,
     transparent,
@@ -27,4 +126,13 @@
     rgba(0,255,65,.015) 3px,
     rgba(0,255,65,.015) 4px
   );
+
+  --gradient-primary: linear-gradient(135deg, var(--primary), var(--primary-bright));
+  --gradient-danger:  linear-gradient(135deg, var(--danger), #ff6b6b);
+  --gradient-surface: linear-gradient(180deg, var(--surface-2), var(--surface));
+
+  /* ── SKELETON ── */
+  --skeleton-base:     rgba(255,255,255,.04);
+  --skeleton-shine:    rgba(255,255,255,.08);
+  --skeleton-duration: 1.6s;
 }

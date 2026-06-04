@@ -1,123 +1,154 @@
-<!-- LIGNE 1 — STATS SERVEUR -->
+<!-- ══════════════════════════════════════════
+     OVERVIEW — WARSTACK DASHBOARD
+══════════════════════════════════════════ -->
+
+<!-- LIGNE 1 — KPI CARDS -->
 <div class="ov-stats-grid">
-  <div class="ov-stat-card" data-section="players">
-    <div class="ov-stat-icon">👥</div>
-    <div class="ov-stat-info">
-      <div class="ov-stat-value" id="ov-members">—</div>
-      <div class="ov-stat-label">Membres</div>
+
+  <div class="ov-kpi-card" data-section="players">
+    <div class="ov-kpi-top">
+      <div class="ov-kpi-icon-wrap" style="--kpi-color: var(--primary)">
+        <i class="fas fa-users"></i>
+      </div>
+      <div class="ov-kpi-trend" id="ov-members-trend">—</div>
     </div>
-    <div class="ov-stat-trend" id="ov-members-trend"></div>
+    <div class="ov-kpi-value" id="ov-members">—</div>
+    <div class="ov-kpi-label">Membres</div>
+    <div class="ov-kpi-bar"><div class="ov-kpi-bar-fill" id="ov-members-bar" style="--kpi-color: var(--primary); width:0%"></div></div>
   </div>
-  <div class="ov-stat-card" data-section="tickets">
-    <div class="ov-stat-icon">🎫</div>
-    <div class="ov-stat-info">
-      <div class="ov-stat-value" id="ov-tickets">—</div>
-      <div class="ov-stat-label">Tickets ouverts</div>
+
+  <div class="ov-kpi-card" data-section="tickets">
+    <div class="ov-kpi-top">
+      <div class="ov-kpi-icon-wrap" style="--kpi-color: var(--warning)">
+        <i class="fas fa-ticket-alt"></i>
+      </div>
+      <div class="ov-kpi-trend" id="ov-tickets-trend">—</div>
     </div>
+    <div class="ov-kpi-value" id="ov-tickets">—</div>
+    <div class="ov-kpi-label">Tickets ouverts</div>
+    <div class="ov-kpi-bar"><div class="ov-kpi-bar-fill" id="ov-tickets-bar" style="--kpi-color: var(--warning); width:0%"></div></div>
   </div>
-  <div class="ov-stat-card" data-section="suggestions">
-    <div class="ov-stat-icon">💡</div>
-    <div class="ov-stat-info">
-      <div class="ov-stat-value" id="ov-suggestions">—</div>
-      <div class="ov-stat-label">Suggestions</div>
+
+  <div class="ov-kpi-card" data-section="suggestions">
+    <div class="ov-kpi-top">
+      <div class="ov-kpi-icon-wrap" style="--kpi-color: var(--info)">
+        <i class="fas fa-lightbulb"></i>
+      </div>
+      <div class="ov-kpi-trend" id="ov-suggestions-trend">—</div>
     </div>
+    <div class="ov-kpi-value" id="ov-suggestions">—</div>
+    <div class="ov-kpi-label">Suggestions</div>
+    <div class="ov-kpi-bar"><div class="ov-kpi-bar-fill" id="ov-suggestions-bar" style="--kpi-color: var(--info); width:0%"></div></div>
   </div>
-  <div class="ov-stat-card" data-section="events">
-    <div class="ov-stat-icon">📅</div>
-    <div class="ov-stat-info">
-      <div class="ov-stat-value" id="ov-events">—</div>
-      <div class="ov-stat-label">Events actifs</div>
+
+  <div class="ov-kpi-card" data-section="events">
+    <div class="ov-kpi-top">
+      <div class="ov-kpi-icon-wrap" style="--kpi-color: var(--orange)">
+        <i class="fas fa-calendar-alt"></i>
+      </div>
+      <div class="ov-kpi-trend" id="ov-events-trend">—</div>
     </div>
+    <div class="ov-kpi-value" id="ov-events">—</div>
+    <div class="ov-kpi-label">Events actifs</div>
+    <div class="ov-kpi-bar"><div class="ov-kpi-bar-fill" id="ov-events-bar" style="--kpi-color: var(--orange); width:0%"></div></div>
   </div>
-  <div class="ov-stat-card" data-section="automod">
-    <div class="ov-stat-icon">🛡</div>
-    <div class="ov-stat-info">
-      <div class="ov-stat-value" id="ov-automod">—</div>
-      <div class="ov-stat-label">Actions AutoMod</div>
+
+  <div class="ov-kpi-card" data-section="automod">
+    <div class="ov-kpi-top">
+      <div class="ov-kpi-icon-wrap" style="--kpi-color: var(--success)">
+        <i class="fas fa-robot"></i>
+      </div>
+      <div class="ov-kpi-trend" id="ov-automod-trend">—</div>
     </div>
+    <div class="ov-kpi-value" id="ov-automod">—</div>
+    <div class="ov-kpi-label">AutoMod 7j</div>
+    <div class="ov-kpi-bar"><div class="ov-kpi-bar-fill" id="ov-automod-bar" style="--kpi-color: var(--success); width:0%"></div></div>
   </div>
-  <div class="ov-stat-card" data-section="warns">
-    <div class="ov-stat-icon">⚠️</div>
-    <div class="ov-stat-info">
-      <div class="ov-stat-value" id="ov-warns">—</div>
-      <div class="ov-stat-label">Sanctions semaine</div>
+
+  <div class="ov-kpi-card" data-section="warns">
+    <div class="ov-kpi-top">
+      <div class="ov-kpi-icon-wrap" style="--kpi-color: var(--danger)">
+        <i class="fas fa-exclamation-triangle"></i>
+      </div>
+      <div class="ov-kpi-trend" id="ov-warns-trend">—</div>
     </div>
+    <div class="ov-kpi-value" id="ov-warns">—</div>
+    <div class="ov-kpi-label">Sanctions 7j</div>
+    <div class="ov-kpi-bar"><div class="ov-kpi-bar-fill" id="ov-warns-bar" style="--kpi-color: var(--danger); width:0%"></div></div>
   </div>
+
 </div>
 
 <!-- LIGNE 2 — LAYOUT PRINCIPAL -->
 <div class="ov-main-layout">
 
-  <!-- ACTIVITÉ RÉCENTE -->
-  <div>
+  <!-- COLONNE GAUCHE -->
+  <div class="ov-col-left">
+
+    <!-- ACTIVITY FEED -->
     <div class="panel">
       <div class="panel-header">
-        <h2>⚡ Activité récente</h2>
-        <span style="font-size:0.72rem;color:var(--text-muted)">Temps réel</span>
+        <h2><i class="fas fa-bolt" style="color:var(--warning);margin-right:6px"></i>Activité récente</h2>
+        <div class="ov-live-badge"><span class="ov-live-dot"></span>Live</div>
       </div>
-      <div class="panel-body" id="ov-activity-list">
-        <div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>
-      </div>
+      <div class="panel-body" id="ov-activity-list"></div>
     </div>
 
-    <!-- SANTÉ DU BOT -->
-    <div class="panel">
-      <div class="panel-header"><h2>💚 Santé système</h2></div>
+    <!-- SANTÉ SYSTÈME -->
+    <div class="panel" style="margin-top:1rem">
+      <div class="panel-header">
+        <h2><i class="fas fa-heartbeat" style="color:var(--success);margin-right:6px"></i>Santé système</h2>
+      </div>
       <div class="panel-body">
         <div class="ov-health-row">
-          <span>🤖 Bot Discord</span>
+          <span><i class="fas fa-robot" style="margin-right:8px;color:var(--text-muted)"></i>Bot Discord</span>
           <span class="ov-health-badge" id="ov-bot-status">—</span>
         </div>
         <div class="ov-health-row">
-          <span>🗄 Supabase</span>
+          <span><i class="fas fa-database" style="margin-right:8px;color:var(--text-muted)"></i>Supabase</span>
           <span class="ov-health-badge green">🟢 OK</span>
         </div>
         <div class="ov-health-row">
-          <span>⏰ Cron Jobs</span>
+          <span><i class="fas fa-clock" style="margin-right:8px;color:var(--text-muted)"></i>Cron Jobs</span>
           <span class="ov-health-badge green">🟢 OK</span>
         </div>
         <div class="ov-health-row">
-          <span>⏱ Uptime</span>
-          <span id="ov-uptime" style="font-size:0.8rem;color:var(--text-dim)">—</span>
+          <span><i class="fas fa-stopwatch" style="margin-right:8px;color:var(--text-muted)"></i>Uptime</span>
+          <span id="ov-uptime" style="font-size:0.8rem;color:var(--primary);font-weight:700">—</span>
         </div>
       </div>
     </div>
+
   </div>
 
   <!-- COLONNE DROITE -->
-  <div>
+  <div class="ov-col-right">
 
-    <!-- TICKETS URGENTS -->
+    <!-- TICKETS OUVERTS -->
     <div class="panel">
-      <div class="panel-header" style="justify-content:space-between">
-        <h2>🎫 Tickets ouverts</h2>
+      <div class="panel-header">
+        <h2><i class="fas fa-ticket-alt" style="color:var(--warning);margin-right:6px"></i>Tickets ouverts</h2>
         <a href="#tickets" class="ov-link">Voir tout →</a>
       </div>
-      <div class="panel-body" id="ov-tickets-list">
-        <div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>
-      </div>
+      <div class="panel-body" id="ov-tickets-list"></div>
     </div>
 
-    <!-- SUGGESTIONS RÉCENTES -->
-    <div class="panel">
-      <div class="panel-header" style="justify-content:space-between">
-        <h2>💡 Suggestions récentes</h2>
+    <!-- SUGGESTIONS -->
+    <div class="panel" style="margin-top:1rem">
+      <div class="panel-header">
+        <h2><i class="fas fa-lightbulb" style="color:var(--info);margin-right:6px"></i>Suggestions récentes</h2>
         <a href="#suggestions" class="ov-link">Voir tout →</a>
       </div>
-      <div class="panel-body" id="ov-suggestions-list">
-        <div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>
-      </div>
+      <div class="panel-body" id="ov-suggestions-list"></div>
     </div>
 
-    <!-- EVENTS À VENIR -->
-    <div class="panel">
-      <div class="panel-header" style="justify-content:space-between">
-        <h2>📅 Events à venir</h2>
+    <!-- EVENTS -->
+    <div class="panel" style="margin-top:1rem">
+      <div class="panel-header">
+        <h2><i class="fas fa-calendar-alt" style="color:var(--orange);margin-right:6px"></i>Events à venir</h2>
         <a href="#events" class="ov-link">Voir tout →</a>
       </div>
-      <div class="panel-body" id="ov-events-list">
-        <div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>
-      </div>
+      <div class="panel-body" id="ov-events-list"></div>
     </div>
 
   </div>

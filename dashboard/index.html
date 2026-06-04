@@ -12,7 +12,22 @@
 </head>
 
 <body>
-  <aside class="sidebar">
+
+  <!-- TOPBAR MOBILE -->
+  <header class="mobile-topbar">
+    <button class="hamburger" id="mobile-hamburger" aria-label="Menu">
+      <i class="fas fa-bars"></i>
+    </button>
+    <span class="topbar-title" id="mobile-section-title">WARSTACK</span>
+    <img id="mobile-user-avatar" class="topbar-avatar"
+      src="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'" alt="user">
+  </header>
+
+  <!-- OVERLAY SIDEBAR MOBILE -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
 
     <div class="sidebar-logo">
       <img id="server-logo" class="server-logo" src=""
@@ -99,12 +114,12 @@
 
   </aside>
 
+  <!-- MAIN CONTENT -->
   <main class="main-content">
     <header class="dash-header">
       <h1 class="dash-title" id="section-title">Vue d'ensemble</h1>
       <div class="dash-header-right">
         <span id="current-time" class="dash-clock"></span>
-
         <div class="notif-wrapper" id="notif-wrapper">
           <button class="notif-bell" id="notif-bell" title="Notifications">
             <i class="fas fa-bell"></i>
@@ -120,13 +135,36 @@
             </div>
           </div>
         </div>
-
       </div>
     </header>
-
     <div id="section-content"></div>
   </main>
 
+  <!-- BOTTOM NAV MOBILE -->
+  <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
+    <button class="bottom-nav-item active" data-section="overview">
+      <i class="fas fa-chart-line"></i>
+      <span>Accueil</span>
+    </button>
+    <button class="bottom-nav-item" data-section="players">
+      <i class="fas fa-users"></i>
+      <span>Joueurs</span>
+    </button>
+    <button class="bottom-nav-item" data-section="tickets">
+      <i class="fas fa-ticket-alt"></i>
+      <span>Tickets</span>
+    </button>
+    <button class="bottom-nav-item" data-section="moderation">
+      <i class="fas fa-shield-alt"></i>
+      <span>Modération</span>
+    </button>
+    <button class="bottom-nav-item" id="bottom-nav-more">
+      <i class="fas fa-bars"></i>
+      <span>Menu</span>
+    </button>
+  </nav>
+
+  <!-- MODAL -->
   <div class="modal" id="modal">
     <div class="modal-box">
       <div class="modal-header">
@@ -142,7 +180,7 @@
 
   <script type="module" src="./js/auth.js"></script>
   <script type="module" src="./js/app.js"></script>
+  <script type="module" src="./js/mobile.js"></script>
 
 </body>
-
 </html>

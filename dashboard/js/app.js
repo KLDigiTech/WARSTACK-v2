@@ -5,12 +5,96 @@ import { $ }                  from './utils/dom.js';
 import { getBotStatus }       from './services/botService.js';
 import { getUserPermissions } from './services/permissionService.js';
 import { loadEmojis, attachEmojiPicker } from './components/emojiPicker.js';
-import { initTooltips } from './components/tooltip.js';
-import { initNotifications } from './components/notifications.js';
+import { initTooltips }       from './components/tooltip.js';
+import { initNotifications }  from './components/notifications.js';
+import { loadConfigs, getConfig } from './services/configService.js';
 
 initModal();
 
-// CLOCK
+// ── PRELOAD THÈME ─────────────────────────────────────────────────────────────
+// Appliqué avant tout le reste pour éviter le flash de couleurs par défaut
+
+async function preloadTheme() {
+  try {
+    const configs = await loadConfigs();
+    const root    = document.documentElement;
+
+    const savedTokens = getConfig(configs, 'theme_tokens');
+    if (savedTokens) {
+      const tokens = JSON.parse(savedTokens);
+      for (const [varName, value] of Object.entries(tokens)) {
+        root.style.setProperty(varName, value);
+        // Recalcule les dérivés
+        if (varName === '--primary') {
+          root.style.setProperty('--green',          value);
+          root.style.setProperty('--primary-glow',   hexToRgba(value, .08));
+          root.style.setProperty('--primary-glow-2', hexToRgba(value, .18));
+          root.style.setProperty('--border',         hexToRgba(value, .18));
+          root.style.setProperty('--border-hover',   hexToRgba(value, .45));
+        }
+        if (varName === '--danger') {
+          root.style.setProperty('--red',         value);
+          root.style.setProperty('--danger-soft', hexToRgba(value, .12));
+          root.style.setProperty('--danger-glow', hexToRgba(value, .25));
+        }
+        if (varName === '--warning') {
+          root.style.setProperty('--yellow',       value);
+          root.style.setProperty('--warning-soft', hexToRgba(value, .12));
+          root.style.setProperty('--warning-glow', hexToRgba(value, .25));
+        }
+        if (varName === '--surface') {
+          root.style.setProperty('--surface-2', lightenHex(value, 5));
+          root.style.setProperty('--surface-3', lightenHex(value, 10));
+          root.style.setProperty('--surface-4', lightenHex(value, 15));
+        }
+      }
+    }
+
+    const savedFont = getConfig(configs, 'theme_font');
+    if (savedFont) {
+      root.style.setProperty('--font-base', savedFont);
+      loadGoogleFont(savedFont);
+    }
+
+    const savedRadius = getConfig(configs, 'theme_radius');
+    if (savedRadius) {
+      root.style.setProperty('--radius',    savedRadius);
+      root.style.setProperty('--radius-xs', savedRadius);
+    }
+  } catch {}
+}
+
+function hexToRgba(hex, alpha) {
+  if (!hex || hex.length < 7) return `rgba(0,255,100,${alpha})`;
+  const r = parseInt(hex.slice(1,3), 16);
+  const g = parseInt(hex.slice(3,5), 16);
+  const b = parseInt(hex.slice(5,7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function lightenHex(hex, amount) {
+  if (!hex || hex.length < 7) return hex;
+  const r = Math.min(255, parseInt(hex.slice(1,3), 16) + amount);
+  const g = Math.min(255, parseInt(hex.slice(3,5), 16) + amount);
+  const b = Math.min(255, parseInt(hex.slice(5,7), 16) + amount);
+  return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+}
+
+function loadGoogleFont(fontFamily) {
+  const name = fontFamily.replace(/'/g, '').split(',')[0].trim();
+  const safe = ['Rajdhani', 'Inter'];
+  if (safe.includes(name)) return;
+  const id = `gfont-${name.replace(/\s/g, '-')}`;
+  if (document.getElementById(id)) return;
+  const link = document.createElement('link');
+  link.id   = id;
+  link.rel  = 'stylesheet';
+  link.href = `https://fonts.googleapis.com/css2?family=${name.replace(/\s/g, '+')}:wght@400;600;700&display=swap`;
+  document.head.appendChild(link);
+}
+
+// ── CLOCK ─────────────────────────────────────────────────────────────────────
+
 function updateClock() {
   const now = new Date();
   $('#current-time').textContent =
@@ -19,18 +103,19 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-// BOT STATUS
+// ── BOT STATUS ────────────────────────────────────────────────────────────────
+
 async function checkBotStatus() {
   try {
-    const data = await getBotStatus();
+    const data  = await getBotStatus();
     const dot   = $('#status-dot');
     const label = $('#status-label');
     if (data?.status === 'online') {
       dot?.classList.add('online');
-      label.textContent = 'BOT ONLINE';
+      if (label) label.textContent = 'BOT ONLINE';
     } else {
       dot?.classList.remove('online');
-      label.textContent = 'BOT OFFLINE';
+      if (label) label.textContent = 'BOT OFFLINE';
     }
   } catch (err) {
     console.error('Bot status error:', err);
@@ -39,7 +124,8 @@ async function checkBotStatus() {
 checkBotStatus();
 setInterval(checkBotStatus, 30000);
 
-// SECTIONS
+// ── SECTIONS ──────────────────────────────────────────────────────────────────
+
 const sections = {
   overview:    () => import('./sections/overview.js').then(m => m.initOverview()),
   players:     () => import('./sections/players.js').then(m => m.initPlayers()),
@@ -68,23 +154,33 @@ const sections = {
 const PUBLIC_SECTIONS = [
   'overview', 'players', 'analytics', 'tournament', 'welcome', 'onboarding', 'roles',
   'birthdays', 'suggestions', 'events', 'origine',
-  'messages', 'reactions', 'channels', 'ocr-test','rulebuilder',
+  'messages', 'reactions', 'channels', 'ocr-test', 'rulebuilder',
 ];
 
-const RESTRICTED_SECTIONS = [
-  'moderation', 'automod', 'tickets', 'logs', 'access', 'settings',
-];
+// ── ROUTER ────────────────────────────────────────────────────────────────────
 
-// ROUTER
 async function navigate(section) {
   document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
   const item = document.querySelector(`[data-section="${section}"]`);
   if (!item) return;
   item.classList.add('active');
-  $('#section-title').textContent = item.querySelector('span')?.textContent || '';
+
+  const titleEl = $('#section-title');
+  if (titleEl) titleEl.textContent = item.querySelector('span')?.textContent || '';
 
   const content = $('#section-content');
-  content.innerHTML = '<div class="loading-screen">CHARGEMENT...</div>';
+  // Skeleton de chargement au lieu de "CHARGEMENT..."
+  content.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:16px;padding:4px 0">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px">
+        ${Array(4).fill('<div class="skeleton" style="height:90px;border-radius:10px"></div>').join('')}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:14px">
+        <div class="skeleton" style="height:300px;border-radius:10px"></div>
+        <div class="skeleton" style="height:300px;border-radius:10px"></div>
+      </div>
+    </div>
+  `;
 
   try {
     const res  = await fetch(`/templates/${section}.html`);
@@ -96,16 +192,15 @@ async function navigate(section) {
 
   if (sections[section]) await sections[section]();
 
-  // Attacher emoji picker sur tous les textareas de la section
   attachAllEmojiPickers();
-
   window.location.hash = section;
 }
 
-// EMOJI PICKER — attacher sur tous les textareas visibles
+// ── EMOJI PICKER ──────────────────────────────────────────────────────────────
+
 function attachAllEmojiPickers() {
   document.querySelectorAll('textarea.form-textarea').forEach(ta => {
-    if (ta.dataset.emojiAttached) return; // éviter les doublons
+    if (ta.dataset.emojiAttached) return;
     ta.dataset.emojiAttached = '1';
     attachEmojiPicker(ta.id || generateId(ta));
   });
@@ -117,11 +212,11 @@ function generateId(el) {
   return id;
 }
 
-// PERMISSIONS
+// ── PERMISSIONS ───────────────────────────────────────────────────────────────
+
 async function applyPermissions() {
   try {
     const permissions = await getUserPermissions();
-
     document.querySelectorAll('.nav-item').forEach(item => {
       const section = item.dataset.section;
       if (!section)                          { item.style.display = 'flex'; return; }
@@ -137,7 +232,8 @@ async function applyPermissions() {
   }
 }
 
-// NAV EVENTS
+// ── NAV EVENTS ────────────────────────────────────────────────────────────────
+
 document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', async (e) => {
     if (!item.dataset.section) return;
@@ -146,10 +242,12 @@ document.querySelectorAll('.nav-item').forEach(item => {
   });
 });
 
-// INIT
+// ── INIT ──────────────────────────────────────────────────────────────────────
+
 async function initDashboard() {
+  await preloadTheme(); // thème en premier, avant tout rendu
   await applyPermissions();
-  await loadEmojis(); // charger les emojis custom du serveur
+  await loadEmojis();
   const initial = window.location.hash?.replace('#', '') || 'overview';
   await navigate(initial);
   initTooltips();

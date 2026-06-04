@@ -5,7 +5,9 @@
 
     <!-- INFOS SERVEUR -->
     <div class="panel">
-      <div class="panel-header"><h2>🏠 Serveur</h2></div>
+      <div class="panel-header">
+        <h2>🏠 Serveur</h2>
+      </div>
       <div class="panel-body">
         <div class="settings-server-header">
           <img id="settings-guild-icon" src="" alt="" style="width:56px;height:56px;border-radius:50%;display:none">
@@ -38,7 +40,9 @@
 
     <!-- SANTÉ WARSTACK -->
     <div class="panel">
-      <div class="panel-header"><h2>💚 Santé WARSTACK</h2></div>
+      <div class="panel-header">
+        <h2>💚 Santé WARSTACK</h2>
+      </div>
       <div class="panel-body">
         <div class="settings-health-row">
           <span>🤖 Bot</span>
@@ -82,7 +86,9 @@
 
     <!-- MODULES ACTIFS -->
     <div class="panel">
-      <div class="panel-header"><h2>🧩 Modules</h2></div>
+      <div class="panel-header">
+        <h2>🧩 Modules</h2>
+      </div>
       <div class="panel-body" id="settings-modules">
         <!-- généré par JS -->
       </div>
@@ -95,7 +101,9 @@
 
     <!-- CONFIGURATION -->
     <div class="panel">
-      <div class="panel-header"><h2>⚙️ Configuration</h2></div>
+      <div class="panel-header">
+        <h2>⚙️ Configuration</h2>
+      </div>
       <div class="panel-body">
 
         <div class="form-group">
@@ -134,7 +142,9 @@
 
     <!-- SAUVEGARDE -->
     <div class="panel">
-      <div class="panel-header"><h2>💾 Sauvegarde</h2></div>
+      <div class="panel-header">
+        <h2>💾 Sauvegarde</h2>
+      </div>
       <div class="panel-body">
         <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem">
           Exporte ou importe toute ta configuration WARSTACK. Utile pour copier un serveur vers un autre.
@@ -154,7 +164,9 @@
 
     <!-- MAINTENANCE -->
     <div class="panel">
-      <div class="panel-header"><h2>🔧 Maintenance</h2></div>
+      <div class="panel-header">
+        <h2>🔧 Maintenance</h2>
+      </div>
       <div class="panel-body">
         <div style="display:flex;flex-direction:column;gap:0.5rem">
           <button class="btn btn-secondary" id="btn-test-connection">
@@ -167,7 +179,147 @@
         <div id="maintenance-status" style="margin-top:0.75rem;font-size:0.82rem;display:none"></div>
       </div>
     </div>
+    <!-- THEME EDITOR -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2><i class="fas fa-palette" style="color:var(--primary);margin-right:6px"></i>Thème</h2>
+        <button class="btn btn-sm btn-secondary" id="btn-reset-theme">
+          <i class="fas fa-undo"></i> Défaut
+        </button>
+      </div>
+      <div class="panel-body">
 
+        <p class="ob-hint">Personnalise les couleurs du dashboard en temps réel.</p>
+
+        <div class="theme-grid">
+
+          <div class="theme-row">
+            <label class="theme-label">
+              <span class="theme-dot" id="dot-primary"></span>
+              Couleur principale
+            </label>
+            <div class="theme-input-wrap">
+              <input type="color" id="theme-primary" class="theme-color-input" value="#00ff66">
+              <span class="theme-hex" id="hex-primary">#00ff66</span>
+            </div>
+          </div>
+
+          <div class="theme-row">
+            <label class="theme-label">
+              <span class="theme-dot" id="dot-danger"></span>
+              Danger / Erreur
+            </label>
+            <div class="theme-input-wrap">
+              <input type="color" id="theme-danger" class="theme-color-input" value="#ff4444">
+              <span class="theme-hex" id="hex-danger">#ff4444</span>
+            </div>
+          </div>
+
+          <div class="theme-row">
+            <label class="theme-label">
+              <span class="theme-dot" id="dot-warning"></span>
+              Warning
+            </label>
+            <div class="theme-input-wrap">
+              <input type="color" id="theme-warning" class="theme-color-input" value="#ffbd2e">
+              <span class="theme-hex" id="hex-warning">#ffbd2e</span>
+            </div>
+          </div>
+
+          <div class="theme-row">
+            <label class="theme-label">
+              <span class="theme-dot" id="dot-bg"></span>
+              Fond principal
+            </label>
+            <div class="theme-input-wrap">
+              <input type="color" id="theme-bg" class="theme-color-input" value="#050805">
+              <span class="theme-hex" id="hex-bg">#050805</span>
+            </div>
+          </div>
+
+          <div class="theme-row">
+            <label class="theme-label">
+              <span class="theme-dot" id="dot-surface"></span>
+              Surface (panels)
+            </label>
+            <div class="theme-input-wrap">
+              <input type="color" id="theme-surface" class="theme-color-input" value="#0a0f0a">
+              <span class="theme-hex" id="hex-surface">#0a0f0a</span>
+            </div>
+          </div>
+
+          <div class="theme-row">
+            <label class="theme-label">
+              <span class="theme-dot" id="dot-text"></span>
+              Texte principal
+            </label>
+            <div class="theme-input-wrap">
+              <input type="color" id="theme-text" class="theme-color-input" value="#f2fff2">
+              <span class="theme-hex" id="hex-text">#f2fff2</span>
+            </div>
+          </div>
+
+          <div class="theme-row">
+            <label class="theme-label">
+              <i class="fas fa-font" style="width:14px;text-align:center;color:var(--text-muted)"></i>
+              Police
+            </label>
+            <div class="theme-input-wrap">
+              <select id="theme-font" class="form-select" style="width:160px;font-size:0.8rem">
+                <option value="'Rajdhani', sans-serif">Rajdhani (défaut)</option>
+                <option value="'Orbitron', sans-serif">Orbitron</option>
+                <option value="'Exo 2', sans-serif">Exo 2</option>
+                <option value="'Share Tech Mono', monospace">Share Tech Mono</option>
+                <option value="'Inter', sans-serif">Inter</option>
+                <option value="'Syne', sans-serif">Syne</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="theme-row">
+            <label class="theme-label">
+              <i class="fas fa-border-all" style="width:14px;text-align:center;color:var(--text-muted)"></i>
+              Radius cards
+            </label>
+            <div class="theme-input-wrap" style="gap:10px">
+              <input type="range" id="theme-radius" min="0" max="20" value="2"
+                style="width:100px;accent-color:var(--primary)">
+              <span class="theme-hex" id="val-radius">2px</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- PREVIEW -->
+        <div class="theme-preview">
+          <div class="theme-preview-label">Aperçu</div>
+          <div class="theme-preview-box">
+            <div class="theme-preview-card">
+              <div class="theme-preview-title">KPI Card</div>
+              <div class="theme-preview-value">1,337</div>
+              <div class="theme-preview-badge">▲ Actif</div>
+            </div>
+            <div class="theme-preview-card">
+              <div class="theme-preview-title">Membres</div>
+              <div class="theme-preview-value" style="color:var(--warning)">42</div>
+              <div class="theme-preview-badge" style="background:var(--warning-soft);color:var(--warning)">— Stable
+              </div>
+            </div>
+            <div class="theme-preview-card">
+              <div class="theme-preview-title">Tickets</div>
+              <div class="theme-preview-value" style="color:var(--danger)">3</div>
+              <div class="theme-preview-badge" style="background:var(--danger-soft);color:var(--danger)">▼ Élevé</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="panel-footer">
+        <button class="btn btn-primary" id="btn-save-theme">
+          <i class="fas fa-save"></i> Sauvegarder le thème
+        </button>
+      </div>
+    </div>
     <!-- ZONE DANGER -->
     <div class="panel" style="border-color:rgba(255,68,68,0.3)">
       <div class="panel-header" style="border-color:rgba(255,68,68,0.2)">

@@ -102,18 +102,13 @@
 
 /* ── DROPDOWN ── */
 .notif-dropdown {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
+  position: fixed;
+  top: 68px;
+  right: 16px;
+  left: auto;
+  transform: none;
   width: 360px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-3), 0 0 0 1px rgba(0,255,100,.04);
-  z-index: var(--z-modal);
-  flex-direction: column;
-  overflow: hidden;
-  animation: notif-in var(--t-base) ease;
+  /* reste inchangé */
 }
 
 @keyframes notif-in {

@@ -43,6 +43,7 @@ setInterval(checkBotStatus, 30000);
 const sections = {
   overview:    () => import('./sections/overview.js').then(m => m.initOverview()),
   players:     () => import('./sections/players.js').then(m => m.initPlayers()),
+  analytics:   () => import('./sections/analytics.js').then(m => m.initAnalytics()),
   tournament:  () => import('./sections/tournament.js').then(m => m.initTournament()),
   welcome:     () => import('./sections/welcome.js').then(m => m.initWelcome()),
   onboarding:  () => import('./sections/onboarding.js').then(m => m.initOnboarding()),
@@ -64,7 +65,7 @@ const sections = {
 };
 
 const PUBLIC_SECTIONS = [
-  'overview', 'players', 'tournament', 'welcome', 'onboarding', 'roles',
+  'overview', 'players', 'analytics', 'tournament', 'welcome', 'onboarding', 'roles',
   'birthdays', 'suggestions', 'events', 'origine',
   'messages', 'reactions', 'channels', 'ocr-test',
 ];

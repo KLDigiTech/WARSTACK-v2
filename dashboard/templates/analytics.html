@@ -1,0 +1,82 @@
+<div class="analytics-grid">
+
+  <!-- ── STAT CARDS ── -->
+  <div class="analytics-cards">
+    <div class="an-card">
+      <div class="an-card-icon members"><i class="fas fa-users"></i></div>
+      <div class="an-card-body">
+        <div class="an-card-value" id="an-total-members">—</div>
+        <div class="an-card-label">Membres totaux</div>
+        <div class="an-card-delta" id="an-delta-members"></div>
+      </div>
+    </div>
+    <div class="an-card">
+      <div class="an-card-icon tickets"><i class="fas fa-ticket-alt"></i></div>
+      <div class="an-card-body">
+        <div class="an-card-value" id="an-total-tickets">—</div>
+        <div class="an-card-label">Tickets ouverts</div>
+        <div class="an-card-delta" id="an-delta-tickets"></div>
+      </div>
+    </div>
+    <div class="an-card">
+      <div class="an-card-icon suggestions"><i class="fas fa-lightbulb"></i></div>
+      <div class="an-card-body">
+        <div class="an-card-value" id="an-total-suggestions">—</div>
+        <div class="an-card-label">Suggestions</div>
+        <div class="an-card-delta" id="an-delta-suggestions"></div>
+      </div>
+    </div>
+    <div class="an-card">
+      <div class="an-card-icon sanctions"><i class="fas fa-gavel"></i></div>
+      <div class="an-card-body">
+        <div class="an-card-value" id="an-total-sanctions">—</div>
+        <div class="an-card-label">Sanctions actives</div>
+        <div class="an-card-delta" id="an-delta-sanctions"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CROISSANCE MEMBRES ── -->
+  <div class="an-panel an-panel--wide">
+    <div class="an-panel-header">
+      <h3><i class="fas fa-chart-line"></i> Croissance des membres</h3>
+      <div class="an-range-btns">
+        <button class="an-range active" data-range="7">7j</button>
+        <button class="an-range" data-range="30">30j</button>
+        <button class="an-range" data-range="90">90j</button>
+      </div>
+    </div>
+    <div class="an-chart-wrap">
+      <canvas id="chart-members"></canvas>
+    </div>
+  </div>
+
+  <!-- ── ACTIVITÉ SERVEUR ── -->
+  <div class="an-panel an-panel--wide">
+    <div class="an-panel-header">
+      <h3><i class="fas fa-chart-bar"></i> Activité serveur (30 derniers jours)</h3>
+    </div>
+    <div class="an-chart-wrap">
+      <canvas id="chart-activity"></canvas>
+    </div>
+  </div>
+
+  <!-- ── TOP JOUEURS ── -->
+  <div class="an-panel">
+    <div class="an-panel-header">
+      <h3><i class="fas fa-trophy"></i> Top joueurs WARSTACK</h3>
+    </div>
+    <div id="an-top-players"></div>
+  </div>
+
+  <!-- ── RÉPARTITION SANCTIONS ── -->
+  <div class="an-panel">
+    <div class="an-panel-header">
+      <h3><i class="fas fa-shield-alt"></i> Répartition sanctions</h3>
+    </div>
+    <div class="an-chart-wrap an-chart-wrap--small">
+      <canvas id="chart-sanctions"></canvas>
+    </div>
+  </div>
+
+</div>

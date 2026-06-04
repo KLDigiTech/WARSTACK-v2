@@ -1,0 +1,192 @@
+.analytics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  padding: 4px 0;
+}
+
+/* ── STAT CARDS ── */
+.analytics-cards {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.an-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: linear-gradient(180deg, rgba(14,20,17,.96), rgba(8,12,10,.98));
+  border: 1px solid rgba(0,255,120,.08);
+  border-radius: 16px;
+  transition: border-color .2s, box-shadow .2s;
+}
+.an-card:hover {
+  border-color: rgba(0,255,120,.18);
+  box-shadow: 0 8px 24px rgba(0,0,0,.3);
+}
+
+.an-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.an-card-icon.members    { background: rgba(0,180,255,.1);  color: #5bc8ff; border: 1px solid rgba(0,180,255,.2); }
+.an-card-icon.tickets    { background: rgba(255,180,0,.1);  color: #ffd060; border: 1px solid rgba(255,180,0,.2); }
+.an-card-icon.suggestions{ background: rgba(0,255,120,.1);  color: #7dffb3; border: 1px solid rgba(0,255,120,.2); }
+.an-card-icon.sanctions  { background: rgba(255,80,80,.1);  color: #ff7b7b; border: 1px solid rgba(255,80,80,.2); }
+
+.an-card-value {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+}
+.an-card-label {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.an-card-delta {
+  font-size: 11px;
+  margin-top: 5px;
+  font-weight: 600;
+}
+.an-card-delta.up   { color: #7dffb3; }
+.an-card-delta.down { color: #ff7b7b; }
+.an-card-delta.flat { color: var(--text-muted); }
+
+/* ── PANELS ── */
+.an-panel {
+  background: linear-gradient(180deg, rgba(14,20,17,.96), rgba(8,12,10,.98));
+  border: 1px solid rgba(0,255,120,.08);
+  border-radius: 16px;
+  padding: 20px;
+}
+.an-panel--wide {
+  grid-column: 1 / -1;
+}
+
+.an-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.an-panel-header h3 {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--green);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.an-panel-header h3 i { opacity: .7; }
+
+/* ── RANGE BUTTONS ── */
+.an-range-btns { display: flex; gap: 6px; }
+.an-range {
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,.08);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: .15s;
+}
+.an-range:hover { border-color: rgba(0,255,120,.2); color: #fff; }
+.an-range.active {
+  background: rgba(0,255,120,.1);
+  border-color: rgba(0,255,120,.3);
+  color: var(--green);
+}
+
+/* ── CHARTS ── */
+.an-chart-wrap {
+  position: relative;
+  height: 220px;
+}
+.an-chart-wrap--small {
+  height: 200px;
+}
+
+/* ── TOP JOUEURS ── */
+.an-player-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,.03);
+}
+.an-player-row:last-child { border-bottom: none; }
+
+.an-rank {
+  width: 24px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+  flex-shrink: 0;
+}
+.an-rank.gold   { color: #ffd060; }
+.an-rank.silver { color: #c0c0c0; }
+.an-rank.bronze { color: #cd7f32; }
+
+.an-player-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid rgba(0,255,120,.15);
+  flex-shrink: 0;
+}
+
+.an-player-info { flex: 1; min-width: 0; }
+.an-player-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e0e0e0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.an-player-div {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.an-player-score {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--green);
+  flex-shrink: 0;
+}
+
+.an-empty {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 30px 0;
+  font-size: 13px;
+}
+.an-empty i { display: block; font-size: 24px; margin-bottom: 8px; opacity: .3; }

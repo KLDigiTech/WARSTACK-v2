@@ -43,7 +43,13 @@ module.exports = {
 };
 
 function buildPayloadFromConfig(configs) {
-  const getConf = (key) => configs?.find(c => c.key === key)?.value;
+  const getConf = (key) => {
+  const val = configs?.find(c => c.key === key)?.value;
+  if (typeof val === 'string' && val.startsWith('"')) {
+    try { return JSON.parse(val); } catch { return val; }
+  }
+  return val;
+};
   const parseSafe = (val, fallback = []) => { try { return JSON.parse(val || '[]'); } catch { return fallback; } };
 
   return {

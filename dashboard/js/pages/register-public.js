@@ -1,53 +1,169 @@
-// dashboard/js/pages/register-public.js
-
 import { supabase } from '../supabaseClient.js';
 
 const BOT_URL = 'https://warstack-bot.onrender.com';
+
+let currentUser      = null;
+let currentDiscordId = null;
+let selectedTeam     = null;
+let selectedPlatform = null;
+
+// ── HELPERS ───────────────────────────────────────────────
 
 function showState(name) {
   document.querySelectorAll('.insc-state').forEach(el => el.classList.remove('visible'));
   document.getElementById(`state-${name}`)?.classList.add('visible');
 }
 
+function setProgress(step, total = 4) {
+  const pct    = Math.round(((step - 1) / (total - 1)) * 100);
+  const labels = { 1: 'CONNEXION', 2: 'ÉQUIPE', 3: 'PLATEFORME', 4: 'TRACKER' };
+  document.getElementById('reg-progress').style.display = 'block';
+  document.getElementById('progress-bar').style.width   = `${pct}%`;
+  document.getElementById('progress-label').textContent = labels[step] || '';
+  document.getElementById('progress-pct').textContent   = `${pct}%`;
+  document.getElementById('logo-sub').textContent       = `ÉTAPE ${step} / ${total}`;
+}
+
+// ── INIT ──────────────────────────────────────────────────
+
 async function init() {
   showState('loading');
 
   const { data: { session } } = await supabase.auth.getSession();
+
   if (!session) {
-    showState('no-auth');
-    document.getElementById('btn-login')?.addEventListener('click', async () => {
-      await supabase.auth.signInWithOAuth({ provider: 'discord', options: { redirectTo: window.location.href } });
+    showState('discord');
+    document.getElementById('btn-discord-login').addEventListener('click', async () => {
+      await supabase.auth.signInWithOAuth({
+        provider: 'discord',
+        options : { redirectTo: window.location.href }
+      });
     });
     return;
   }
 
-  const user      = session.user;
-  const discordId = user.user_metadata?.provider_id || user.user_metadata?.sub || user.id;
+  currentUser      = session.user;
+  currentDiscordId = currentUser.user_metadata?.provider_id
+                  || currentUser.user_metadata?.sub
+                  || currentUser.id;
 
-  // Vérif membre
+  // Vérif membre serveur
   try {
-    const res  = await fetch(`${BOT_URL}/api/member/${discordId}`);
-    const data = await res.json();
-    if (!data.isMember) { showState('not-member'); return; }
+    const res    = await fetch(`${BOT_URL}/api/member/${currentDiscordId}`);
+    const member = await res.json();
+    if (!member?.id) { showState('not-member'); return; }
   } catch {}
 
-  // Vérif tracker existant
-  const { data: player } = await supabase.from('players').select('tracker_id').eq('discord_id', discordId).maybeSingle();
+  // Déjà inscrit complet → dashboard
+  const { data: existing } = await supabase
+    .from('players').select('*').eq('discord_id', currentDiscordId).maybeSingle();
 
-  document.getElementById('user-name').textContent   = user.user_metadata?.full_name || user.email;
-  document.getElementById('user-avatar').src         = user.user_metadata?.avatar_url || '';
-  document.getElementById('user-status').textContent = player?.tracker_id ? `Tracker lié : ${player.tracker_id}` : 'Aucun tracker lié';
+  if (existing?.tracker_id && existing?.team && existing?.platform) {
+    window.location.href = '/dashboard/index.html';
+    return;
+  }
 
-  showState('form');
-  initForm(user, discordId, player);
+  // Charger équipes
+  await loadTeams();
+
+  // Afficher banner user
+  renderUserBanner();
+
+  setProgress(2);
+  showState('team');
+  initTeamStep();
 }
 
-function initForm(user, discordId, existingPlayer) {
-  const input    = document.getElementById('tracker-url');
-  const hint     = document.getElementById('tracker-hint');
-  const saveBtn  = document.getElementById('btn-save');
-  const errorDiv = document.getElementById('save-error');
-  let trackerId  = null;
+// ── USER BANNER ───────────────────────────────────────────
+
+function renderUserBanner() {
+  const banner = document.getElementById('reg-user-banner');
+  if (!banner) return;
+  const name   = currentUser.user_metadata?.full_name
+               || currentUser.user_metadata?.name
+               || 'Joueur';
+  const avatar = currentUser.user_metadata?.avatar_url || '';
+  banner.innerHTML = `
+    <img src="${avatar}" onerror="this.src=''" alt="avatar">
+    <div>
+      <div class="user-bar-name">${name}</div>
+      <div class="user-bar-sub" style="color:var(--green)">✓ Discord connecté</div>
+    </div>
+  `;
+}
+
+// ── STEP 2 — ÉQUIPE ───────────────────────────────────────
+
+async function loadTeams() {
+  const { data: config } = await supabase
+    .from('config').select('value').eq('key', 'ob_teams').maybeSingle();
+
+  let teams = [];
+  try { teams = JSON.parse(config?.value || '[]'); } catch {}
+
+  if (!teams.length) {
+    teams = [
+      { emoji: '🔥', label: 'PÖF',     role_id: '' },
+      { emoji: '👑', label: 'STAFF',    role_id: '' },
+      { emoji: '👁️', label: 'VISITEUR', role_id: '' },
+    ];
+  }
+
+  const list = document.getElementById('reg-teams-list');
+  list.innerHTML = teams.map(t => `
+    <button class="team-choice-btn" data-team="${t.label}" data-role="${t.role_id || ''}">
+      ${t.emoji} ${t.label}
+    </button>
+  `).join('');
+}
+
+function initTeamStep() {
+  document.querySelectorAll('.team-choice-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.team-choice-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedTeam = btn.dataset.team;
+      setTimeout(() => goToPlatform(), 350);
+    });
+  });
+
+  document.getElementById('btn-skip-team')?.addEventListener('click', () => {
+    selectedTeam = null;
+    goToPlatform();
+  });
+}
+
+// ── STEP 3 — PLATEFORME ───────────────────────────────────
+
+function goToPlatform() {
+  setProgress(3);
+  showState('platform');
+
+  document.querySelectorAll('.platform-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.platform-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedPlatform = btn.dataset.platform;
+      setTimeout(() => goToTracker(), 350);
+    });
+  });
+
+  document.getElementById('btn-skip-platform')?.addEventListener('click', () => {
+    selectedPlatform = null;
+    goToTracker();
+  });
+}
+
+// ── STEP 4 — TRACKER ──────────────────────────────────────
+
+function goToTracker() {
+  setProgress(4);
+  showState('tracker');
+
+  const input   = document.getElementById('tracker-url');
+  const hint    = document.getElementById('tracker-hint');
+  const saveBtn = document.getElementById('btn-save-tracker');
+  let trackerId = null;
 
   input.addEventListener('input', () => {
     const val   = input.value.trim();
@@ -70,35 +186,90 @@ function initForm(user, discordId, existingPlayer) {
     }
   });
 
-  saveBtn.addEventListener('click', async () => {
-    if (!trackerId) return;
-    saveBtn.disabled  = true;
-    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
-    errorDiv.style.display = 'none';
-
-    try {
-      const payload = {
-        tracker_id  : trackerId,
-        tracker_url : input.value.trim(),
-        username    : user.user_metadata?.full_name || user.email,
-        avatar_url  : user.user_metadata?.avatar_url || null,
-      };
-
-      if (existingPlayer) {
-        await supabase.from('players').update(payload).eq('discord_id', discordId);
-      } else {
-        await supabase.from('players').insert({ ...payload, discord_id: discordId, created_at: new Date().toISOString() });
-      }
-
-      showState('success');
-    } catch (err) {
-      errorDiv.style.display = 'block';
-      errorDiv.textContent   = '❌ ' + err.message;
-      saveBtn.disabled       = false;
-      saveBtn.innerHTML      = '<i class="fas fa-link"></i> LIER MON TRACKER';
-    }
-  });
+  saveBtn.addEventListener('click', () => finalize(trackerId, input.value.trim()));
+  document.getElementById('btn-skip-tracker')?.addEventListener('click', () => finalize(null, null));
 }
 
+// ── FINALISATION ──────────────────────────────────────────
+
+async function finalize(trackerId, trackerUrl) {
+  const saveBtn = document.getElementById('btn-save-tracker');
+  if (saveBtn) {
+    saveBtn.disabled  = true;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
+  }
+
+  try {
+    const username  = currentUser.user_metadata?.full_name
+                    || currentUser.user_metadata?.name
+                    || 'Joueur';
+    const avatarUrl = currentUser.user_metadata?.avatar_url || null;
+
+    const payload = {
+      username,
+      avatar_url  : avatarUrl,
+      team        : selectedTeam     || null,
+      platform    : selectedPlatform || null,
+      tracker_id  : trackerId        || null,
+      tracker_url : trackerUrl       || null,
+      updated_at  : new Date().toISOString(),
+    };
+
+    // Upsert player
+    const { data: existing } = await supabase
+      .from('players').select('id').eq('discord_id', currentDiscordId).maybeSingle();
+
+    if (existing) {
+      await supabase.from('players').update(payload).eq('discord_id', currentDiscordId);
+    } else {
+      await supabase.from('players').insert({
+        ...payload,
+        discord_id : currentDiscordId,
+        created_at : new Date().toISOString(),
+      });
+    }
+
+    // Attribuer rôles Discord via bot
+    await fetch(`${BOT_URL}/api/member/${currentDiscordId}/role`, {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify({ team: selectedTeam, platform: selectedPlatform }),
+    }).catch(() => {});
+
+    // Log onboarding
+    await supabase.from('onboarding_logs').insert({
+      guild_id  : '1501685144501620798',
+      discord_id: currentDiscordId,
+      username,
+      avatar_url: avatarUrl,
+      team      : selectedTeam     || null,
+      platform  : selectedPlatform || null,
+      created_at: new Date().toISOString(),
+    }).catch(() => {});
+
+    // Afficher succès
+    document.getElementById('reg-success-recap').innerHTML = `
+      ${selectedTeam     ? `⚔️ Équipe : <span>${selectedTeam}</span><br>`     : ''}
+      ${selectedPlatform ? `🎮 Plateforme : <span>${selectedPlatform}</span><br>` : ''}
+      ${trackerId        ? `📊 Tracker lié : <span>${trackerId}</span><br>`   : '⚠️ Tracker non lié — à faire depuis ton profil.<br>'}
+    `;
+
+    document.getElementById('reg-progress').style.display = 'none';
+    document.getElementById('logo-sub').textContent       = 'PROFIL CRÉÉ !';
+    showState('success');
+
+  } catch (err) {
+    console.error(err);
+    if (saveBtn) {
+      saveBtn.disabled  = false;
+      saveBtn.innerHTML = '<i class="fas fa-link"></i> LIER MON PROFIL';
+    }
+  }
+}
+
+// ── START ─────────────────────────────────────────────────
+
 init();
-supabase.auth.onAuthStateChange((event) => { if (event === 'SIGNED_IN') init(); });
+supabase.auth.onAuthStateChange((event) => {
+  if (event === 'SIGNED_IN') init();
+});

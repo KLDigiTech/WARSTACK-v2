@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WARSTACK — Lier mon tracker</title>
+  <title>WARSTACK — Créer mon profil</title>
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="css/core/variables.css">
@@ -15,73 +15,116 @@
 <body class="inscription-page">
 
   <div class="inscription-logo">
-    <span class="logo-icon">🔗</span>
+    <span class="logo-icon">⚔️</span>
     <span class="logo-text">WARSTACK</span>
-    <div class="logo-sub">LIER MON TRACKER</div>
+    <div class="logo-sub" id="logo-sub">MON PROFIL</div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div id="reg-progress" style="display:none;width:100%;max-width:500px;margin-bottom:1rem">
+    <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+      <span id="progress-label" style="font-size:0.65rem;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase"></span>
+      <span id="progress-pct" style="font-size:0.65rem;color:var(--green);font-weight:700"></span>
+    </div>
+    <div style="height:3px;background:var(--surface-3);border-radius:10px;overflow:hidden">
+      <div id="progress-bar" style="height:100%;background:var(--green);border-radius:10px;transition:width .5s ease;box-shadow:0 0 8px rgba(0,255,100,.4);width:0%"></div>
+    </div>
   </div>
 
   <div class="pub-card">
 
+    <!-- LOADING -->
     <div id="state-loading" class="insc-state visible center-msg">
       <span class="spinner"></span> Chargement...
     </div>
 
-    <div id="state-no-auth" class="insc-state center-msg">
+    <!-- STEP 1 — LOGIN DISCORD -->
+    <div id="state-discord" class="insc-state center-msg">
       <i class="fab fa-discord" style="font-size:2.5rem;color:#5865F2;display:block;margin-bottom:1rem"></i>
-      Connecte-toi avec Discord pour continuer.
-      <button class="btn-discord btn-full" id="btn-login" style="margin-top:1.5rem">
-        <i class="fab fa-discord"></i> Se connecter avec Discord
+      <div style="font-size:1rem;font-weight:700;color:var(--text);margin-bottom:0.5rem">Connecte ton Discord</div>
+      <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:1.5rem;line-height:1.6">
+        Pour créer ton profil WARSTACK et rejoindre la communauté.
+      </div>
+      <button class="btn-discord btn-full" id="btn-discord-login">
+        <i class="fab fa-discord"></i> SE CONNECTER AVEC DISCORD
       </button>
+      <div class="insc-note">Aucun message ne sera posté en ton nom.</div>
     </div>
 
-    <div id="state-not-member" class="insc-state">
-      <div class="not-member-box">
-        <i class="fas fa-ban"></i>
-        Tu n'es pas membre du serveur WARSTACK.<br>
-        Rejoins le serveur pour participer.
-        <a href="https://discord.gg/teampof" class="invite-btn" target="_blank">
-          <i class="fab fa-discord"></i> Rejoindre le serveur
+    <!-- STEP 2 — ÉQUIPE -->
+    <div id="state-team" class="insc-state">
+      <div class="user-bar" id="reg-user-banner"></div>
+      <div class="tournoi-choose-title">⚔️ CHOISIS TON ÉQUIPE</div>
+      <div class="teams-list" id="reg-teams-list"></div>
+      <div class="insc-note" id="btn-skip-team" style="cursor:pointer;margin-top:1rem">
+        Je rejoindrai une équipe plus tard →
+      </div>
+    </div>
+
+    <!-- STEP 3 — PLATEFORME -->
+    <div id="state-platform" class="insc-state">
+      <div class="tournoi-choose-title">🎮 TA PLATEFORME</div>
+      <div class="platform-grid">
+        <button class="platform-btn" data-platform="PC">
+          <i class="fas fa-desktop"></i> PC
+        </button>
+        <button class="platform-btn" data-platform="PlayStation">
+          <i class="fab fa-playstation"></i> PS
+        </button>
+        <button class="platform-btn" data-platform="Xbox">
+          <i class="fab fa-xbox"></i> Xbox
+        </button>
+      </div>
+      <div class="insc-note" id="btn-skip-platform" style="cursor:pointer;margin-top:1rem">
+        Ignorer →
+      </div>
+    </div>
+
+    <!-- STEP 4 — TRACKER -->
+    <div id="state-tracker" class="insc-state">
+      <div class="tournoi-choose-title">📊 TON TRACKER.GG</div>
+      <div class="tracker-help">
+        <strong>Comment trouver ton URL ?</strong><br>
+        1. Va sur <a href="https://tracker.gg/bf6" target="_blank">tracker.gg/bf6</a><br>
+        2. Recherche ton pseudo<br>
+        3. Copie l'URL de ta page profil<br>
+        <span style="color:var(--text-muted);font-size:0.65rem">ex: tracker.gg/bf6/profile/<strong style="color:var(--text)">1023163556057</strong>/overview</span>
+      </div>
+      <div class="form-group">
+        <input type="text" class="form-input" id="tracker-url"
+          placeholder="https://tracker.gg/bf6/profile/.../overview" autocomplete="off">
+        <div class="hint" id="tracker-hint" style="display:none"></div>
+      </div>
+      <button class="btn btn-primary btn-full" id="btn-save-tracker" disabled>
+        <i class="fas fa-link"></i> LIER MON PROFIL
+      </button>
+      <div class="insc-note" id="btn-skip-tracker" style="cursor:pointer;margin-top:0.75rem">
+        Je n'ai pas de tracker.gg →
+      </div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div id="state-success" class="insc-state">
+      <div class="success-wrap">
+        <div class="success-icon"><i class="fas fa-check-circle"></i></div>
+        <div class="success-title">BIENVENUE !</div>
+        <div class="success-sub">Ton profil WARSTACK est créé.</div>
+        <div class="success-recap" id="reg-success-recap"></div>
+        <a href="/dashboard/index.html" class="btn btn-primary btn-full"
+          style="display:block;text-align:center;text-decoration:none;margin-top:1.5rem;letter-spacing:2px">
+          <i class="fas fa-rocket"></i> ACCÉDER AU DASHBOARD
         </a>
       </div>
     </div>
 
-    <div id="state-form" class="insc-state">
-
-      <div class="user-bar">
-        <img id="user-avatar" src="">
-        <div>
-          <div class="user-bar-name" id="user-name"></div>
-          <div class="user-bar-sub" id="user-status"></div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">URL TRACKER.GG BATTLEFIELD 6 *</label>
-        <input type="text" class="form-input" id="tracker-url" placeholder="https://tracker.gg/bf6/profile/1234567890/overview" autocomplete="off">
-        <div class="hint" id="tracker-hint" style="display:none"></div>
-      </div>
-
-      <div class="tracker-help">
-        <strong>Comment trouver ton URL ?</strong><br>
-        1. Va sur <a href="https://tracker.gg/bf6" target="_blank">tracker.gg/bf6</a><br>
-        2. Cherche ton pseudo<br>
-        3. Copie l'URL de ta page profil
-      </div>
-
-      <button id="btn-save" class="btn btn-primary btn-full" disabled>
-        <i class="fas fa-link"></i> LIER MON TRACKER
-      </button>
-
-      <div id="save-error" class="error-box" style="display:none"></div>
-    </div>
-
-    <div id="state-success" class="insc-state">
-      <div class="success-wrap">
-        <div class="success-icon"><i class="fas fa-check-circle"></i></div>
-        <div class="success-title">LIÉ !</div>
-        <div class="success-sub">Ton tracker est enregistré.</div>
-        <a href="/inscription.html" class="btn btn-primary btn-full" style="display:block;text-align:center;text-decoration:none;margin-top:1.5rem">
-          🏆 S'inscrire au tournoi
+    <!-- NOT MEMBER -->
+    <div id="state-not-member" class="insc-state">
+      <div class="not-member-box">
+        <i class="fas fa-ban"></i>
+        Tu n'es pas membre du serveur Discord WARSTACK.<br>
+        Rejoins le serveur pour créer ton profil.
+        <a href="https://discord.gg/teampof" class="invite-btn" target="_blank">
+          <i class="fab fa-discord"></i> Rejoindre le serveur
         </a>
       </div>
     </div>

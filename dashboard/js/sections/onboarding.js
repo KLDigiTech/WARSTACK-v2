@@ -9,6 +9,16 @@ let _teams = [];
 let _games = [];
 let _roles = [];
 
+// ── TIMEOUT HELPER — évite le freeze si le bot Render est en cold start ───────
+function withTimeout(promise, ms = 8000) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`Timeout après ${ms}ms`)), ms)
+    ),
+  ]);
+}
+
 export async function initOnboarding() {
 
   // Skeletons immédiats
@@ -19,10 +29,12 @@ export async function initOnboarding() {
     if (el) el.innerHTML = `<span class="skeleton sk-title" style="width:40px;display:inline-block"></span>`;
   });
 
+  // FIX #2 — withTimeout + .catch individuel sur callBotAPI
+  // Si le bot est en cold start, on ne bloque pas le chargement de la config
   const [configs, channelsData, rolesData] = await Promise.all([
-    loadConfigs(),
-    callBotAPI('channels'),
-    callBotAPI('roles'),
+    withTimeout(loadConfigs()).catch(() => []),
+    withTimeout(callBotAPI('channels')).catch(() => ({ channels: [] })),
+    withTimeout(callBotAPI('roles')).catch(() => ({ roles: [] })),
   ]);
 
   _roles = rolesData?.roles || [];
@@ -290,7 +302,7 @@ async function saveOnboarding() {
       saveConfig('ob_dm_enabled',       String(document.getElementById('ob-dm-enabled').checked)),
       saveConfig('ob_dm_msg',           document.getElementById('ob-dm-msg').value),
       saveConfig('ob_pc_enabled',       String(document.getElementById('ob-pc-enabled').checked)),
-      saveConfig('ob_psn-enabled',      String(document.getElementById('ob-psn-enabled').checked)),
+      saveConfig('ob_psn_enabled',      String(document.getElementById('ob-psn-enabled').checked)),  // FIX #1 — tiret → underscore
       saveConfig('ob_xbox_enabled',     String(document.getElementById('ob-xbox-enabled').checked)),
       saveConfig('ob_pc_role',          document.getElementById('ob-pc-role').value),
       saveConfig('ob_psn_role',         document.getElementById('ob-psn-role').value),

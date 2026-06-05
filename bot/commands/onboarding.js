@@ -13,13 +13,18 @@ module.exports = {
 
     const guild = interaction.guild;
 
-    // Charger config depuis Supabase
     const { data: configs } = await supabase
       .from('config')
       .select('*')
       .eq('guild_id', guild.id);
 
-    const getConf = (key) => configs?.find(c => c.key === key)?.value;
+    const getConf = (key) => {
+      const val = configs?.find(c => c.key === key)?.value;
+      if (typeof val === 'string' && val.startsWith('"')) {
+        try { return JSON.parse(val); } catch { return val; }
+      }
+      return val;
+    };
 
     const channelId = getConf('ob_channel');
     if (!channelId) {
@@ -28,7 +33,7 @@ module.exports = {
 
     const channel = guild.channels.cache.get(channelId);
     if (!channel) {
-      return interaction.editReply({ content: '❌ Salon introuvable. Vérifie la config dashboard.' });
+      return interaction.editReply({ content: `❌ Salon introuvable (ID: ${channelId}). Vérifie la config dashboard.` });
     }
 
     try {
@@ -44,13 +49,15 @@ module.exports = {
 
 function buildPayloadFromConfig(configs) {
   const getConf = (key) => {
-  const val = configs?.find(c => c.key === key)?.value;
-  if (typeof val === 'string' && val.startsWith('"')) {
-    try { return JSON.parse(val); } catch { return val; }
-  }
-  return val;
-};
-  const parseSafe = (val, fallback = []) => { try { return JSON.parse(val || '[]'); } catch { return fallback; } };
+    const val = configs?.find(c => c.key === key)?.value;
+    if (typeof val === 'string' && val.startsWith('"')) {
+      try { return JSON.parse(val); } catch { return val; }
+    }
+    return val;
+  };
+  const parseSafe = (val, fallback = []) => {
+    try { return JSON.parse(val || '[]'); } catch { return fallback; }
+  };
 
   return {
     rules_enabled  : getConf('ob_rules_enabled') !== 'false',
@@ -62,7 +69,7 @@ function buildPayloadFromConfig(configs) {
     xbox_enabled   : getConf('ob_xbox_enabled') !== 'false',
     role_member    : getConf('ob_role_member')    || '',
     role_unverified: getConf('ob_role_unverified') || '',
-    confirm_msg    : getConf('ob_confirm_msg') || 'Bienvenue {mention} ! Tu fais maintenant partie de {server}. ⚔️',
+    confirm_msg    : getConf('ob_confirm_msg') || 'Bienvenue {mention} ! ⚔️',
     dm_enabled     : getConf('ob_dm_enabled') === 'true',
     dm_msg         : getConf('ob_dm_msg') || '',
   };

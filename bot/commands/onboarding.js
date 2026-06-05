@@ -3,6 +3,9 @@ const { SlashCommandBuilder } = require('discord.js');
 const supabase = require('../services/supabase');
 const { postOnboardingPanel } = require('../services/onboarding');
 
+// ── Anti-spam : garde en mémoire les guilds en cours de post ─────────────────
+const _posting = new Set();
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('onboarding')
@@ -13,43 +16,47 @@ module.exports = {
 
     const guild = interaction.guild;
 
-    const { data: configs } = await supabase
-      .from('config')
-      .select('*')
-      .eq('guild_id', guild.id);
-
-    const getConf = (key) => {
-      const val = configs?.find(c => c.key === key)?.value;
-      if (typeof val === 'string' && val.startsWith('"')) {
-        try { return JSON.parse(val); } catch { return val; }
-      }
-      return val;
-    };
-
-    const channelId = getConf('ob_channel');
-
-    // DEBUG TEMPORAIRE
-    console.log('DEBUG guild.id:', guild.id);
-    console.log('DEBUG configs count:', configs?.length);
-    console.log('DEBUG ob_channel raw:', JSON.stringify(configs?.find(c => c.key === 'ob_channel')));
-    console.log('DEBUG channelId:', channelId);
-
-    if (!channelId) {
-      return interaction.editReply({ content: '❌ Aucun salon de vérification configuré dans le dashboard.' });
+    // ── Guard anti double-post ────────────────────────────────────────────────
+    if (_posting.has(guild.id)) {
+      return interaction.editReply({ content: '⏳ Panel en cours d\'envoi, patiente une seconde...' });
     }
-
-    const channel = guild.channels.cache.get(channelId);
-    if (!channel) {
-      return interaction.editReply({ content: `❌ Salon introuvable (ID: ${channelId}). Vérifie la config dashboard.` });
-    }
+    _posting.add(guild.id);
 
     try {
+      const { data: configs } = await supabase
+        .from('config')
+        .select('*')
+        .eq('guild_id', guild.id);
+
+      const getConf = (key) => {
+        const val = configs?.find(c => c.key === key)?.value;
+        if (typeof val === 'string' && val.startsWith('"')) {
+          try { return JSON.parse(val); } catch { return val; }
+        }
+        return val;
+      };
+
+      const channelId = getConf('ob_channel');
+
+      if (!channelId) {
+        return interaction.editReply({ content: '❌ Aucun salon de vérification configuré dans le dashboard.' });
+      }
+
+      const channel = guild.channels.cache.get(channelId);
+      if (!channel) {
+        return interaction.editReply({ content: `❌ Salon introuvable (ID: ${channelId}). Vérifie la config dashboard.` });
+      }
+
       const payload = buildPayloadFromConfig(configs);
       await postOnboardingPanel(channel, payload);
       await interaction.editReply({ content: `✅ Panel d'onboarding posté dans ${channel} !` });
+
     } catch (err) {
       console.error('❌ Erreur /onboarding:', err.message);
       await interaction.editReply({ content: '❌ Erreur lors de l\'envoi du panel.' });
+    } finally {
+      // Libère le verrou après 5 secondes (le temps que Discord traite)
+      setTimeout(() => _posting.delete(guild.id), 5000);
     }
   }
 };

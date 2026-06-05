@@ -32,12 +32,15 @@ module.exports = {
 
     // ── ONBOARDING ────────────────────────────────────────
     if (
-      (interaction.isButton() || interaction.isStringSelectMenu()) &&
+      (interaction.isButton() || interaction.isStringSelectMenu() || interaction.isModalSubmit()) &&
       (
-        interaction.customId === 'ob_accept_rules' ||
+        interaction.customId === 'ob_accept_rules'  ||
         interaction.customId.startsWith('ob_team_') ||
         interaction.customId.startsWith('ob_plat_') ||
-        interaction.customId === 'ob_games_select'
+        interaction.customId === 'ob_games_select'  ||
+        interaction.customId === 'ob_tracker_link'  ||
+        interaction.customId === 'ob_tracker_modal' ||
+        interaction.customId === 'ob_tracker_skip'
       )
     ) {
       const handled = await handleOnboardingInteraction(interaction);
@@ -54,7 +57,6 @@ module.exports = {
       await interaction.deferReply({ ephemeral: true });
 
       try {
-        // Charger la catégorie depuis Supabase
         const { data: catData } = await supabase
           .from('ticket_categories')
           .select('*')
@@ -65,7 +67,6 @@ module.exports = {
           ? { id: catData.id, label: catData.label, emoji: catData.emoji }
           : { id: categoryId, label: 'Ticket', emoji: '🎫' };
 
-        // Charger config
         const { data: configs } = await supabase
           .from('config')
           .select('*')
@@ -78,7 +79,6 @@ module.exports = {
         const leaderRoleId      = getConfig('ticket_leader_role');
         const logChId           = getConfig('ticket_logs_channel');
 
-        // Vérifier si ticket déjà ouvert
         const { data: existing } = await supabase
           .from('tickets')
           .select('id')
@@ -90,7 +90,6 @@ module.exports = {
           return interaction.editReply({ content: '❌ Tu as déjà un ticket ouvert !' });
         }
 
-        // Créer le salon ticket
         const channelName = `ticket-${member.user.username.toLowerCase().replace(/[^a-z0-9]/g, '')}-${Date.now().toString().slice(-4)}`;
 
         const permissionOverwrites = [
@@ -119,20 +118,16 @@ module.exports = {
           permissionOverwrites,
         });
 
-        // Enregistrer en BDD
-        await supabase
-          .from('tickets')
-          .insert({
-            guild_id        : guild.id,
-            discord_id      : member.user.id,
-            username        : member.user.username,
-            type            : ticketType.id,
-            channel_id      : ticketChannel.id,
-            status          : 'open',
-            last_activity_at: new Date().toISOString(),
-          });
+        await supabase.from('tickets').insert({
+          guild_id        : guild.id,
+          discord_id      : member.user.id,
+          username        : member.user.username,
+          type            : ticketType.id,
+          channel_id      : ticketChannel.id,
+          status          : 'open',
+          last_activity_at: new Date().toISOString(),
+        });
 
-        // Message dans le ticket
         const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 
         const row = new ActionRowBuilder().addComponents(
@@ -154,16 +149,14 @@ module.exports = {
         );
 
         await ticketChannel.send({
-          content: `${ticketType.emoji} **Ticket ${ticketType.label}**\n\n${member} a ouvert un ticket.\n\n📋 **Décris ton problème ci-dessous.**\n\n⏳ Un membre du staff va te répondre rapidement.`,
+          content   : `${ticketType.emoji} **Ticket ${ticketType.label}**\n\n${member} a ouvert un ticket.\n\n📋 **Décris ton problème ci-dessous.**\n\n⏳ Un membre du staff va te répondre rapidement.`,
           components: [row],
         });
 
         if (logChId) {
           const logCh = guild.channels.cache.get(logChId);
           if (logCh) {
-            await logCh.send(
-              `🎫 Nouveau ticket **${ticketType.label}** ouvert par **${member.user.username}** → ${ticketChannel}`
-            );
+            await logCh.send(`🎫 Nouveau ticket **${ticketType.label}** ouvert par **${member.user.username}** → ${ticketChannel}`);
           }
         }
 
@@ -192,21 +185,16 @@ module.exports = {
 
         const staffName = interaction.member.displayName || interaction.user.username;
 
-        await supabase
-          .from('tickets')
-          .update({
-            status          : 'in_progress',
-            assigned_to     : staffName,
-            taken_by_id     : interaction.user.id,
-            taken_at        : new Date().toISOString(),
-            last_activity_at: new Date().toISOString(),
-          })
-          .eq('id', ticket.id);
+        await supabase.from('tickets').update({
+          status          : 'in_progress',
+          assigned_to     : staffName,
+          taken_by_id     : interaction.user.id,
+          taken_at        : new Date().toISOString(),
+          last_activity_at: new Date().toISOString(),
+        }).eq('id', ticket.id);
 
         const { data: configs } = await supabase
-          .from('config')
-          .select('*')
-          .eq('guild_id', interaction.guild.id);
+          .from('config').select('*').eq('guild_id', interaction.guild.id);
 
         const getConfig = (key) => configs?.find(c => c.key === key)?.value;
         const categoryActiveId = getConfig('ticket_category_active');
@@ -217,22 +205,9 @@ module.exports = {
 
         const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
         const rowUpdated = new ActionRowBuilder().addComponents(
-          new ButtonBuilder()
-            .setCustomId('ticket_take_staff')
-            .setLabel('Pris en charge')
-            .setEmoji('✅')
-            .setStyle(ButtonStyle.Success)
-            .setDisabled(true),
-          new ButtonBuilder()
-            .setCustomId('ticket_take_leader')
-            .setLabel('Contacter un Leader')
-            .setEmoji('👑')
-            .setStyle(ButtonStyle.Secondary),
-          new ButtonBuilder()
-            .setCustomId('ticket_close')
-            .setLabel('Fermer')
-            .setEmoji('🔒')
-            .setStyle(ButtonStyle.Danger),
+          new ButtonBuilder().setCustomId('ticket_take_staff') .setLabel('Pris en charge')      .setEmoji('✅').setStyle(ButtonStyle.Success)  .setDisabled(true),
+          new ButtonBuilder().setCustomId('ticket_take_leader').setLabel('Contacter un Leader')  .setEmoji('👑').setStyle(ButtonStyle.Secondary),
+          new ButtonBuilder().setCustomId('ticket_close')      .setLabel('Fermer')               .setEmoji('🔒').setStyle(ButtonStyle.Danger),
         );
 
         try {
@@ -261,24 +236,18 @@ module.exports = {
 
       try {
         const { data: ticket } = await supabase
-          .from('tickets')
-          .select('*')
-          .eq('channel_id', interaction.channelId)
-          .single();
+          .from('tickets').select('*').eq('channel_id', interaction.channelId).single();
 
         if (!ticket) return interaction.editReply({ content: '❌ Ticket introuvable.' });
         if (ticket.status === 'closed') return interaction.editReply({ content: '❌ Ce ticket est déjà fermé.' });
 
         const { data: configs } = await supabase
-          .from('config')
-          .select('*')
-          .eq('guild_id', interaction.guild.id);
+          .from('config').select('*').eq('guild_id', interaction.guild.id);
 
-        const getConfig   = (key) => configs?.find(c => c.key === key)?.value;
+        const getConfig    = (key) => configs?.find(c => c.key === key)?.value;
         const leaderRoleId = getConfig('ticket_leader_role');
 
-        await supabase
-          .from('tickets')
+        await supabase.from('tickets')
           .update({ last_activity_at: new Date().toISOString() })
           .eq('id', ticket.id);
 
@@ -300,24 +269,16 @@ module.exports = {
 
       try {
         const { data: ticket } = await supabase
-          .from('tickets')
-          .select('*')
-          .eq('channel_id', interaction.channelId)
-          .single();
+          .from('tickets').select('*').eq('channel_id', interaction.channelId).single();
 
         if (!ticket) return interaction.editReply({ content: '❌ Ticket introuvable.' });
 
-        // Update BDD
-        await supabase
-          .from('tickets')
+        await supabase.from('tickets')
           .update({ status: 'closed', closed_at: new Date().toISOString() })
           .eq('id', ticket.id);
 
-        // Changer catégorie Discord → Clôturé
         const { data: configs } = await supabase
-          .from('config')
-          .select('*')
-          .eq('guild_id', interaction.guild.id);
+          .from('config').select('*').eq('guild_id', interaction.guild.id);
 
         const getConfig        = (key) => configs?.find(c => c.key === key)?.value;
         const categoryClosedId = getConfig('ticket_category_closed');
@@ -329,7 +290,6 @@ module.exports = {
           }).catch(() => {});
         }
 
-        // Transcription
         const transcriptEnabled = getConfig('ticket_transcript') !== 'false';
         const logChId           = getConfig('ticket_logs_channel');
 
@@ -349,7 +309,6 @@ module.exports = {
           }
         }
 
-        // Désactiver les boutons
         try {
           const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
           const allMessages = await interaction.channel.messages.fetch({ limit: 20 });
@@ -377,6 +336,7 @@ module.exports = {
       }
       return;
     }
+
     // ── BOUTONS REACTION ROLES ────────────────────────────
     if (interaction.isButton() && interaction.customId.startsWith('rxrole_')) {
       const roleId = interaction.customId.replace('rxrole_', '');
@@ -388,7 +348,6 @@ module.exports = {
         const role = interaction.guild.roles.cache.get(roleId);
         if (!role) return interaction.editReply({ content: '❌ Rôle introuvable.' });
 
-        // Charger le menu pour savoir si unique ou multi
         const { data: menu } = await supabase
           .from('reaction_menus')
           .select('*, reaction_roles(*)')
@@ -396,7 +355,6 @@ module.exports = {
           .single();
 
         if (menu?.type === 'unique') {
-          // Retirer les autres rôles du même menu
           const otherRoleIds = (menu.reaction_roles || [])
             .map(r => r.role_id)
             .filter(id => id !== roleId);
@@ -422,8 +380,8 @@ module.exports = {
 
     // ── SELECT MENU REACTION ROLES ────────────────────────
     if (interaction.isStringSelectMenu() && interaction.customId.startsWith('rxmenu_')) {
-      const menuId  = interaction.customId.replace('rxmenu_', '');
-      const member  = interaction.member;
+      const menuId   = interaction.customId.replace('rxmenu_', '');
+      const member   = interaction.member;
       const selected = interaction.values;
 
       await interaction.deferReply({ ephemeral: true });
@@ -440,18 +398,15 @@ module.exports = {
         const allRoleIds = (menu.reaction_roles || []).map(r => r.role_id);
 
         if (menu.type === 'unique') {
-          // Retirer tous les anciens rôles du menu
           for (const id of allRoleIds) {
             const r = interaction.guild.roles.cache.get(id);
             if (r && member.roles.cache.has(id)) await member.roles.remove(r).catch(() => {});
           }
-          // Ajouter le sélectionné
           for (const id of selected) {
             const r = interaction.guild.roles.cache.get(id);
             if (r) await member.roles.add(r).catch(() => {});
           }
         } else {
-          // Toggle chaque rôle sélectionné
           for (const id of selected) {
             const r = interaction.guild.roles.cache.get(id);
             if (!r) continue;

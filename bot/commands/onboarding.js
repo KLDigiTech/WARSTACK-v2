@@ -55,22 +55,28 @@ function buildPayloadFromConfig(configs) {
     }
     return val;
   };
+
+  // DEBUG TEMPORAIRE
+  console.log('DEBUG guild.id:', guild.id);
+  console.log('DEBUG configs count:', configs?.length);
+  console.log('DEBUG ob_channel raw:', JSON.stringify(configs?.find(c => c.key === 'ob_channel')));
+  console.log('DEBUG channelId:', getConf('ob_channel'));
   const parseSafe = (val, fallback = []) => {
     try { return JSON.parse(val || '[]'); } catch { return fallback; }
   };
 
   return {
-    rules_enabled  : getConf('ob_rules_enabled') !== 'false',
-    rules_text     : getConf('ob_rules_text') || '',
-    teams          : parseSafe(getConf('ob_teams')),
-    games          : parseSafe(getConf('ob_games')),
-    pc_enabled     : getConf('ob_pc_enabled')   !== 'false',
-    psn_enabled    : getConf('ob_psn_enabled')  !== 'false',
-    xbox_enabled   : getConf('ob_xbox_enabled') !== 'false',
-    role_member    : getConf('ob_role_member')    || '',
+    rules_enabled: getConf('ob_rules_enabled') !== 'false',
+    rules_text: getConf('ob_rules_text') || '',
+    teams: parseSafe(getConf('ob_teams')),
+    games: parseSafe(getConf('ob_games')),
+    pc_enabled: getConf('ob_pc_enabled') !== 'false',
+    psn_enabled: getConf('ob_psn_enabled') !== 'false',
+    xbox_enabled: getConf('ob_xbox_enabled') !== 'false',
+    role_member: getConf('ob_role_member') || '',
     role_unverified: getConf('ob_role_unverified') || '',
-    confirm_msg    : getConf('ob_confirm_msg') || 'Bienvenue {mention} ! ⚔️',
-    dm_enabled     : getConf('ob_dm_enabled') === 'true',
-    dm_msg         : getConf('ob_dm_msg') || '',
+    confirm_msg: getConf('ob_confirm_msg') || 'Bienvenue {mention} ! ⚔️',
+    dm_enabled: getConf('ob_dm_enabled') === 'true',
+    dm_msg: getConf('ob_dm_msg') || '',
   };
 }

@@ -267,3 +267,22 @@
   padding-top: 16px;
   border-top: 1px solid rgba(0,255,120,.06);
 }
+
+/* ── SELECT DROPDOWN FOND SOMBRE ── */
+#rb-modal select.form-input {
+  appearance: auto;
+  -webkit-appearance: auto;
+  background: #0e1411;
+  color-scheme: dark;
+}
+
+#rb-modal select.form-input option {
+  background: #0e1411;
+  color: #e0e0e0;
+}
+
+#rb-modal select.form-input optgroup {
+  background: #0a0f0c;
+  color: #7dffb3;
+  font-weight: 700;
+}

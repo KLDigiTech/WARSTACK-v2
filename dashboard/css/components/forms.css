@@ -136,3 +136,16 @@ input[type="date"] { color-scheme: dark; }
   background: #00ff88;
   left: 22px;
 }
+
+select.form-input option,
+select.form-select option {
+  background: #0e1411;
+  color: #e0e0e0;
+}
+
+select.form-input optgroup,
+select.form-select optgroup {
+  background: #0a0f0c;
+  color: #7dffb3;
+  font-weight: 700;
+}

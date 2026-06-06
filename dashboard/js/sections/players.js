@@ -74,7 +74,7 @@ function renderTable(players) {
     return;
   }
 
-  wrapper.innerHTML = players.map(p => {
+  wrapper.innerHTML = `<div class="players-grid">${players.map(p => {
     const s        = p.snapshot;
     const score    = calcScore(s);
     const division = getDivision(score);
@@ -142,7 +142,7 @@ function renderTable(players) {
 
         <div class="player-tracker">${p.tracker_id || 'No tracker'}</div>
       </div>`;
-  }).join('');
+  }).join('')}</div>`;
 }
 
 // ─── TIMELINE ────────────────────────────────────────────────────────────────
@@ -152,29 +152,24 @@ window.openTimeline = async function(discordId) {
   const player = allPlayers.find(p => p.discord_id === discordId);
   if (!player) return;
 
-  // Header
-  document.getElementById('tl-avatar').src     = player.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png';
+  document.getElementById('tl-avatar').src          = player.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png';
   document.getElementById('tl-username').textContent = player.username || 'Unknown';
   const score = calcScore(player.snapshot);
   document.getElementById('tl-division').textContent = getDivision(score);
 
-  // Stats bar
   const s = player.snapshot;
   document.getElementById('tl-kd').textContent      = s?.kd ?? '—';
   document.getElementById('tl-kills').textContent   = s?.kills ? Number(s.kills).toLocaleString('fr-FR') : '—';
   document.getElementById('tl-winrate').textContent = s?.winrate ? `${parseFloat(s.winrate).toFixed(1)}%` : '—';
   document.getElementById('tl-score').textContent   = score;
 
-  // Ouvrir le panel
   document.getElementById('timeline-overlay').style.display = 'block';
   document.getElementById('timeline-panel').classList.add('open');
   document.body.style.overflow = 'hidden';
 
-  // Reset filtre
   currentFilter = 'all';
   document.querySelectorAll('.tl-filter').forEach(b => b.classList.toggle('active', b.dataset.filter === 'all'));
 
-  // Charger les événements
   await loadTimeline(discordId);
 };
 
@@ -212,54 +207,49 @@ async function loadTimeline(discordId) {
 
     const events = [];
 
-    // ── Audit logs (join, leave, onboarding)
     for (const log of auditLogs || []) {
       if (!['member_join','member_leave','onboarding_complete'].includes(log.action)) continue;
       events.push({
-        type     : 'member',
-        date     : log.created_at,
-        label    : log.action === 'member_join'          ? '👋 A rejoint le serveur'
-                 : log.action === 'member_leave'         ? '🚪 A quitté le serveur'
-                 : '✅ Onboarding complété',
-        detail   : null,
+        type  : 'member',
+        date  : log.created_at,
+        label : log.action === 'member_join'     ? '👋 A rejoint le serveur'
+              : log.action === 'member_leave'    ? '🚪 A quitté le serveur'
+              : '✅ Onboarding complété',
+        detail: null,
       });
     }
 
-    // ── Sanctions
     for (const s of sanctions || []) {
       const labels = { warn: '⚠️ Avertissement', mute: '🔇 Mute', kick: '👢 Kick', ban: '🔨 Ban' };
       events.push({
-        type   : 'sanction',
-        date   : s.created_at,
-        label  : labels[s.type] || `🛡️ Sanction (${s.type})`,
-        detail : s.reason ? `Raison : ${s.reason}` : null,
+        type  : 'sanction',
+        date  : s.created_at,
+        label : labels[s.type] || `🛡️ Sanction (${s.type})`,
+        detail: s.reason ? `Raison : ${s.reason}` : null,
       });
     }
 
-    // ── Tournois
     for (const entry of tournamentEntries || []) {
       const tournoi = await fetchSupabase(`tournaments?id=eq.${entry.tournament_id}&select=name`);
       const name    = tournoi?.[0]?.name || 'Tournoi inconnu';
       events.push({
-        type   : 'tournament',
-        date   : entry.created_at,
-        label  : `🏆 Inscrit au tournoi : ${name}`,
-        detail : entry.team_name ? `Équipe : ${entry.team_name}` : null,
+        type  : 'tournament',
+        date  : entry.created_at,
+        label : `🏆 Inscrit au tournoi : ${name}`,
+        detail: entry.team_name ? `Équipe : ${entry.team_name}` : null,
       });
     }
 
-    // ── Rank changes
     for (const r of ranks || []) {
       if (!r.previous_division || r.previous_division === r.division) continue;
       events.push({
-        type   : 'rank',
-        date   : r.updated_at,
-        label  : `📈 Changement de rang`,
-        detail : `${r.previous_division} → ${r.division}`,
+        type  : 'rank',
+        date  : r.updated_at,
+        label : `📈 Changement de rang`,
+        detail: `${r.previous_division} → ${r.division}`,
       });
     }
 
-    // Trier par date décroissante
     events.sort((a, b) => new Date(b.date) - new Date(a.date));
     window._tlEvents = events;
     renderTimeline(events, currentFilter);
@@ -296,7 +286,7 @@ function renderTimeline(events, filter) {
   };
 
   list.innerHTML = filtered.map(ev => {
-    const im     = iconMap[ev.type] || { cls: 'member', icon: 'fa-circle' };
+    const im      = iconMap[ev.type] || { cls: 'member', icon: 'fa-circle' };
     const dateStr = new Date(ev.date).toLocaleDateString('fr-FR', {
       day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
     });
@@ -420,14 +410,14 @@ function initAddPlayerModal() {
       if (existing?.length > 0) { showError('Ce Discord ID existe déjà.'); return; }
 
       await insertSupabase('players', {
-        discord_id  : finalDiscordId,
-        username    : username,
-        pseudo_bf6  : pseudoBf6,
-        platform    : selectedPlatform,
-        tracker_id  : trackerId,
-        tracker_url : trackerUrl || null,
-        avatar_url  : fetchedAvatar || null,
-        created_at  : new Date().toISOString(),
+        discord_id : finalDiscordId,
+        username   : username,
+        pseudo_bf6 : pseudoBf6,
+        platform   : selectedPlatform,
+        tracker_id : trackerId,
+        tracker_url: trackerUrl || null,
+        avatar_url : fetchedAvatar || null,
+        created_at : new Date().toISOString(),
       });
 
       modal.style.display = 'none';

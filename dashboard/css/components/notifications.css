@@ -381,16 +381,16 @@
   .dash-header .notif-wrapper { display: none; }
 
   .notif-dropdown {
-    position      : fixed !important;
-    top           : 64px !important;
-    bottom        : auto !important;
-    left          : 8px !important;
-    right         : 8px !important;
-    width         : calc(100vw - 16px) !important;
-    max-width     : calc(100vw - 16px) !important;
-    max-height    : calc(100vh - 140px) !important;
-    box-sizing    : border-box !important;
-    overflow-x    : hidden !important;
+    position   : fixed !important;
+    top        : 64px !important;
+    bottom     : auto !important;
+    left       : 8px !important;
+    right      : 8px !important;
+    width      : unset !important;
+    max-width  : unset !important;
+    max-height : calc(100vh - 140px) !important;
+    box-sizing : border-box !important;
+    overflow-x : hidden !important;
   }
 
   .notif-filters {

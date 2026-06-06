@@ -47,7 +47,8 @@ export async function initNotifications() {
 
   // Events filtres
   filterBar.querySelectorAll('.notif-filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
       filterBar.querySelectorAll('.notif-filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       activeFilter = btn.dataset.filter;
@@ -66,17 +67,20 @@ export async function initNotifications() {
   bell?.addEventListener('click', toggleDropdown);
   bellMob?.addEventListener('click', toggleDropdown);
 
-  // Fermer en cliquant ailleurs
+  // Fermer en cliquant ailleurs — le dropdown est hors des wrappers donc on vérifie les 3
   document.addEventListener('click', e => {
-    const inDesktop = document.getElementById('notif-wrapper')?.contains(e.target);
-    const inMobile  = document.getElementById('notif-wrapper-mobile')?.contains(e.target);
-    if (!inDesktop && !inMobile) {
+    if (dropdown.style.display !== 'flex') return;
+    const inDropdown = dropdown.contains(e.target);
+    const inDesktop  = document.getElementById('notif-wrapper')?.contains(e.target);
+    const inMobile   = document.getElementById('notif-wrapper-mobile')?.contains(e.target);
+    if (!inDropdown && !inDesktop && !inMobile) {
       dropdown.style.display = 'none';
     }
   });
 
   // Clear boutons
   dropdown.addEventListener('click', e => {
+    e.stopPropagation();
     if (e.target.id === 'notif-clear' || e.target.closest('#notif-clear')) {
       markAllRead();
     }
@@ -248,7 +252,8 @@ function renderNotifications() {
   el.innerHTML = html;
 
   el.querySelectorAll('.notif-item').forEach(item => {
-    item.addEventListener('click', () => {
+    item.addEventListener('click', e => {
+      e.stopPropagation();
       const notif = notifications.find(n => n.id === item.dataset.id);
       if (notif && !notif.read) {
         notif.read = true;

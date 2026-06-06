@@ -1,14 +1,14 @@
 import { fetchSupabase } from '../api.js';
-import { GUILD_ID }      from '../config.js';
+import { GUILD_ID } from '../config.js';
 
 let notifications = [];
-let unreadCount   = 0;
-let activeFilter  = 'all';
+let unreadCount = 0;
+let activeFilter = 'all';
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 
 export async function initNotifications() {
-  const bell     = document.getElementById('notif-bell');
+  const bell = document.getElementById('notif-bell');
   const dropdown = document.getElementById('notif-dropdown');
   const clearBtn = document.getElementById('notif-clear');
 
@@ -56,16 +56,23 @@ export async function initNotifications() {
     });
   });
 
-  // Toggle dropdown
-  bell.addEventListener('click', e => {
+  // Toggle dropdown — cloche desktop + cloche mobile
+  const bellMobile = document.getElementById('notif-bell-mobile');
+
+  function toggleDropdown(e) {
     e.stopPropagation();
     const isOpen = dropdown.style.display === 'flex';
     dropdown.style.display = isOpen ? 'none' : 'flex';
     if (!isOpen) markAllRead();
-  });
+  }
+
+  bell.addEventListener('click', toggleDropdown);
+  bellMobile?.addEventListener('click', toggleDropdown);
 
   document.addEventListener('click', e => {
-    if (!document.getElementById('notif-wrapper').contains(e.target)) {
+    const inDesktop = document.getElementById('notif-wrapper')?.contains(e.target);
+    const inMobile = document.getElementById('notif-wrapper-mobile')?.contains(e.target);
+    if (!inDesktop && !inMobile) {
       dropdown.style.display = 'none';
     }
   });
@@ -91,8 +98,8 @@ export async function initNotifications() {
 
 async function loadNotifications() {
   const yesterday = hoursAgo(24);
-  const oneHour   = hoursAgo(1);
-  const now       = new Date().toISOString().split('T')[0];
+  const oneHour = hoursAgo(1);
+  const now = new Date().toISOString().split('T')[0];
 
   const [tickets, suggestions, sanctions, auditLogs, onboardingLogs, events] = await Promise.all([
     fetchSupabase(`tickets?guild_id=eq.${GUILD_ID}&status=eq.open&order=created_at.desc&limit=5`).catch(() => []),
@@ -174,7 +181,7 @@ async function loadNotifications() {
 
   if (newNotifs.length) {
     notifications = [...newNotifs, ...notifications].slice(0, 50);
-    unreadCount  += newNotifs.length;
+    unreadCount += newNotifs.length;
     updateBadge();
     renderNotifications();
     // Shake la cloche
@@ -266,18 +273,24 @@ function renderNotifications() {
 // ── BADGE ─────────────────────────────────────────────────────────────────────
 
 function updateBadge() {
-  const badge      = document.getElementById('notif-badge');
-  const countBadge = document.getElementById('notif-count-badge');
+  const badge        = document.getElementById('notif-badge');
+  const badgeMobile  = document.getElementById('notif-badge-mobile');
+  const countBadge   = document.getElementById('notif-count-badge');
+  const bellMobile   = document.getElementById('notif-bell-mobile');
 
   if (unreadCount > 0) {
     const label = unreadCount > 9 ? '9+' : String(unreadCount);
-    if (badge)      { badge.textContent = label; badge.style.display = 'flex'; }
-    if (countBadge) { countBadge.textContent = `${unreadCount} non lues`; countBadge.style.display = 'inline-block'; }
+    if (badge)       { badge.textContent = label;      badge.style.display = 'flex'; }
+    if (badgeMobile) { badgeMobile.textContent = label; badgeMobile.style.display = 'flex'; }
+    if (countBadge)  { countBadge.textContent = `${unreadCount} non lues`; countBadge.style.display = 'inline-block'; }
     document.getElementById('notif-bell')?.classList.add('has-unread');
+    bellMobile?.classList.add('has-unread');
   } else {
-    if (badge)      badge.style.display = 'none';
-    if (countBadge) countBadge.style.display = 'none';
+    if (badge)       badge.style.display = 'none';
+    if (badgeMobile) badgeMobile.style.display = 'none';
+    if (countBadge)  countBadge.style.display = 'none';
     document.getElementById('notif-bell')?.classList.remove('has-unread');
+    bellMobile?.classList.remove('has-unread');
   }
 }
 
@@ -300,20 +313,20 @@ function timeAgo(iso) {
   if (!iso) return '—';
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1)  return 'À l\'instant';
+  if (mins < 1) return 'À l\'instant';
   if (mins < 60) return `${mins}min`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24)  return `${hrs}h`;
+  if (hrs < 24) return `${hrs}h`;
   return `${Math.floor(hrs / 24)}j`;
 }
 
 function dateGroupLabel(iso) {
   if (!iso) return 'Ancien';
-  const d    = new Date(iso);
-  const now  = new Date();
+  const d = new Date(iso);
+  const now = new Date();
   const diff = now - d;
-  const day  = 86400000;
-  if (diff < day)     return 'Aujourd\'hui';
+  const day = 86400000;
+  if (diff < day) return 'Aujourd\'hui';
   if (diff < 2 * day) return 'Hier';
   if (diff < 7 * day) return 'Cette semaine';
   return 'Plus ancien';

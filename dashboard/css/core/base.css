@@ -9,6 +9,7 @@ body {
   font-size: 14px;
   -webkit-font-smoothing: antialiased;
   position: relative;
+  overflow-x: hidden;
 }
 
 body::before {

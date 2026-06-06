@@ -8,6 +8,7 @@
   background:
     radial-gradient(circle at top, rgba(0,255,120,.03), transparent 35%),
     #050805;
+  overflow-x: hidden;
 }
 
 .dashboard-container {

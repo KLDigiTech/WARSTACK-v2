@@ -76,7 +76,8 @@
       </div>
       <div class="panel-body">
 
-        <p class="ob-hint">Définis les équipes/clans proposés lors de l'onboarding. Chaque équipe peut avoir un rôle Discord associé.</p>
+        <p class="ob-hint">Définis les équipes/clans proposés lors de l'onboarding. Chaque équipe peut avoir un rôle
+          Discord associé.</p>
 
         <div id="ob-teams-list" class="ob-teams-list">
           <!-- Généré dynamiquement -->
@@ -389,5 +390,135 @@
     </div>
 
   </div>
+  <!-- ══ WIZARD INSTALLATION ══ -->
+  <div id="ob-wizard-overlay" style="display:none">
+    <div id="ob-wizard">
 
+      <div id="ob-wizard-header">
+        <div id="ob-wizard-logo">⚔️ WARSTACK</div>
+        <button id="ob-wizard-skip" title="Passer le wizard">
+          <i class="fas fa-times"></i> Passer
+        </button>
+      </div>
+
+      <div id="ob-wizard-progress">
+        <div id="ob-wizard-progress-bar"></div>
+      </div>
+
+      <div id="ob-wizard-body">
+
+        <!-- ÉTAPE 1 : Bienvenue -->
+        <div class="ob-wz-step active" data-step="1">
+          <div class="ob-wz-icon">🚀</div>
+          <h2 class="ob-wz-title">Bienvenue sur WARSTACK</h2>
+          <p class="ob-wz-desc">Ce wizard va te guider pour configurer l'onboarding de ton serveur en moins de 2
+            minutes.</p>
+          <div class="ob-wz-checklist">
+            <div class="ob-wz-check"><i class="fas fa-check-circle"></i> Salon de vérification</div>
+            <div class="ob-wz-check"><i class="fas fa-check-circle"></i> Rôles automatiques</div>
+            <div class="ob-wz-check"><i class="fas fa-check-circle"></i> Équipes & plateformes</div>
+            <div class="ob-wz-check"><i class="fas fa-check-circle"></i> Message de bienvenue</div>
+          </div>
+        </div>
+
+        <!-- ÉTAPE 2 : Salon + Rôles -->
+        <div class="ob-wz-step" data-step="2">
+          <div class="ob-wz-icon">🔧</div>
+          <h2 class="ob-wz-title">Salon & Rôles</h2>
+          <p class="ob-wz-desc">Choisis où le bot postera le panel et quels rôles attribuer.</p>
+          <div class="form-group">
+            <label>Salon de vérification</label>
+            <select id="wz-channel" class="form-select"></select>
+          </div>
+          <div class="form-group">
+            <label>Rôle "Non vérifié" <span class="tooltip-icon"
+                data-tooltip="Attribué à l'arrivée. Limite l'accès aux salons.">ⓘ</span></label>
+            <select id="wz-role-unverified" class="form-select"></select>
+          </div>
+          <div class="form-group">
+            <label>Rôle "Membre" <span class="tooltip-icon"
+                data-tooltip="Attribué après vérification complète.">ⓘ</span></label>
+            <select id="wz-role-member" class="form-select"></select>
+          </div>
+        </div>
+
+        <!-- ÉTAPE 3 : Équipes -->
+        <div class="ob-wz-step" data-step="3">
+          <div class="ob-wz-icon">⚔️</div>
+          <h2 class="ob-wz-title">Équipes</h2>
+          <p class="ob-wz-desc">Les équipes proposées lors de l'onboarding. Tu pourras en ajouter d'autres plus tard.
+          </p>
+          <div id="wz-teams-preview" class="ob-wz-chips"></div>
+          <p class="ob-wz-hint">Les équipes PÖF, STAFF et VISITEUR sont préconfigurées. Tu peux les modifier dans la
+            configuration complète.</p>
+        </div>
+
+        <!-- ÉTAPE 4 : Plateformes -->
+        <div class="ob-wz-step" data-step="4">
+          <div class="ob-wz-icon">🎮</div>
+          <h2 class="ob-wz-title">Plateformes</h2>
+          <p class="ob-wz-desc">Quelles plateformes proposes-tu à tes membres ?</p>
+          <div class="ob-wz-platforms">
+            <label class="ob-wz-platform-btn">
+              <input type="checkbox" id="wz-pc" checked>
+              <span><i class="fas fa-desktop"></i> PC</span>
+            </label>
+            <label class="ob-wz-platform-btn">
+              <input type="checkbox" id="wz-psn" checked>
+              <span><i class="fab fa-playstation"></i> PlayStation</span>
+            </label>
+            <label class="ob-wz-platform-btn">
+              <input type="checkbox" id="wz-xbox" checked>
+              <span><i class="fab fa-xbox"></i> Xbox</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- ÉTAPE 5 : Message de bienvenue -->
+        <div class="ob-wz-step" data-step="5">
+          <div class="ob-wz-icon">✉️</div>
+          <h2 class="ob-wz-title">Message de bienvenue</h2>
+          <p class="ob-wz-desc">Message affiché dans le salon après la vérification.</p>
+          <div class="form-group">
+            <div class="variables-bar">
+              <span class="var-label">Insérer :</span>
+              <button class="var-btn" data-var="{mention}" data-target="wz-confirm-msg">{mention}</button>
+              <button class="var-btn" data-var="{user}" data-target="wz-confirm-msg">{user}</button>
+              <button class="var-btn" data-var="{server}" data-target="wz-confirm-msg">{server}</button>
+            </div>
+            <textarea id="wz-confirm-msg" class="form-textarea" rows="3"
+              placeholder="✅ Bienvenue {mention} ! Tu es maintenant membre de {server}. Bonne chance soldat. ⚔️"></textarea>
+          </div>
+        </div>
+
+        <!-- ÉTAPE 6 : Terminé -->
+        <div class="ob-wz-step" data-step="6">
+          <div class="ob-wz-icon">🎉</div>
+          <h2 class="ob-wz-title">Configuration terminée !</h2>
+          <p class="ob-wz-desc">Ton onboarding est prêt. Clique sur "Poster le panel" pour l'envoyer dans le salon
+            Discord.</p>
+          <div class="ob-wz-summary" id="ob-wz-summary"></div>
+        </div>
+
+      </div>
+
+      <div id="ob-wizard-footer">
+        <button class="btn btn-secondary" id="ob-wz-prev" style="visibility:hidden">
+          <i class="fas fa-arrow-left"></i> Précédent
+        </button>
+        <div id="ob-wz-dots">
+          <span class="ob-wz-dot active" data-step="1"></span>
+          <span class="ob-wz-dot" data-step="2"></span>
+          <span class="ob-wz-dot" data-step="3"></span>
+          <span class="ob-wz-dot" data-step="4"></span>
+          <span class="ob-wz-dot" data-step="5"></span>
+          <span class="ob-wz-dot" data-step="6"></span>
+        </div>
+        <button class="btn btn-primary" id="ob-wz-next">
+          Suivant <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+
+    </div>
+  </div>
 </div>

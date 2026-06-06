@@ -567,3 +567,216 @@
   .ob-stats-grid     { grid-template-columns: repeat(3, 1fr); }
   .ob-team-row       { flex-wrap: wrap; }
 }
+
+/* ══ WIZARD ══ */
+#ob-wizard-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.85);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+#ob-wizard {
+  width: 540px;
+  max-width: 95vw;
+  background: linear-gradient(180deg, #0b1610 0%, #080d0a 100%);
+  border: 1px solid rgba(0,255,120,.2);
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 30px 80px rgba(0,0,0,.6);
+}
+
+#ob-wizard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid rgba(0,255,120,.08);
+}
+
+#ob-wizard-logo {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--green);
+}
+
+#ob-wizard-skip {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: color .15s;
+  font-family: 'Rajdhani', sans-serif;
+}
+#ob-wizard-skip:hover { color: #ff7b7b; }
+
+#ob-wizard-progress {
+  height: 3px;
+  background: rgba(0,255,120,.08);
+}
+#ob-wizard-progress-bar {
+  height: 100%;
+  background: var(--green);
+  transition: width .3s ease;
+  width: 16.6%;
+}
+
+#ob-wizard-body {
+  padding: 32px 28px;
+  min-height: 340px;
+  display: flex;
+  flex-direction: column;
+}
+
+.ob-wz-step { display: none; flex-direction: column; flex: 1; }
+.ob-wz-step.active { display: flex; }
+
+.ob-wz-icon {
+  font-size: 40px;
+  margin-bottom: 16px;
+  line-height: 1;
+}
+
+.ob-wz-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+.ob-wz-desc {
+  font-size: 13px;
+  color: #7fa38a;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.ob-wz-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 10px;
+  font-style: italic;
+}
+
+.ob-wz-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.ob-wz-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #e0e0e0;
+}
+.ob-wz-check i { color: var(--green); font-size: 14px; }
+
+.ob-wz-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.ob-wz-chip {
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: rgba(0,255,120,.1);
+  border: 1px solid rgba(0,255,120,.2);
+  color: #7dffb3;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ob-wz-platforms {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.ob-wz-platform-btn {
+  flex: 1;
+  min-width: 120px;
+  cursor: pointer;
+}
+.ob-wz-platform-btn input { display: none; }
+.ob-wz-platform-btn span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 2px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.03);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  transition: .15s;
+  font-family: 'Rajdhani', sans-serif;
+  letter-spacing: 1px;
+}
+.ob-wz-platform-btn input:checked + span {
+  border-color: rgba(0,255,120,.4);
+  background: rgba(0,255,120,.1);
+  color: #7dffb3;
+}
+
+.ob-wz-summary {
+  background: rgba(0,255,120,.04);
+  border: 1px solid rgba(0,255,120,.1);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+.ob-wz-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+.ob-wz-summary-label { color: var(--text-muted); }
+.ob-wz-summary-val   { color: #e0e0e0; font-weight: 600; }
+
+#ob-wizard-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px 20px;
+  border-top: 1px solid rgba(0,255,120,.06);
+}
+
+#ob-wz-dots {
+  display: flex;
+  gap: 6px;
+}
+.ob-wz-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.1);
+  transition: .2s;
+}
+.ob-wz-dot.active {
+  background: var(--green);
+  width: 20px;
+  border-radius: 4px;
+}

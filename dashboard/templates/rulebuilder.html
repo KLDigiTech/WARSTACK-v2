@@ -2,12 +2,52 @@
   <div>
     <p class="rb-subtitle">Automatise les actions de ton serveur sans coder</p>
   </div>
-  <button class="btn btn-primary" id="btn-new-rule">
-    <i class="fas fa-plus"></i> Nouvelle règle
-  </button>
+  <div style="display:flex;gap:0.5rem">
+    <button class="btn btn-secondary" id="btn-import-rules">
+      <i class="fas fa-upload"></i> Importer
+    </button>
+    <button class="btn btn-secondary" id="btn-export-rules">
+      <i class="fas fa-download"></i> Exporter règles
+    </button>
+    <button class="btn btn-primary" id="btn-new-rule">
+      <i class="fas fa-plus"></i> Nouvelle règle
+    </button>
+  </div>
 </div>
 
 <div id="rb-rules-list"></div>
+
+<!-- ── EXPORT DONNÉES ── -->
+<div class="panel" style="margin-top:1.5rem">
+  <div class="panel-header">
+    <h2>📦 Export des données</h2>
+  </div>
+  <div class="panel-body">
+    <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem">
+      Exporte les données de ton serveur en CSV pour les analyser ou les sauvegarder.
+    </p>
+    <div style="display:flex;flex-wrap:wrap;gap:0.75rem">
+      <button class="btn btn-secondary" id="btn-export-members">
+        <i class="fas fa-users"></i> Membres CSV
+      </button>
+      <button class="btn btn-secondary" id="btn-export-sanctions">
+        <i class="fas fa-gavel"></i> Sanctions CSV
+      </button>
+      <button class="btn btn-secondary" id="btn-export-suggestions">
+        <i class="fas fa-lightbulb"></i> Suggestions CSV
+      </button>
+      <button class="btn btn-secondary" id="btn-export-events">
+        <i class="fas fa-calendar"></i> Événements CSV
+      </button>
+      <button class="btn btn-secondary" id="btn-export-tickets">
+        <i class="fas fa-ticket-alt"></i> Tickets CSV
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── INPUT IMPORT CACHÉ ── -->
+<input type="file" id="import-file-input" accept=".json" style="display:none">
 
 <!-- ── MODAL ÉDITEUR ── -->
 <div id="rb-modal-overlay" style="display:none" onclick="if(event.target===this)closeRuleModal()"></div>

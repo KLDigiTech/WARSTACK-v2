@@ -378,19 +378,34 @@
 
   .dash-clock { display: none; }
 
-  /* Cloche cachée dans le dash-header en mobile (elle est dans la topbar) */
   .dash-header .notif-wrapper { display: none; }
 
   .notif-dropdown {
     position      : fixed;
     top           : calc(var(--topbar-height) + 8px);
     bottom        : auto;
-    right         : 8px;
     left          : 8px;
+    right         : 8px;
     width         : auto;
-    max-width     : 100vw;
+    max-width     : calc(100vw - 16px);
     max-height    : calc(100vh - var(--topbar-height) - var(--bottomnav-height) - 16px);
     border-radius : var(--radius-lg);
     z-index       : 9999;
+    box-sizing    : border-box;
+    overflow-x    : hidden;
+  }
+
+  .notif-filters {
+    flex-wrap     : nowrap;
+    overflow-x    : auto;
+    padding-right : 8px;
+  }
+
+  .notif-item-title,
+  .notif-item-text {
+    white-space   : nowrap;
+    overflow      : hidden;
+    text-overflow : ellipsis;
+    max-width     : calc(100vw - 100px);
   }
 }

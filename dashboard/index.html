@@ -32,17 +32,6 @@
   <!-- OVERLAY SIDEBAR MOBILE -->
   <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
-  <!-- DROPDOWN NOTIF — hors de tout conteneur pour le fixed mobile -->
-  <div class="notif-dropdown" id="notif-dropdown" style="display:none">
-    <div class="notif-header">
-      <span>Notifications</span>
-      <button class="notif-clear" id="notif-clear">Tout marquer lu</button>
-    </div>
-    <div class="notif-list" id="notif-list">
-      <div class="notif-empty">Aucune notification</div>
-    </div>
-  </div>
-
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
 
@@ -185,6 +174,17 @@
   </div>
 
   <div id="toast" class="toast"></div>
+
+  <!-- DROPDOWN NOTIF — hors de tout contexte transformé, dernier dans le body -->
+  <div class="notif-dropdown" id="notif-dropdown" style="display:none">
+    <div class="notif-header">
+      <span>Notifications</span>
+      <button class="notif-clear" id="notif-clear">Tout marquer lu</button>
+    </div>
+    <div class="notif-list" id="notif-list">
+      <div class="notif-empty">Aucune notification</div>
+    </div>
+  </div>
 
   <script type="module" src="./js/auth.js"></script>
   <script type="module" src="./js/app.js"></script>

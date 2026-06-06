@@ -354,13 +354,22 @@
 
 /* ── MOBILE ── */
 @media (max-width: 768px) {
+  .dash-header {
+    margin    : 0 -14px 16px -14px;
+    padding   : 0 14px;
+    position  : sticky;
+    top       : var(--topbar-height);
+  }
+
+  .dash-clock { display: none; }
+
   .notif-dropdown {
-    position: fixed;
-    top: auto;
-    bottom: calc(var(--bottomnav-height) + 8px);
-    right: 8px;
-    left: 8px;
-    width: auto;
-    border-radius: var(--radius-lg);
+    position      : fixed;
+    top           : auto;
+    bottom        : calc(var(--bottomnav-height) + 8px);
+    right         : 8px;
+    left          : 8px;
+    width         : auto;
+    border-radius : var(--radius-lg);
   }
 }

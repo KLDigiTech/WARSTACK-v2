@@ -537,7 +537,50 @@ router.post('/suggestion/status', auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// ── TEST suggestion ───────────────────────────────────────────────────────────
+router.post('/suggestion/test', auth, async (req, res) => {
+  try {
+    const { channel_id } = req.body;
+    const guild = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
+    const channel = guild.channels.cache.get(channel_id);
+    if (!channel) return res.status(404).json({ error: 'Salon introuvable' });
+
+    const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+
+    const embed = new EmbedBuilder()
+      .setTitle('💡 Nouvelle suggestion')
+      .setDescription('Ceci est une suggestion de test envoyée depuis le dashboard WARSTACK.')
+      .setColor(0x5865F2)
+      .addFields(
+        { name: 'Auteur',  value: 'Kevin (test)',   inline: true },
+        { name: 'Statut',  value: '🟡 En attente',  inline: true },
+      )
+      .setFooter({ text: 'WARSTACK Suggestions • TEST' })
+      .setTimestamp();
+
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId('sug_test_up')
+        .setLabel('👍 0')
+        .setStyle(ButtonStyle.Secondary)
+        .setDisabled(true),
+      new ButtonBuilder()
+        .setCustomId('sug_test_down')
+        .setLabel('👎 0')
+        .setStyle(ButtonStyle.Secondary)
+        .setDisabled(true),
+    );
+
+    await channel.send({ embeds: [embed], components: [row] });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('❌ suggestion/test error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
 // ANNONCER ÉVÉNEMENT
 router.post('/event/announce', auth, async (req, res) => {
   try {
@@ -955,6 +998,67 @@ router.post('/onboarding/post', auth, async (req, res) => {
     res.json({ success: true, message: 'Panel onboarding envoyé !' });
   } catch (err) {
     console.error('❌ onboarding/post error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+// ── TEST ÉVÉNEMENT ────────────────────────────────────────────────────────────
+router.post('/event/test', auth, async (req, res) => {
+  try {
+    const { channel_id } = req.body;
+    const guild = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
+
+    const channel = guild.channels.cache.get(channel_id);
+    if (!channel) return res.status(404).json({ error: 'Salon introuvable' });
+
+    const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+
+    const now  = new Date();
+    const date = now.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+    const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+    const embed = new EmbedBuilder()
+      .setTitle('🎯 Événement TEST — BF6 Tournament')
+      .setDescription('Ceci est un événement de test envoyé depuis le dashboard WARSTACK.')
+      .setColor(0xFF6B35)
+      .addFields(
+        { name: '📅 Date',   value: date,        inline: true },
+        { name: '⏰ Heure',  value: time,         inline: true },
+        { name: '👥 Places', value: '64 places', inline: true },
+      )
+      .setFooter({ text: 'WARSTACK Events • TEST' })
+      .setTimestamp();
+
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder().setCustomId('ev_test_present').setLabel('✅ Présent').setStyle(ButtonStyle.Success).setDisabled(true),
+      new ButtonBuilder().setCustomId('ev_test_maybe').setLabel('❔ Peut-être').setStyle(ButtonStyle.Secondary).setDisabled(true),
+      new ButtonBuilder().setCustomId('ev_test_absent').setLabel('❌ Absent').setStyle(ButtonStyle.Danger).setDisabled(true),
+    );
+
+    await channel.send({ embeds: [embed], components: [row] });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('❌ event/test error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── MESSAGES RÉCURRENTS — ENVOYER MAINTENANT ──────────────────────────────────
+router.post('/message/send-now', auth, async (req, res) => {
+  try {
+    const { channel_id, content } = req.body;
+    if (!channel_id || !content) return res.status(400).json({ error: 'channel_id et content requis' });
+
+    const guild = global.botClient.guilds.cache.first();
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
+
+    const channel = guild.channels.cache.get(channel_id);
+    if (!channel) return res.status(404).json({ error: 'Salon introuvable' });
+
+    await channel.send(content);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('❌ message/send-now error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });

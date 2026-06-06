@@ -7,8 +7,8 @@ let contactTarget = 'present';
 
 export async function initEvents() {
 
-  const channelsData = await callBotAPI('channels');
-  const textChannels = (channelsData?.channels || []).filter(c => c.type === 'text');
+  const channelsData  = await callBotAPI('channels');
+  const textChannels  = (channelsData?.channels || []).filter(c => c.type === 'text');
   const voiceChannels = (channelsData?.channels || []).filter(c => c.type === 'voice');
 
   const chOpts = `<option value="">Aucun</option>` +
@@ -19,10 +19,38 @@ export async function initEvents() {
   document.getElementById('event-channel').innerHTML = chOpts;
   document.getElementById('event-voice').innerHTML   = vcOpts;
 
+  // ── Preview live ─────────────────────────────────────────
+  ['event-title', 'event-description', 'event-date', 'event-time', 'event-max'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updatePreview);
+  });
+  updatePreview();
+  updateClock();
+  setInterval(updateClock, 1000);
+
   // ── Toggle form ─────────────────────────────────────────
   document.getElementById('btn-toggle-form').addEventListener('click', () => {
     const form = document.getElementById('event-form');
     form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  });
+
+  // ── Aperçu local ─────────────────────────────────────────
+  document.getElementById('btn-preview-event').addEventListener('click', () => {
+    updatePreview();
+    document.getElementById('event-preview-panel').style.display = 'block';
+    document.getElementById('event-preview-panel').scrollIntoView({ behavior: 'smooth' });
+  });
+
+  document.getElementById('btn-close-preview').addEventListener('click', () => {
+    document.getElementById('event-preview-panel').style.display = 'none';
+  });
+
+  // ── Bouton TEST Discord ──────────────────────────────────
+  document.getElementById('btn-test-event').addEventListener('click', async () => {
+    const channelId = document.getElementById('event-channel').value;
+    if (!channelId) return showToast('❌ Choisis un salon annonces d\'abord', 'error');
+    const result = await callBotAPI('event/test', 'POST', { channel_id: channelId });
+    if (result?.success) showToast('✅ Événement de test envoyé !');
+    else showToast('❌ Erreur lors du test', 'error');
   });
 
   // ── Filtres ─────────────────────────────────────────────
@@ -88,6 +116,30 @@ export async function initEvents() {
   await loadStats();
 }
 
+// ── Preview Discord live ─────────────────────────────────────────────────────
+
+function updatePreview() {
+  const title = document.getElementById('event-title').value       || 'Nouvel événement';
+  const desc  = document.getElementById('event-description').value || 'Description de l\'événement...';
+  const date  = document.getElementById('event-date').value;
+  const time  = document.getElementById('event-time').value;
+  const max   = document.getElementById('event-max').value;
+
+  const el = (id) => document.getElementById(id);
+  if (el('ev-dp-title'))  el('ev-dp-title').textContent  = `🎯 ${title}`;
+  if (el('ev-dp-desc'))   el('ev-dp-desc').textContent   = desc;
+  if (el('ev-dp-date'))   el('ev-dp-date').textContent   = date ? formatDate(date) : '—';
+  if (el('ev-dp-heure'))  el('ev-dp-heure').textContent  = time ? time             : '—';
+  if (el('ev-dp-max'))    el('ev-dp-max').textContent    = max  ? `${max} places`  : 'Illimitées';
+}
+
+function updateClock() {
+  const now = new Date();
+  const t   = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const el  = document.getElementById('ev-dp-time');
+  if (el) el.textContent = t;
+}
+
 // ── Créer événement ──────────────────────────────────────────────────────────
 
 async function createEvent() {
@@ -112,19 +164,18 @@ async function createEvent() {
     description,
     date,
     time,
-    max_players   : max,
-    voice_channel : voiceId || null,
-    status        : 'open',
-    reminders     : JSON.stringify({ r24h, r1h, r15min }),
+    max_players    : max,
+    voice_channel  : voiceId || null,
+    status         : 'open',
+    reminders      : JSON.stringify({ r24h, r1h, r15min }),
     checkin_enabled: checkin,
   }, true);
 
   if (error) return showToast('❌ Erreur création', 'error');
 
-  // Annoncer dans le salon Discord
   if (channelId && event) {
     await callBotAPI('event/announce', 'POST', {
-      event_id  : event.id,
+      event_id: event.id,
       channel_id: channelId,
       title, description, date, time, max,
     });
@@ -132,10 +183,12 @@ async function createEvent() {
 
   showToast('✅ Événement créé !');
 
-  // Reset form
   ['event-title','event-description','event-date','event-time','event-max'].forEach(id => {
     document.getElementById(id).value = '';
   });
+
+  document.getElementById('event-preview-panel').style.display = 'none';
+  updatePreview();
 
   await loadEvents();
   await loadStats();
@@ -187,7 +240,6 @@ async function selectEvent(id, list) {
 
   await loadParticipants();
 
-  // Highlight carte active
   document.querySelectorAll('.event-card').forEach(c => {
     c.classList.toggle('active', c.dataset.id === id);
   });
@@ -207,7 +259,6 @@ async function loadParticipants() {
   allParticipants = data;
   renderParticipants(data);
 
-  // Compteurs
   const present = data.filter(p => p.status === 'present').length;
   const maybe   = data.filter(p => p.status === 'maybe').length;
   const absent  = data.filter(p => p.status === 'absent').length;
@@ -279,10 +330,10 @@ async function loadStats() {
   const present = parts.filter(p => p.status === 'present').length;
   const total   = parts.length;
 
-  document.getElementById('stat-events-total').textContent       = events.length;
+  document.getElementById('stat-events-total').textContent        = events.length;
   document.getElementById('stat-events-participants').textContent = present;
-  document.getElementById('stat-events-open').textContent        = events.filter(e => e.status === 'open').length;
-  document.getElementById('stat-events-presence').textContent    = total
+  document.getElementById('stat-events-open').textContent         = events.filter(e => e.status === 'open').length;
+  document.getElementById('stat-events-presence').textContent     = total
     ? `${Math.round((present / total) * 100)}%` : '0%';
 }
 
@@ -355,6 +406,7 @@ function statusLabel(status) {
 
 function formatDate(dateStr) {
   if (!dateStr) return '';
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+  return new Date(dateStr).toLocaleDateString('fr-FR', {
+    day: '2-digit', month: 'long', year: 'numeric'
+  });
 }

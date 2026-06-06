@@ -74,7 +74,7 @@
           </div>
           <div class="form-group">
             <label>Salon annonces <span class="tooltip-icon"
-                data-tooltip="Salon où le bot publie l'annonce de l'événement avec les boutons RSVP.">ⓘ</span></label>
+                data-tooltip="Salon où le bot publie l'annonce avec les boutons RSVP.">ⓘ</span></label>
             <select id="event-channel" class="form-select">
               <option value="">Aucun</option>
             </select>
@@ -107,7 +107,7 @@
         <div class="form-group">
           <div class="toggle-row">
             <label>Check-in <span class="tooltip-icon"
-                data-tooltip="Quand activé, les participants doivent confirmer leur présence peu avant l'événement.">ⓘ</span></label>
+                data-tooltip="Les participants doivent confirmer leur présence peu avant l'événement.">ⓘ</span></label>
             <label class="toggle-switch">
               <input type="checkbox" id="event-checkin">
               <span class="toggle-slider"></span>
@@ -116,10 +116,72 @@
         </div>
 
       </div>
-      <div class="panel-footer">
+      <div class="panel-footer" style="justify-content:space-between">
+        <div style="display:flex;gap:0.5rem">
+          <button class="btn btn-secondary" id="btn-preview-event">
+            <i class="fas fa-eye"></i> Aperçu
+          </button>
+          <button class="btn btn-secondary" id="btn-test-event">
+            <i class="fas fa-paper-plane"></i> Tester
+          </button>
+        </div>
         <button class="btn btn-primary" id="btn-create-event">
           <i class="fas fa-plus"></i> Créer l'événement
         </button>
+      </div>
+    </div>
+
+    <!-- PREVIEW DISCORD -->
+    <div class="panel" id="event-preview-panel" style="display:none">
+      <div class="panel-header">
+        <h2>👁️ Aperçu Discord</h2>
+        <button class="btn btn-sm btn-secondary" id="btn-close-preview">✕</button>
+      </div>
+      <div class="panel-body">
+        <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:0.75rem">
+          Mise à jour en temps réel pendant que tu rédiges.
+        </p>
+        <div class="discord-preview-box">
+          <div class="discord-preview">
+            <div class="dp-avatar">
+              <img src="https://cdn.discordapp.com/embed/avatars/0.png" alt="bot">
+            </div>
+            <div class="dp-content">
+              <div class="dp-header">
+                <span class="dp-botname">WARSTACK</span>
+                <span class="dp-badge">APP</span>
+                <span class="dp-time">Aujourd'hui à <span id="ev-dp-time">--:--</span></span>
+              </div>
+              <div class="dp-embed">
+                <div class="dp-embed-bar" style="background:#FF6B35"></div>
+                <div class="dp-embed-body">
+                  <div class="dp-embed-title" id="ev-dp-title">🎯 Nouvel événement</div>
+                  <div class="dp-embed-desc" id="ev-dp-desc">Description de l'événement...</div>
+                  <div class="dp-embed-fields">
+                    <div class="dp-embed-field">
+                      <div class="dp-embed-field-name">📅 Date</div>
+                      <div class="dp-embed-field-value" id="ev-dp-date">—</div>
+                    </div>
+                    <div class="dp-embed-field">
+                      <div class="dp-embed-field-name">⏰ Heure</div>
+                      <div class="dp-embed-field-value" id="ev-dp-heure">—</div>
+                    </div>
+                    <div class="dp-embed-field">
+                      <div class="dp-embed-field-name">👥 Places</div>
+                      <div class="dp-embed-field-value" id="ev-dp-max">Illimitées</div>
+                    </div>
+                  </div>
+                  <div class="dp-embed-footer">WARSTACK Events • Clique pour participer</div>
+                </div>
+              </div>
+              <div class="dp-buttons">
+                <span class="dp-btn dp-btn-green">✅ Présent</span>
+                <span class="dp-btn dp-btn-grey">❔ Peut-être</span>
+                <span class="dp-btn dp-btn-red">❌ Absent</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -161,7 +223,6 @@
       </div>
       <div class="panel-body">
 
-        <!-- Compteurs -->
         <div class="event-counters">
           <div class="event-counter present">
             <div class="ec-value" id="ec-present">0</div>
@@ -181,7 +242,6 @@
           </div>
         </div>
 
-        <!-- Barre de remplissage -->
         <div class="event-progress-bar">
           <div class="event-progress-fill" id="event-progress"></div>
         </div>
@@ -189,7 +249,6 @@
           <span id="progress-text">0 / 0 places</span>
         </div>
 
-        <!-- Actions -->
         <div class="welcome-section-title">Actions</div>
         <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem">
           <button class="btn btn-sm btn-secondary" id="btn-msg-participants">
@@ -203,10 +262,9 @@
           </button>
         </div>
 
-        <!-- Liste participants -->
         <div class="welcome-section-title">Participants</div>
-        <input type="text" id="participant-search" class="form-input" placeholder="Rechercher un participant..."
-          style="margin-bottom:0.75rem">
+        <input type="text" id="participant-search" class="form-input"
+          placeholder="Rechercher un participant..." style="margin-bottom:0.75rem">
         <div id="participants-list">
           <div style="color:var(--text-muted);font-size:0.85rem">Sélectionne un événement.</div>
         </div>
@@ -233,7 +291,8 @@
       <button class="btn btn-secondary btn-sm" id="modal-contact-close">✕</button>
     </div>
     <div class="modal-body">
-      <textarea id="contact-message" class="form-textarea" rows="5" placeholder="Votre message..."></textarea>
+      <textarea id="contact-message" class="form-textarea" rows="5"
+        placeholder="Votre message..."></textarea>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" id="modal-contact-cancel">Annuler</button>

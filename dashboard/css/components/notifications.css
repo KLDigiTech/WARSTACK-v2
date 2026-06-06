@@ -355,10 +355,10 @@
 /* ── MOBILE ── */
 @media (max-width: 768px) {
   .dash-header {
-    margin    : 0 -14px 16px -14px;
-    padding   : 0 14px;
-    position  : sticky;
-    top       : var(--topbar-height);
+    margin   : 0 -14px 16px -14px;
+    padding  : 0 14px;
+    position : relative;
+    top      : auto;
   }
 
   .dash-clock { display: none; }

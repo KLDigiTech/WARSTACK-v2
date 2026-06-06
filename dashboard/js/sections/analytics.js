@@ -1,9 +1,10 @@
 import { fetchSupabase } from '../api.js';
 
-let chartMembers  = null;
-let chartActivity = null;
+let chartMembers   = null;
+let chartActivity  = null;
 let chartSanctions = null;
-let currentRange  = 7;
+let chartEvents    = null;
+let currentRange   = 7;
 
 export async function initAnalytics() {
   initRangeButtons();
@@ -11,6 +12,9 @@ export async function initAnalytics() {
     loadStatCards(),
     loadMembersChart(currentRange),
     loadActivityChart(),
+    loadHeatmap(),
+    loadEventsChart(),
+    loadWeeklyRecap(),
     loadTopPlayers(),
     loadSanctionsChart(),
   ]);
@@ -47,10 +51,10 @@ async function loadStatCards() {
     fetchSupabase(`sanctions?select=id&created_at=gte.${d7ago}`),
   ]);
 
-  setCard('an-total-members',     players?.length     ?? 0, recentJoins?.length     ?? 0, 'an-delta-members',     '+{n} cette semaine');
-  setCard('an-total-tickets',     tickets?.length     ?? 0, recentTickets?.length   ?? 0, 'an-delta-tickets',     '+{n} cette semaine');
-  setCard('an-total-suggestions', suggestions?.length ?? 0, recentSuggestions?.length ?? 0, 'an-delta-suggestions', '+{n} cette semaine');
-  setCard('an-total-sanctions',   sanctions?.length   ?? 0, recentSanctions?.length ?? 0, 'an-delta-sanctions',   '+{n} cette semaine');
+  setCard('an-total-members',     players?.length       ?? 0, recentJoins?.length       ?? 0, 'an-delta-members',     '+{n} cette semaine');
+  setCard('an-total-tickets',     tickets?.length       ?? 0, recentTickets?.length     ?? 0, 'an-delta-tickets',     '+{n} cette semaine');
+  setCard('an-total-suggestions', suggestions?.length   ?? 0, recentSuggestions?.length ?? 0, 'an-delta-suggestions', '+{n} cette semaine');
+  setCard('an-total-sanctions',   sanctions?.length     ?? 0, recentSanctions?.length   ?? 0, 'an-delta-sanctions',   '+{n} cette semaine');
 }
 
 function setCard(valueId, total, delta, deltaId, tpl) {
@@ -78,66 +82,32 @@ async function loadMembersChart(days) {
     fetchSupabase(`audit_logs?action=eq.member_leave&created_at=gte.${since}&select=created_at&order=created_at.asc`),
   ]);
 
-  const labels = buildDateLabels(days);
-  const joinMap  = groupByDay(joins  || []);
-  const leaveMap = groupByDay(leaves || []);
-
+  const labels    = buildDateLabels(days);
+  const joinMap   = groupByDay(joins  || []);
+  const leaveMap  = groupByDay(leaves || []);
   const joinData  = labels.map(d => joinMap[d]  || 0);
   const leaveData = labels.map(d => leaveMap[d] || 0);
 
-  // Net cumulatif
   let running = 0;
   const netData = joinData.map((j, i) => { running += j - leaveData[i]; return running; });
 
-  const displayLabels = labels.map(d => {
-    const [y, m, day] = d.split('-');
-    return `${day}/${m}`;
-  });
+  const displayLabels = labels.map(d => { const [y, m, day] = d.split('-'); return `${day}/${m}`; });
 
   const canvas = document.getElementById('chart-members');
   if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-
   if (chartMembers) chartMembers.destroy();
 
-  chartMembers = new Chart(ctx, {
+  chartMembers = new Chart(canvas.getContext('2d'), {
     type: 'line',
     data: {
       labels: displayLabels,
       datasets: [
-        {
-          label: 'Arrivées',
-          data: joinData,
-          borderColor: '#00ff88',
-          backgroundColor: 'rgba(0,255,136,.08)',
-          tension: 0.4,
-          fill: true,
-          pointRadius: 3,
-          pointBackgroundColor: '#00ff88',
-        },
-        {
-          label: 'Départs',
-          data: leaveData,
-          borderColor: '#ff5050',
-          backgroundColor: 'rgba(255,80,80,.06)',
-          tension: 0.4,
-          fill: true,
-          pointRadius: 3,
-          pointBackgroundColor: '#ff5050',
-        },
-        {
-          label: 'Net cumulatif',
-          data: netData,
-          borderColor: '#5bc8ff',
-          backgroundColor: 'transparent',
-          tension: 0.4,
-          fill: false,
-          pointRadius: 2,
-          borderDash: [4, 3],
-        },
+        { label: 'Arrivées',      data: joinData,  borderColor: '#00ff88', backgroundColor: 'rgba(0,255,136,.08)', tension: 0.4, fill: true,  pointRadius: 3, pointBackgroundColor: '#00ff88' },
+        { label: 'Départs',       data: leaveData, borderColor: '#ff5050', backgroundColor: 'rgba(255,80,80,.06)', tension: 0.4, fill: true,  pointRadius: 3, pointBackgroundColor: '#ff5050' },
+        { label: 'Net cumulatif', data: netData,   borderColor: '#5bc8ff', backgroundColor: 'transparent',        tension: 0.4, fill: false, pointRadius: 2, borderDash: [4, 3] },
       ],
     },
-    options: chartOptions('membres'),
+    options: chartOptions(),
   });
 }
 
@@ -145,68 +115,163 @@ async function loadMembersChart(days) {
 
 async function loadActivityChart() {
   const since = new Date(Date.now() - 30 * 86400000).toISOString();
+  const logs  = await fetchSupabase(`audit_logs?created_at=gte.${since}&select=created_at,type&order=created_at.asc`);
 
-  const logs = await fetchSupabase(
-    `audit_logs?created_at=gte.${since}&select=created_at,type&order=created_at.asc`
-  );
-
-  const labels   = buildDateLabels(30);
-  const msgMap   = groupByDay((logs || []).filter(l => l.type === 'message'));
-  const memberMap = groupByDay((logs || []).filter(l => l.type === 'member'));
-  const modMap   = groupByDay((logs || []).filter(l => l.type === 'moderation'));
-
-  const displayLabels = labels.map(d => {
-    const [, m, day] = d.split('-');
-    return `${day}/${m}`;
-  });
+  const labels     = buildDateLabels(30);
+  const msgMap     = groupByDay((logs || []).filter(l => l.type === 'message'));
+  const memberMap  = groupByDay((logs || []).filter(l => l.type === 'member'));
+  const modMap     = groupByDay((logs || []).filter(l => l.type === 'moderation'));
+  const displayLabels = labels.map(d => { const [, m, day] = d.split('-'); return `${day}/${m}`; });
 
   const canvas = document.getElementById('chart-activity');
   if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-
   if (chartActivity) chartActivity.destroy();
 
-  chartActivity = new Chart(ctx, {
+  chartActivity = new Chart(canvas.getContext('2d'), {
     type: 'bar',
     data: {
       labels: displayLabels,
       datasets: [
-        {
-          label: 'Messages',
-          data: labels.map(d => msgMap[d] || 0),
-          backgroundColor: 'rgba(0,255,136,.5)',
-          borderRadius: 4,
-        },
-        {
-          label: 'Membres',
-          data: labels.map(d => memberMap[d] || 0),
-          backgroundColor: 'rgba(91,200,255,.5)',
-          borderRadius: 4,
-        },
-        {
-          label: 'Modération',
-          data: labels.map(d => modMap[d] || 0),
-          backgroundColor: 'rgba(255,80,80,.5)',
-          borderRadius: 4,
-        },
+        { label: 'Messages',   data: labels.map(d => msgMap[d]    || 0), backgroundColor: 'rgba(0,255,136,.5)',   borderRadius: 4 },
+        { label: 'Membres',    data: labels.map(d => memberMap[d] || 0), backgroundColor: 'rgba(91,200,255,.5)',  borderRadius: 4 },
+        { label: 'Modération', data: labels.map(d => modMap[d]    || 0), backgroundColor: 'rgba(255,80,80,.5)',   borderRadius: 4 },
       ],
     },
     options: {
-      ...chartOptions('actions'),
+      ...chartOptions(),
       scales: {
-        x: {
-          stacked: true,
-          ticks: { color: '#7fa38a', font: { size: 10 }, maxRotation: 0, maxTicksLimit: 10 },
-          grid:  { color: 'rgba(255,255,255,.03)' },
-        },
-        y: {
-          stacked: true,
-          ticks: { color: '#7fa38a', font: { size: 10 } },
-          grid:  { color: 'rgba(255,255,255,.04)' },
-        },
+        x: { stacked: true, ticks: { color: '#7fa38a', font: { size: 10 }, maxRotation: 0, maxTicksLimit: 10 }, grid: { color: 'rgba(255,255,255,.03)' } },
+        y: { stacked: true, ticks: { color: '#7fa38a', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,.04)' } },
       },
     },
   });
+}
+
+// ─── HEATMAP ─────────────────────────────────────────────────────────────────
+
+async function loadHeatmap() {
+  const since = new Date(Date.now() - 7 * 86400000).toISOString();
+  const logs  = await fetchSupabase(`audit_logs?created_at=gte.${since}&select=created_at`);
+
+  // Compter par jour × heure
+  const days  = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+  const hours = Array.from({ length: 24 }, (_, i) => i);
+  const grid  = Array.from({ length: 7 }, () => new Array(24).fill(0));
+
+  for (const log of logs || []) {
+    const d = new Date(log.created_at);
+    const dow  = (d.getDay() + 6) % 7; // 0=lun
+    const hour = d.getHours();
+    grid[dow][hour]++;
+  }
+
+  const maxVal = Math.max(1, ...grid.flat());
+
+  const container = document.getElementById('an-heatmap');
+  if (!container) return;
+
+  let html = '<div class="an-heatmap">';
+
+  // Header heures
+  html += '<div class="an-heatmap-header"></div>';
+  for (let h = 0; h < 24; h++) {
+    html += `<div class="an-heatmap-header">${h}h</div>`;
+  }
+
+  // Lignes jours
+  for (let d = 0; d < 7; d++) {
+    html += `<div class="an-heatmap-label">${days[d]}</div>`;
+    for (let h = 0; h < 24; h++) {
+      const val   = grid[d][h];
+      const level = val === 0 ? 0 : Math.ceil((val / maxVal) * 4);
+      html += `<div class="an-heatmap-cell" data-level="${level}" title="${val} actions — ${days[d]} ${h}h"></div>`;
+    }
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+// ─── EVENTS CHART ─────────────────────────────────────────────────────────────
+
+async function loadEventsChart() {
+  const events = await fetchSupabase('events?select=id,title,status&order=date.desc&limit=10');
+  if (!events?.length) return;
+
+  const parts = await Promise.all(
+    events.map(e => fetchSupabase(`event_participants?event_id=eq.${e.id}&select=status`))
+  );
+
+  const labels   = events.map(e => e.title.length > 18 ? e.title.slice(0, 18) + '…' : e.title);
+  const presents = parts.map(p => (p || []).filter(x => x.status === 'present').length);
+  const maybes   = parts.map(p => (p || []).filter(x => x.status === 'maybe').length);
+  const absents  = parts.map(p => (p || []).filter(x => x.status === 'absent').length);
+
+  const canvas = document.getElementById('chart-events');
+  if (!canvas) return;
+  if (chartEvents) chartEvents.destroy();
+
+  chartEvents = new Chart(canvas.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: '✅ Présents',    data: presents, backgroundColor: 'rgba(0,255,120,.55)',   borderRadius: 4 },
+        { label: '❔ Peut-être',   data: maybes,   backgroundColor: 'rgba(91,200,255,.45)',  borderRadius: 4 },
+        { label: '❌ Absents',     data: absents,  backgroundColor: 'rgba(255,80,80,.4)',    borderRadius: 4 },
+      ],
+    },
+    options: {
+      ...chartOptions(),
+      indexAxis: 'y',
+      scales: {
+        x: { stacked: true, ticks: { color: '#7fa38a', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,.03)' } },
+        y: { stacked: true, ticks: { color: '#7fa38a', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,.03)' } },
+      },
+    },
+  });
+}
+
+// ─── WEEKLY RECAP ─────────────────────────────────────────────────────────────
+
+async function loadWeeklyRecap() {
+  const since = new Date(Date.now() - 7 * 86400000).toISOString();
+
+  const [joins, tickets, suggestions, sanctions, events] = await Promise.all([
+    fetchSupabase(`audit_logs?action=eq.member_join&created_at=gte.${since}&select=id`),
+    fetchSupabase(`tickets?select=id&created_at=gte.${since}`),
+    fetchSupabase(`suggestions?select=id&created_at=gte.${since}`),
+    fetchSupabase(`sanctions?select=id&created_at=gte.${since}`),
+    fetchSupabase(`events?select=id&created_at=gte.${since}`),
+  ]);
+
+  // Date affichée
+  const dateEl = document.getElementById('an-recap-date');
+  if (dateEl) {
+    const d = new Date(since);
+    dateEl.textContent = `semaine du ${d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}`;
+  }
+
+  const rows = [
+    { icon: 'fa-user-plus',  cls: 'green',  label: 'Nouveaux membres',  val: joins?.length       ?? 0 },
+    { icon: 'fa-ticket-alt', cls: 'yellow', label: 'Tickets créés',     val: tickets?.length     ?? 0 },
+    { icon: 'fa-lightbulb',  cls: 'blue',   label: 'Suggestions',       val: suggestions?.length ?? 0 },
+    { icon: 'fa-calendar',   cls: 'purple', label: 'Événements créés',  val: events?.length      ?? 0 },
+    { icon: 'fa-gavel',      cls: 'red',    label: 'Sanctions',         val: sanctions?.length   ?? 0 },
+  ];
+
+  const el = document.getElementById('an-weekly-recap');
+  if (!el) return;
+
+  el.innerHTML = rows.map(r => `
+    <div class="an-recap-row">
+      <div class="an-recap-left">
+        <div class="an-recap-icon ${r.cls}"><i class="fas ${r.icon}"></i></div>
+        <div class="an-recap-label">${r.label}</div>
+      </div>
+      <div class="an-recap-value">${r.val}</div>
+    </div>
+  `).join('');
 }
 
 // ─── TOP JOUEURS ─────────────────────────────────────────────────────────────
@@ -234,7 +299,7 @@ async function loadTopPlayers() {
   const top10 = withScores.slice(0, 10);
 
   const rankClass = i => i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-  const rankIcon  = i => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
+  const rankIcon  = i => i === 0 ? '🥇'  : i === 1 ? '🥈'    : i === 2 ? '🥉'    : `#${i + 1}`;
 
   document.getElementById('an-top-players').innerHTML = top10.map((p, i) => `
     <div class="an-player-row">
@@ -263,28 +328,16 @@ async function loadSanctionsChart() {
 
   const canvas = document.getElementById('chart-sanctions');
   if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-
   if (chartSanctions) chartSanctions.destroy();
 
-  chartSanctions = new Chart(ctx, {
+  chartSanctions = new Chart(canvas.getContext('2d'), {
     type: 'doughnut',
     data: {
       labels: ['Avertissements', 'Mutes', 'Kicks', 'Bans'],
       datasets: [{
         data: [counts.warn, counts.mute, counts.kick, counts.ban],
-        backgroundColor: [
-          'rgba(255,210,0,.7)',
-          'rgba(91,200,255,.7)',
-          'rgba(255,140,0,.7)',
-          'rgba(255,80,80,.7)',
-        ],
-        borderColor: [
-          'rgba(255,210,0,.3)',
-          'rgba(91,200,255,.3)',
-          'rgba(255,140,0,.3)',
-          'rgba(255,80,80,.3)',
-        ],
+        backgroundColor: ['rgba(255,210,0,.7)', 'rgba(91,200,255,.7)', 'rgba(255,140,0,.7)', 'rgba(255,80,80,.7)'],
+        borderColor:     ['rgba(255,210,0,.3)', 'rgba(91,200,255,.3)', 'rgba(255,140,0,.3)', 'rgba(255,80,80,.3)'],
         borderWidth: 1,
       }],
     },
@@ -292,10 +345,7 @@ async function loadSanctionsChart() {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: {
-          position: 'bottom',
-          labels: { color: '#7fa38a', font: { size: 11 }, padding: 12 },
-        },
+        legend: { position: 'bottom', labels: { color: '#7fa38a', font: { size: 11 }, padding: 12 } },
       },
       cutout: '65%',
     },
@@ -322,15 +372,13 @@ function groupByDay(rows) {
   return map;
 }
 
-function chartOptions(unit) {
+function chartOptions() {
   return {
     responsive: true,
     maintainAspectRatio: false,
     interaction: { mode: 'index', intersect: false },
     plugins: {
-      legend: {
-        labels: { color: '#7fa38a', font: { size: 11 }, boxWidth: 12, padding: 16 },
-      },
+      legend: { labels: { color: '#7fa38a', font: { size: 11 }, boxWidth: 12, padding: 16 } },
       tooltip: {
         backgroundColor: 'rgba(8,13,10,.95)',
         borderColor: 'rgba(0,255,120,.15)',
@@ -341,14 +389,8 @@ function chartOptions(unit) {
       },
     },
     scales: {
-      x: {
-        ticks: { color: '#7fa38a', font: { size: 10 }, maxRotation: 0, maxTicksLimit: 10 },
-        grid:  { color: 'rgba(255,255,255,.03)' },
-      },
-      y: {
-        ticks: { color: '#7fa38a', font: { size: 10 } },
-        grid:  { color: 'rgba(255,255,255,.04)' },
-      },
+      x: { ticks: { color: '#7fa38a', font: { size: 10 }, maxRotation: 0, maxTicksLimit: 10 }, grid: { color: 'rgba(255,255,255,.03)' } },
+      y: { ticks: { color: '#7fa38a', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,.04)' } },
     },
   };
 }

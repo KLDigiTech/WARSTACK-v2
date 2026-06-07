@@ -4,7 +4,6 @@ body {
   background             : var(--bg);
   color                  : var(--text);
   font-family            : 'Rajdhani', sans-serif;
-  display                : flex;
   min-height             : 100vh;
   font-size              : 14px;
   -webkit-font-smoothing : antialiased;
@@ -20,13 +19,4 @@ body::before {
   pointer-events : none;
   z-index        : 9998;
   opacity        : .4;
-}
-
-/* Isole le dropdown du flux flex du body */
-#notif-dropdown {
-  flex-shrink : 0;
-  flex-grow   : 0;
-  width       : 0;
-  height      : 0;
-  overflow    : visible;
 }

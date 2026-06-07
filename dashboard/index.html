@@ -32,132 +32,130 @@
   <!-- OVERLAY SIDEBAR MOBILE -->
   <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar">
+  <!-- APP SHELL : sidebar + main côte à côte -->
+  <div class="app-shell">
 
-    <div class="sidebar-logo">
-      <img id="server-logo" class="server-logo" src=""
-        onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'" alt="server">
-      <div class="sidebar-meta">
-        <div id="server-title">Chargement...</div>
-        <div class="connected-user" id="user-menu">
-          <img id="user-avatar" class="user-avatar" src="" alt="user">
-          <span id="user-name">Chargement...</span>
-          <i class="fas fa-chevron-down user-chevron"></i>
+    <aside class="sidebar" id="sidebar">
+
+      <div class="sidebar-logo">
+        <img id="server-logo" class="server-logo" src=""
+          onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'" alt="server">
+        <div class="sidebar-meta">
+          <div id="server-title">Chargement...</div>
+          <div class="connected-user" id="user-menu">
+            <img id="user-avatar" class="user-avatar" src="" alt="user">
+            <span id="user-name">Chargement...</span>
+            <i class="fas fa-chevron-down user-chevron"></i>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="user-dropdown" id="user-dropdown">
-      <div class="user-dropdown-profile">
-        <img class="user-dropdown-avatar" id="dropdown-avatar" src="" alt="user">
-        <div class="user-dropdown-name" id="dropdown-name">Chargement...</div>
-        <div class="user-dropdown-status">Battlefield</div>
-      </div>
-      <button data-action="mon-profil"><i class="fas fa-user"></i> Mon profil</button>
-      <button data-action="parametres"><i class="fas fa-cog"></i> Paramètres</button>
-      <button id="logout-btn"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
-    </div>
-
-    <div class="sidebar-server">
-      <i class="fas fa-server"></i>
-      <span id="server-name">WARSTACK</span>
-    </div>
-
-    <nav class="sidebar-nav">
-
-      <div class="nav-group">
-        <div class="nav-group-title">GÉNÉRAL</div>
-        <a href="#" class="nav-item active" data-section="overview"><i class="fas fa-chart-line"></i><span>Vue d'ensemble</span></a>
-        <a href="#" class="nav-item" data-section="players"><i class="fas fa-users"></i><span>Joueurs</span></a>
-        <a href="#" class="nav-item" data-section="analytics"><i class="fas fa-chart-bar"></i><span>Analytics</span></a>
-        <a href="#" class="nav-item" data-section="tournament"><i class="fas fa-trophy"></i><span>Tournoi</span></a>
-        <a href="/inscription.html" target="_blank" class="nav-item" style="color:var(--orange)">
-          <i class="fas fa-user-plus"></i><span>Lien inscription</span>
-        </a>
-      </div>
-
-      <div class="nav-group">
-        <div class="nav-group-title">COMMUNAUTÉ</div>
-        <a href="#" class="nav-item" data-section="welcome"><i class="fas fa-door-open"></i><span>Arrivées/Départs</span></a>
-        <a href="#" class="nav-item" data-section="onboarding"><i class="fas fa-user-check"></i><span>Onboarding</span></a>
-        <a href="#" class="nav-item" data-section="roles"><i class="fas fa-tags"></i><span>Rôles auto</span></a>
-        <a href="#" class="nav-item" data-section="birthdays"><i class="fas fa-birthday-cake"></i><span>Anniversaires</span></a>
-        <a href="#" class="nav-item" data-section="suggestions"><i class="fas fa-lightbulb"></i><span>Suggestions</span></a>
-        <a href="#" class="nav-item" data-section="events"><i class="fas fa-calendar-alt"></i><span>Événements</span></a>
-        <a href="#" class="nav-item" data-section="origine"><i class="fas fa-globe"></i><span>Carte Membres</span></a>
-      </div>
-
-      <div class="nav-group">
-        <div class="nav-group-title">MODÉRATION</div>
-        <a href="#" class="nav-item" data-section="moderation"><i class="fas fa-shield-alt"></i><span>Modération</span></a>
-        <a href="#" class="nav-item" data-section="automod"><i class="fas fa-robot"></i><span>Auto-Modération</span></a>
-        <a href="#" class="nav-item" data-section="tickets"><i class="fas fa-ticket-alt"></i><span>Tickets</span></a>
-        <a href="#" class="nav-item" data-section="logs"><i class="fas fa-list-alt"></i><span>Logs</span></a>
-      </div>
-
-      <div class="nav-group">
-        <div class="nav-group-title">AUTOMATISATION</div>
-        <a href="#" class="nav-item" data-section="messages"><i class="fas fa-clock"></i><span>Messages récurrents</span></a>
-        <a href="#" class="nav-item" data-section="reactions"><i class="fas fa-smile"></i><span>Rôles-Réactions</span></a>
-        <a href="#" class="nav-item" data-section="channels"><i class="fas fa-hashtag"></i><span>Salons</span></a>
-        <a href="#" class="nav-item" data-section="rulebuilder"><i class="fas fa-robot"></i><span>Rule Builder</span></a>
-      </div>
-
-      <div class="nav-group">
-        <div class="nav-group-title">SYSTÈME</div>
-        <a href="#" class="nav-item" data-section="access"><i class="fas fa-user-shield"></i><span>Accès Dashboard</span></a>
-        <a href="#" class="nav-item" data-section="ocr-test"><i class="fas fa-microscope"></i><span>Test OCR</span></a>
-        <a href="#" class="nav-item" data-section="settings"><i class="fas fa-cog"></i><span>Paramètres</span></a>
-      </div>
-
-    </nav>
-
-    <div class="sidebar-status">
-      <div class="status-dot" id="status-dot"></div>
-      <span id="status-label">BOT OFFLINE</span>
-    </div>
-
-  </aside>
-
-  <!-- MAIN CONTENT -->
-  <main class="main-content">
-    <header class="dash-header">
-      <h1 class="dash-title" id="section-title">Vue d'ensemble</h1>
-      <div class="dash-header-right">
-        <span id="current-time" class="dash-clock"></span>
-        <div class="notif-wrapper" id="notif-wrapper">
-          <button class="notif-bell" id="notif-bell" title="Notifications">
-            <i class="fas fa-bell"></i>
-            <span class="notif-badge" id="notif-badge" style="display:none">0</span>
-          </button>
+      <div class="user-dropdown" id="user-dropdown">
+        <div class="user-dropdown-profile">
+          <img class="user-dropdown-avatar" id="dropdown-avatar" src="" alt="user">
+          <div class="user-dropdown-name" id="dropdown-name">Chargement...</div>
+          <div class="user-dropdown-status">Battlefield</div>
         </div>
+        <button data-action="mon-profil"><i class="fas fa-user"></i> Mon profil</button>
+        <button data-action="parametres"><i class="fas fa-cog"></i> Paramètres</button>
+        <button id="logout-btn"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
       </div>
-    </header>
-    <div id="section-content"></div>
-  </main>
+
+      <div class="sidebar-server">
+        <i class="fas fa-server"></i>
+        <span id="server-name">WARSTACK</span>
+      </div>
+
+      <nav class="sidebar-nav">
+
+        <div class="nav-group">
+          <div class="nav-group-title">GÉNÉRAL</div>
+          <a href="#" class="nav-item active" data-section="overview"><i class="fas fa-chart-line"></i><span>Vue d'ensemble</span></a>
+          <a href="#" class="nav-item" data-section="players"><i class="fas fa-users"></i><span>Joueurs</span></a>
+          <a href="#" class="nav-item" data-section="analytics"><i class="fas fa-chart-bar"></i><span>Analytics</span></a>
+          <a href="#" class="nav-item" data-section="tournament"><i class="fas fa-trophy"></i><span>Tournoi</span></a>
+          <a href="/inscription.html" target="_blank" class="nav-item" style="color:var(--orange)">
+            <i class="fas fa-user-plus"></i><span>Lien inscription</span>
+          </a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">COMMUNAUTÉ</div>
+          <a href="#" class="nav-item" data-section="welcome"><i class="fas fa-door-open"></i><span>Arrivées/Départs</span></a>
+          <a href="#" class="nav-item" data-section="onboarding"><i class="fas fa-user-check"></i><span>Onboarding</span></a>
+          <a href="#" class="nav-item" data-section="roles"><i class="fas fa-tags"></i><span>Rôles auto</span></a>
+          <a href="#" class="nav-item" data-section="birthdays"><i class="fas fa-birthday-cake"></i><span>Anniversaires</span></a>
+          <a href="#" class="nav-item" data-section="suggestions"><i class="fas fa-lightbulb"></i><span>Suggestions</span></a>
+          <a href="#" class="nav-item" data-section="events"><i class="fas fa-calendar-alt"></i><span>Événements</span></a>
+          <a href="#" class="nav-item" data-section="origine"><i class="fas fa-globe"></i><span>Carte Membres</span></a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">MODÉRATION</div>
+          <a href="#" class="nav-item" data-section="moderation"><i class="fas fa-shield-alt"></i><span>Modération</span></a>
+          <a href="#" class="nav-item" data-section="automod"><i class="fas fa-robot"></i><span>Auto-Modération</span></a>
+          <a href="#" class="nav-item" data-section="tickets"><i class="fas fa-ticket-alt"></i><span>Tickets</span></a>
+          <a href="#" class="nav-item" data-section="logs"><i class="fas fa-list-alt"></i><span>Logs</span></a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">AUTOMATISATION</div>
+          <a href="#" class="nav-item" data-section="messages"><i class="fas fa-clock"></i><span>Messages récurrents</span></a>
+          <a href="#" class="nav-item" data-section="reactions"><i class="fas fa-smile"></i><span>Rôles-Réactions</span></a>
+          <a href="#" class="nav-item" data-section="channels"><i class="fas fa-hashtag"></i><span>Salons</span></a>
+          <a href="#" class="nav-item" data-section="rulebuilder"><i class="fas fa-robot"></i><span>Rule Builder</span></a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">SYSTÈME</div>
+          <a href="#" class="nav-item" data-section="access"><i class="fas fa-user-shield"></i><span>Accès Dashboard</span></a>
+          <a href="#" class="nav-item" data-section="ocr-test"><i class="fas fa-microscope"></i><span>Test OCR</span></a>
+          <a href="#" class="nav-item" data-section="settings"><i class="fas fa-cog"></i><span>Paramètres</span></a>
+        </div>
+
+      </nav>
+
+      <div class="sidebar-status">
+        <div class="status-dot" id="status-dot"></div>
+        <span id="status-label">BOT OFFLINE</span>
+      </div>
+
+    </aside>
+
+    <main class="main-content">
+      <header class="dash-header">
+        <h1 class="dash-title" id="section-title">Vue d'ensemble</h1>
+        <div class="dash-header-right">
+          <span id="current-time" class="dash-clock"></span>
+          <div class="notif-wrapper" id="notif-wrapper">
+            <button class="notif-bell" id="notif-bell" title="Notifications">
+              <i class="fas fa-bell"></i>
+              <span class="notif-badge" id="notif-badge" style="display:none">0</span>
+            </button>
+          </div>
+        </div>
+      </header>
+      <div id="section-content"></div>
+    </main>
+
+  </div><!-- /app-shell -->
 
   <!-- BOTTOM NAV MOBILE -->
   <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
     <button class="bottom-nav-item active" data-section="overview">
-      <i class="fas fa-chart-line"></i>
-      <span>Accueil</span>
+      <i class="fas fa-chart-line"></i><span>Accueil</span>
     </button>
     <button class="bottom-nav-item" data-section="players">
-      <i class="fas fa-users"></i>
-      <span>Joueurs</span>
+      <i class="fas fa-users"></i><span>Joueurs</span>
     </button>
     <button class="bottom-nav-item" data-section="tickets">
-      <i class="fas fa-ticket-alt"></i>
-      <span>Tickets</span>
+      <i class="fas fa-ticket-alt"></i><span>Tickets</span>
     </button>
     <button class="bottom-nav-item" data-section="moderation">
-      <i class="fas fa-shield-alt"></i>
-      <span>Modération</span>
+      <i class="fas fa-shield-alt"></i><span>Modération</span>
     </button>
     <button class="bottom-nav-item" id="bottom-nav-more">
-      <i class="fas fa-bars"></i>
-      <span>Menu</span>
+      <i class="fas fa-bars"></i><span>Menu</span>
     </button>
   </nav>
 
@@ -175,7 +173,7 @@
 
   <div id="toast" class="toast"></div>
 
-  <!-- DROPDOWN NOTIF — hors de tout contexte transformé, dernier dans le body -->
+  <!-- DROPDOWN NOTIF — hors app-shell, position:fixed non affecté -->
   <div class="notif-dropdown" id="notif-dropdown" style="display:none">
     <div class="notif-header">
       <span>Notifications</span>
@@ -191,5 +189,4 @@
   <script type="module" src="./js/mobile.js"></script>
 
 </body>
-
 </html>

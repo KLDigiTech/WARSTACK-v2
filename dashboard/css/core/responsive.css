@@ -21,7 +21,6 @@
     --topbar-height  : 56px;
   }
 
-  /* ── OVERFLOW GLOBAL ── */
   body { overflow-x: hidden; }
 
   #section-content {
@@ -30,8 +29,12 @@
     max-width: 100%;
   }
 
+  .app-shell {
+    flex-direction : column;
+  }
+
   .main-content {
-    margin-left  : 0 !important;
+    flex         : 1;
     width        : 100% !important;
     max-width    : 100vw;
     overflow-x   : hidden;
@@ -170,7 +173,7 @@
     background : var(--primary-glow);
   }
 
-  /* ── GRIDS GÉNÉRIQUES ── */
+  /* ── GRIDS ── */
   .cards-grid { grid-template-columns: 1fr 1fr !important; }
   .form-grid  { grid-template-columns: 1fr !important; }
 
@@ -182,7 +185,7 @@
 
   /* ── TABLES ── */
   .table-wrapper {
-    overflow-x               : auto;
+    overflow-x                : auto;
     -webkit-overflow-scrolling: touch;
   }
   table { min-width: 500px; }
@@ -202,14 +205,10 @@
     overflow-y    : auto;
   }
 
-  /* ── TYPOGRAPHIE ── */
   h2 { font-size: 1rem; }
 
   /* ── OVERVIEW ── */
-  .ov-stats-grid {
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 8px;
-  }
+  .ov-stats-grid  { grid-template-columns: repeat(3, 1fr) !important; gap: 8px; }
   .ov-main-layout { grid-template-columns: 1fr !important; }
   .ov-kpi-card    { padding: 10px; }
   .ov-kpi-value   { font-size: 1.1rem; }
@@ -294,20 +293,43 @@
   .welcome-layout { grid-template-columns: 1fr !important; }
   .welcome-right  { display: none; }
 
-  /* ── BOUTONS GROUPES ── */
+  /* ── BOUTONS ── */
   .btn-group       { flex-wrap: wrap; gap: 6px; }
   .dp-buttons      { flex-wrap: wrap; }
   .dp-embed-fields { flex-direction: column; }
+
+  /* ── DROPDOWN NOTIF ── */
+  .notif-dropdown {
+    top        : 64px !important;
+    right      : 8px !important;
+    left       : 8px !important;
+    width      : auto !important;
+    max-height : calc(100vh - 140px) !important;
+    box-sizing : border-box !important;
+    overflow-x : hidden !important;
+  }
 }
 
-/* ─── TRÈS PETIT < 400px ─── */
-@media (max-width: 400px) {
-  .ov-stats-grid     { grid-template-columns: repeat(2, 1fr) !important; gap: 8px; }
-  .analytics-cards   { grid-template-columns: 1fr !important; }
+/* ─── iPhone SE et très petit < 375px ─── */
+@media (max-width: 375px) {
+  .main-content {
+    padding-left  : 10px;
+    padding-right : 10px;
+  }
+
   .cards-grid        { grid-template-columns: 1fr !important; }
-  .bottom-nav-item   { padding: 6px 8px; min-width: 44px; }
-  .main-content      { padding-left: 10px; padding-right: 10px; }
+  .ov-stats-grid     { grid-template-columns: repeat(2, 1fr) !important; gap: 6px; }
+  .analytics-cards   { grid-template-columns: 1fr !important; }
   .suggestions-stats { grid-template-columns: 1fr 1fr !important; }
+  .bottom-nav-item   { padding: 6px 6px; min-width: 44px; font-size: 0.55rem; }
+
+  .notif-dropdown {
+    top        : 60px !important;
+    right      : 4px !important;
+    left       : 4px !important;
+    max-height : calc(100vh - 130px) !important;
+  }
+
   #ob-wizard-footer .btn { font-size: 12px; padding: 8px 12px; }
 }
 

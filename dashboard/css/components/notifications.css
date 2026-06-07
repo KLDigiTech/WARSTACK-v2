@@ -212,6 +212,18 @@
   transition     : all var(--t-fast);
   text-transform : uppercase;
 }
+
+.notif-filter-btn:hover {
+  border-color : var(--border-hover);
+  color        : var(--text);
+  background   : var(--primary-glow);
+}
+
+.notif-filter-btn.active {
+  background   : var(--primary-glow-2);
+  border-color : var(--primary);
+  color        : var(--primary);
+}
 /* ── LISTE ── */
 .notif-list {
   flex            : 1;

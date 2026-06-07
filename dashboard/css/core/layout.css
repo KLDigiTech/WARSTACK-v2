@@ -6,7 +6,7 @@
 }
 
 .main-content {
-  margin-left    : 0;
+  margin-left    : var(--sidebar-width);
   flex           : 1;
   min-width      : 0;
   min-height     : 100vh;
@@ -28,13 +28,6 @@
   gap            : 28px;
 }
 
-.cards-grid {
-  width                  : 100%;
-  display                : grid;
-  grid-template-columns  : repeat(auto-fit, minmax(280px, 1fr));
-  gap                    : 24px;
-  margin-bottom          : 10px;
-}
 
 #section-content {
   display        : flex;

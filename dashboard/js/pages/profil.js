@@ -39,12 +39,13 @@ function getNextGrade(xp) {
 
 // ── BR RANK SCORE ─────────────────────────────────────────────
 const BR_RANK_SCORES = {
-  'bronze i': 1,    'bronze ii': 2,    'bronze iii': 3,
-  'silver i': 4,    'silver ii': 5,    'silver iii': 6,
-  'gold i': 7,      'gold ii': 8,      'gold iii': 9,
-  'platinum i': 10, 'platinum ii': 11, 'platinum iii': 12,
-  'diamond i': 13,  'diamond ii': 14,  'diamond iii': 15,
-  'masters': 16,    'master': 16,
+  'bronze i': 1,   'bronze ii': 2,   'bronze iii': 3,   'bronze iv': 4,   'bronze v': 5,
+  'silver i': 6,   'silver ii': 7,   'silver iii': 8,   'silver iv': 9,   'silver v': 10,
+  'gold i': 11,    'gold ii': 12,    'gold iii': 13,    'gold iv': 14,    'gold v': 15,
+  'platinum i': 16,'platinum ii': 17,'platinum iii': 18,'platinum iv': 19,'platinum v': 20,
+  'diamond i': 21, 'diamond ii': 22, 'diamond iii': 23, 'diamond iv': 24, 'diamond v': 25,
+  'master i': 26,  'master ii': 27,  'master iii': 28,  'master iv': 29,  'master v': 30,
+  'masters': 30,
 };
 
 // ── PAYS ──────────────────────────────────────────────────────
@@ -128,7 +129,7 @@ function calcScore(s) {
 
   const brKey   = (s.br_rank || '').toLowerCase().trim();
   const brVal   = BR_RANK_SCORES[brKey] ?? 0;
-  const brScore = (brVal / 16) * 100;
+  const brScore = (brVal / 30) * 100;
 
   return (
     (Math.min(winrate / 60, 1) * 100 * 0.30) +

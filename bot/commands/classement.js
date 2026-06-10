@@ -2,6 +2,35 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const supabase                               = require('../services/supabase');
 const { getLeaderboard, getGrade }           = require('../services/points');
 
+const BR_RANK_SCORES = {
+  'bronze i': 1, 'bronze ii': 2, 'bronze iii': 3,
+  'silver i': 4, 'silver ii': 5, 'silver iii': 6,
+  'gold i': 7, 'gold ii': 8, 'gold iii': 9,
+  'platinum i': 10, 'platinum ii': 11, 'platinum iii': 12,
+  'diamond i': 13, 'diamond ii': 14, 'diamond iii': 15,
+  'masters': 16, 'master': 16,
+};
+
+function calcScore(snapshot) {
+  const kd      = parseFloat(snapshot.kd)      || 0;
+  const winrate = parseFloat(snapshot.winrate) || 0;
+  const kills   = parseInt(snapshot.kills)     || 0;
+  const games   = parseInt(snapshot.games)     || 1;
+  const kpm     = kills / games;
+
+  const brKey   = (snapshot.br_rank || '').toLowerCase().trim();
+  const brVal   = BR_RANK_SCORES[brKey] ?? 0;
+  const brScore = (brVal / 16) * 100;
+
+  return (
+    (Math.min(winrate / 60, 1) * 100 * 0.30) +
+    (Math.min(kd / 5, 1)       * 100 * 0.25) +
+    (Math.min(kpm / 20, 1)     * 100 * 0.15) +
+    (Math.min(games / 500, 1)  * 100 * 0.10) +
+    (brScore                         * 0.25)
+  );
+}
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('classement')
@@ -124,24 +153,12 @@ module.exports = {
 
         if (!snapshot) continue;
 
-        const kd      = parseFloat(snapshot.kd)      || 0;
-        const winrate = parseFloat(snapshot.winrate) || 0;
-        const kills   = parseInt(snapshot.kills)     || 0;
-        const games   = parseInt(snapshot.games)     || 1;
-        const kpm     = kills / games;
-
-        // Score BF6 amélioré
-        const score = (
-          (Math.min(kd / 5, 1)        * 100 * 0.25) +
-          (Math.min(winrate / 60, 1)  * 100 * 0.30) +
-          (Math.min(kpm / 20, 1)      * 100 * 0.15) +
-          (Math.min(games / 500, 1)   * 100 * 0.10)
-        );
+        const score = calcScore(snapshot);
 
         playerStats.push({
           username : player.username || 'Inconnu',
           score    : score.toFixed(1),
-          kd       : kd.toFixed(2),
+          kd       : parseFloat(snapshot.kd || 0).toFixed(2),
           winrate  : snapshot.winrate || 0,
           wins     : snapshot.wins    || 0,
           br_rank  : snapshot.br_rank || '—',

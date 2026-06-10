@@ -1,28 +1,37 @@
 import { fetchSupabase, deleteSupabase, insertSupabase, callBotAPI } from '../api.js';
 import { showToast } from '../ui/toast.js';
 
-let allPlayers   = [];
-let allXP        = [];
-let allWallets   = [];
-let currentTab   = 'tracker';
+let allPlayers = [];
+let allXP = [];
+let allWallets = [];
+let currentTab = 'tracker';
 let currentFilter = 'all';
 let currentDiscordId = null;
 
 const GRADES = [
-  { level: 1,  xp: 0,     name: 'Recrue',           emoji: '🪖' },
-  { level: 2,  xp: 100,   name: 'Soldat',            emoji: '🎖️' },
-  { level: 3,  xp: 250,   name: 'Caporal',           emoji: '🎖️' },
-  { level: 4,  xp: 500,   name: 'Sergent',           emoji: '🎖️' },
-  { level: 5,  xp: 900,   name: 'Sergent-Chef',      emoji: '🎖️' },
-  { level: 6,  xp: 1400,  name: 'Adjudant',          emoji: '⭐' },
-  { level: 7,  xp: 2000,  name: 'Adjudant-Chef',     emoji: '⭐' },
-  { level: 8,  xp: 2800,  name: 'Lieutenant',        emoji: '⭐⭐' },
-  { level: 9,  xp: 3800,  name: 'Capitaine',         emoji: '⭐⭐' },
-  { level: 10, xp: 5000,  name: 'Commandant',        emoji: '⭐⭐⭐' },
-  { level: 11, xp: 7000,  name: 'Colonel',           emoji: '⭐⭐⭐' },
-  { level: 12, xp: 10000, name: 'Général',           emoji: '🏅' },
+  { level: 1, xp: 0, name: 'Recrue', emoji: '🪖' },
+  { level: 2, xp: 100, name: 'Soldat', emoji: '🎖️' },
+  { level: 3, xp: 250, name: 'Caporal', emoji: '🎖️' },
+  { level: 4, xp: 500, name: 'Sergent', emoji: '🎖️' },
+  { level: 5, xp: 900, name: 'Sergent-Chef', emoji: '🎖️' },
+  { level: 6, xp: 1400, name: 'Adjudant', emoji: '⭐' },
+  { level: 7, xp: 2000, name: 'Adjudant-Chef', emoji: '⭐' },
+  { level: 8, xp: 2800, name: 'Lieutenant', emoji: '⭐⭐' },
+  { level: 9, xp: 3800, name: 'Capitaine', emoji: '⭐⭐' },
+  { level: 10, xp: 5000, name: 'Commandant', emoji: '⭐⭐⭐' },
+  { level: 11, xp: 7000, name: 'Colonel', emoji: '⭐⭐⭐' },
+  { level: 12, xp: 10000, name: 'Général', emoji: '🏅' },
   { level: 13, xp: 15000, name: 'Maréchal WARSTACK', emoji: '🏆' },
 ];
+
+const BR_RANK_SCORES = {
+  'bronze i': 1, 'bronze ii': 2, 'bronze iii': 3,
+  'silver i': 4, 'silver ii': 5, 'silver iii': 6,
+  'gold i': 7, 'gold ii': 8, 'gold iii': 9,
+  'platinum i': 10, 'platinum ii': 11, 'platinum iii': 12,
+  'diamond i': 13, 'diamond ii': 14, 'diamond iii': 15,
+  'masters': 16, 'master': 16,
+};
 
 function getGrade(xp) {
   let grade = GRADES[0];
@@ -33,8 +42,38 @@ function getGrade(xp) {
   return grade;
 }
 
+function calcScore(s) {
+  if (!s) return 0;
+  const kd = parseFloat(s.kd) || 0;
+  const winrate = parseFloat(s.winrate) || 0;
+  const kills = parseInt(s.kills) || 0;
+  const games = parseInt(s.games) || 1;
+  const kpm = kills / games;
+
+  const brKey = (s.br_rank || '').toLowerCase().trim();
+  const brVal = BR_RANK_SCORES[brKey] ?? 0;
+  const brScore = (brVal / 16) * 100;
+
+  return (
+    (Math.min(winrate / 60, 1) * 100 * 0.30) +
+    (Math.min(kd / 5, 1) * 100 * 0.25) +
+    (Math.min(kpm / 20, 1) * 100 * 0.15) +
+    (Math.min(games / 500, 1) * 100 * 0.10) +
+    (brScore * 0.25)
+  );
+}
+
+function getDivision(score) {
+  const s = parseFloat(score);
+  if (s >= 65) return 'WARSTACK 🔱';
+  if (s >= 55) return 'Phantom 👻';
+  if (s >= 45) return 'Elite 💎';
+  if (s >= 35) return 'Veteran 🎖️';
+  if (s >= 25) return 'Soldat ⚔️';
+  return 'Recruit 🪖';
+}
+
 export async function initPlayers() {
-  // Charge tout en parallèle
   const [players, xpRows, walletRows] = await Promise.all([
     fetchSupabase('players?select=*&order=created_at.desc'),
     fetchSupabase('warstack_xp?select=*&order=xp.desc'),
@@ -42,13 +81,12 @@ export async function initPlayers() {
   ]);
 
   allPlayers = players || [];
-  allXP      = xpRows  || [];
+  allXP = xpRows || [];
   allWallets = walletRows || [];
 
-  // Snapshots BF6
   for (const player of allPlayers) {
     if (player.tracker_id) {
-      const snaps     = await fetchSupabase(`player_snapshots?tracker_id=eq.${player.tracker_id}&order=snapshot_at.desc&limit=1`);
+      const snaps = await fetchSupabase(`player_snapshots?tracker_id=eq.${player.tracker_id}&order=snapshot_at.desc&limit=1`);
       player.snapshot = snaps?.[0] || null;
     }
     const entries = await fetchSupabase(`tournament_entries?discord_id=eq.${player.discord_id}&order=created_at.desc&limit=1`);
@@ -59,9 +97,7 @@ export async function initPlayers() {
       const tournois = await fetchSupabase(`tournaments?id=eq.${player.lastEntry.tournament_id}&select=name,phase`);
       player.lastTournoi = tournois?.[0] || null;
     }
-
-    // Enrichit avec XP + wallet
-    player.xpData     = allXP.find(x => x.discord_id === player.discord_id)     || null;
+    player.xpData = allXP.find(x => x.discord_id === player.discord_id) || null;
     player.walletData = allWallets.find(w => w.discord_id === player.discord_id) || null;
   }
 
@@ -95,10 +131,10 @@ function initTabs() {
 
 function renderTab(tab, search = '') {
   switch (tab) {
-    case 'xp':      renderXPLeaderboard(search);     break;
-    case 'coins':   renderCoinsLeaderboard(search);  break;
+    case 'xp': renderXPLeaderboard(search); break;
+    case 'coins': renderCoinsLeaderboard(search); break;
     case 'tracker': renderTrackerLeaderboard(search); break;
-    case 'all':     renderAllPlayers(search);        break;
+    case 'all': renderAllPlayers(search); break;
   }
 }
 
@@ -106,7 +142,7 @@ function renderTab(tab, search = '') {
 
 function renderXPLeaderboard(search = '') {
   const wrapper = document.getElementById('players-grid');
-  const podium  = ['🥇', '🥈', '🥉'];
+  const podium = ['🥇', '🥈', '🥉'];
 
   let rows = [...allXP];
   if (search) {
@@ -123,11 +159,11 @@ function renderXPLeaderboard(search = '') {
 
   wrapper.innerHTML = `<div class="leaderboard-list">${rows.map((x, i) => {
     const player = allPlayers.find(p => p.discord_id === x.discord_id);
-    const grade  = getGrade(x.xp);
-    const xp     = (x.xp || 0).toLocaleString('fr-FR');
-    const rank   = podium[i] || `<span class="lb-rank-num">#${i + 1}</span>`;
+    const grade = getGrade(x.xp);
+    const xp = (x.xp || 0).toLocaleString('fr-FR');
+    const rank = podium[i] || `<span class="lb-rank-num">#${i + 1}</span>`;
     const nextGrade = GRADES.find(g => g.xp > x.xp);
-    const progress  = nextGrade
+    const progress = nextGrade
       ? Math.round(((x.xp - grade.xp) / (nextGrade.xp - grade.xp)) * 100)
       : 100;
 
@@ -157,7 +193,7 @@ function renderXPLeaderboard(search = '') {
 
 function renderCoinsLeaderboard(search = '') {
   const wrapper = document.getElementById('players-grid');
-  const podium  = ['🥇', '🥈', '🥉'];
+  const podium = ['🥇', '🥈', '🥉'];
 
   let rows = [...allWallets].sort((a, b) => (b.total_earned || 0) - (a.total_earned || 0));
   if (search) {
@@ -174,7 +210,7 @@ function renderCoinsLeaderboard(search = '') {
 
   wrapper.innerHTML = `<div class="leaderboard-list">${rows.map((w, i) => {
     const player = allPlayers.find(p => p.discord_id === w.discord_id);
-    const rank   = podium[i] || `<span class="lb-rank-num">#${i + 1}</span>`;
+    const rank = podium[i] || `<span class="lb-rank-num">#${i + 1}</span>`;
 
     return `
       <div class="lb-row" onclick="openTimeline('${w.discord_id}')">
@@ -199,7 +235,7 @@ function renderCoinsLeaderboard(search = '') {
 
 function renderTrackerLeaderboard(search = '') {
   const wrapper = document.getElementById('players-grid');
-  const podium  = ['🥇', '🥈', '🥉'];
+  const podium = ['🥇', '🥈', '🥉'];
 
   let players = allPlayers.filter(p => p.snapshot);
   if (search) players = players.filter(p => p.username?.toLowerCase().includes(search));
@@ -212,11 +248,10 @@ function renderTrackerLeaderboard(search = '') {
   }
 
   wrapper.innerHTML = `<div class="leaderboard-list">${players.map((p, i) => {
-    const s     = p.snapshot;
+    const s = p.snapshot;
     const score = calcScore(s).toFixed(1);
-    const rank  = podium[i] || `<span class="lb-rank-num">#${i + 1}</span>`;
-    const xpData = p.xpData;
-    const grade  = xpData ? getGrade(xpData.xp) : GRADES[0];
+    const rank = podium[i] || `<span class="lb-rank-num">#${i + 1}</span>`;
+    const grade = p.xpData ? getGrade(p.xpData.xp) : GRADES[0];
 
     return `
       <div class="lb-row" onclick="openTimeline('${p.discord_id}')">
@@ -262,20 +297,20 @@ function renderAllPlayers(search = '') {
   }
 
   wrapper.innerHTML = `<div class="players-grid">${players.map(p => {
-    const s        = p.snapshot;
-    const score    = calcScore(s);
+    const s = p.snapshot;
+    const score = calcScore(s);
     const division = getDivision(score);
-    const tournoi  = p.lastTournoi;
-    const sub      = p.lastSub;
-    const grade    = p.xpData ? getGrade(p.xpData.xp) : GRADES[0];
+    const tournoi = p.lastTournoi;
+    const sub = p.lastSub;
+    const grade = p.xpData ? getGrade(p.xpData.xp) : GRADES[0];
 
     const tournoisBadge = tournoi ? `
       <div class="player-tournoi">
         <span class="player-tournoi-name">🏆 ${tournoi.name}${tournoi.phase ? ` — ${tournoi.phase}` : ''}</span>
         ${sub
-          ? `<span class="player-tournoi-stat">K/D <strong>${sub.kd ?? '—'}</strong></span>
+        ? `<span class="player-tournoi-stat">K/D <strong>${sub.kd ?? '—'}</strong></span>
              <span class="player-tournoi-stat">Kills <strong>${sub.kills ?? '—'}</strong></span>`
-          : '<span class="player-tournoi-stat">Pas de soumission</span>'}
+        : '<span class="player-tournoi-stat">Pas de soumission</span>'}
       </div>` : '';
 
     const brRankHtml = s?.br_rank ? `
@@ -334,52 +369,29 @@ function renderAllPlayers(search = '') {
   }).join('')}</div>`;
 }
 
-// ─── SCORE ───────────────────────────────────────────────────────────────────
-
-function calcScore(s) {
-  if (!s) return 0;
-  const kd      = parseFloat(s.kd)      || 0;
-  const winrate = parseFloat(s.winrate) || 0;
-  const kills   = parseInt(s.kills)     || 0;
-  const games   = parseInt(s.games)     || 1;
-  const kpm     = kills / games;
-  return (Math.min(kd / 5, 1) * 100 * 0.30) + (Math.min(winrate / 60, 1) * 100 * 0.35) + (Math.min(kpm / 20, 1) * 100 * 0.25);
-}
-
-function getDivision(score) {
-  const s = parseFloat(score);
-  if (s >= 65) return 'WARSTACK 🔱';
-  if (s >= 55) return 'Phantom 👻';
-  if (s >= 45) return 'Elite 💎';
-  if (s >= 35) return 'Veteran 🎖️';
-  if (s >= 25) return 'Grunt ⚔️';
-  return 'Recruit 🪖';
-}
-
 // ─── TIMELINE ────────────────────────────────────────────────────────────────
 
-window.openTimeline = async function(discordId) {
+window.openTimeline = async function (discordId) {
   currentDiscordId = discordId;
   const player = allPlayers.find(p => p.discord_id === discordId);
   if (!player) return;
 
-  document.getElementById('tl-avatar').src           = player.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png';
-  document.getElementById('tl-username').textContent  = player.username || 'Unknown';
+  document.getElementById('tl-avatar').src = player.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png';
+  document.getElementById('tl-username').textContent = player.username || 'Unknown';
   const score = calcScore(player.snapshot);
-  document.getElementById('tl-division').textContent  = getDivision(score);
+  document.getElementById('tl-division').textContent = getDivision(score);
 
   const s = player.snapshot;
-  document.getElementById('tl-kd').textContent      = s?.kd ?? '—';
-  document.getElementById('tl-kills').textContent   = s?.kills ? Number(s.kills).toLocaleString('fr-FR') : '—';
+  document.getElementById('tl-kd').textContent = s?.kd ?? '—';
+  document.getElementById('tl-kills').textContent = s?.kills ? Number(s.kills).toLocaleString('fr-FR') : '—';
   document.getElementById('tl-winrate').textContent = s?.winrate ? `${parseFloat(s.winrate).toFixed(1)}%` : '—';
-  document.getElementById('tl-score').textContent   = calcScore(s).toFixed(1);
+  document.getElementById('tl-score').textContent = calcScore(s).toFixed(1);
 
-  // XP + Grade + Coins
-  const xpData     = allXP.find(x => x.discord_id === discordId);
+  const xpData = allXP.find(x => x.discord_id === discordId);
   const walletData = allWallets.find(w => w.discord_id === discordId);
-  const grade      = xpData ? getGrade(xpData.xp) : GRADES[0];
+  const grade = xpData ? getGrade(xpData.xp) : GRADES[0];
 
-  document.getElementById('tl-xp').textContent    = xpData ? (xpData.xp).toLocaleString('fr-FR') + ' XP' : '0 XP';
+  document.getElementById('tl-xp').textContent = xpData ? (xpData.xp).toLocaleString('fr-FR') + ' XP' : '0 XP';
   document.getElementById('tl-grade').textContent = `${grade.emoji} ${grade.name}`;
   document.getElementById('tl-coins').textContent = walletData ? (walletData.coins).toLocaleString('fr-FR') + ' coins' : '0 coins';
 
@@ -393,7 +405,7 @@ window.openTimeline = async function(discordId) {
   await loadTimeline(discordId);
 };
 
-window.closeTimeline = function() {
+window.closeTimeline = function () {
   document.getElementById('timeline-overlay').style.display = 'none';
   document.getElementById('timeline-panel').classList.remove('open');
   document.body.style.overflow = '';
@@ -413,7 +425,7 @@ function initTimelineFilters() {
 
 async function loadTimeline(discordId) {
   const loading = document.getElementById('tl-loading');
-  const list    = document.getElementById('tl-list');
+  const list = document.getElementById('tl-list');
   loading.style.display = 'block';
   list.innerHTML = '';
 
@@ -428,13 +440,13 @@ async function loadTimeline(discordId) {
     const events = [];
 
     for (const log of auditLogs || []) {
-      if (!['member_join','member_leave','onboarding_complete'].includes(log.action)) continue;
+      if (!['member_join', 'member_leave', 'onboarding_complete'].includes(log.action)) continue;
       events.push({
-        type  : 'member',
-        date  : log.created_at,
-        label : log.action === 'member_join'  ? '👋 A rejoint le serveur'
-              : log.action === 'member_leave' ? '🚪 A quitté le serveur'
-              : '✅ Onboarding complété',
+        type: 'member',
+        date: log.created_at,
+        label: log.action === 'member_join' ? '👋 A rejoint le serveur'
+          : log.action === 'member_leave' ? '🚪 A quitté le serveur'
+            : '✅ Onboarding complété',
         detail: null,
       });
     }
@@ -442,20 +454,20 @@ async function loadTimeline(discordId) {
     for (const s of sanctions || []) {
       const labels = { warn: '⚠️ Avertissement', mute: '🔇 Mute', kick: '👢 Kick', ban: '🔨 Ban' };
       events.push({
-        type  : 'sanction',
-        date  : s.created_at,
-        label : labels[s.type] || `🛡️ Sanction (${s.type})`,
+        type: 'sanction',
+        date: s.created_at,
+        label: labels[s.type] || `🛡️ Sanction (${s.type})`,
         detail: s.reason ? `Raison : ${s.reason}` : null,
       });
     }
 
     for (const entry of tournamentEntries || []) {
       const tournoi = await fetchSupabase(`tournaments?id=eq.${entry.tournament_id}&select=name`);
-      const name    = tournoi?.[0]?.name || 'Tournoi inconnu';
+      const name = tournoi?.[0]?.name || 'Tournoi inconnu';
       events.push({
-        type  : 'tournament',
-        date  : entry.created_at,
-        label : `🏆 Inscrit au tournoi : ${name}`,
+        type: 'tournament',
+        date: entry.created_at,
+        label: `🏆 Inscrit au tournoi : ${name}`,
         detail: entry.team_name ? `Équipe : ${entry.team_name}` : null,
       });
     }
@@ -463,9 +475,9 @@ async function loadTimeline(discordId) {
     for (const r of ranks || []) {
       if (!r.previous_division || r.previous_division === r.division) continue;
       events.push({
-        type  : 'rank',
-        date  : r.updated_at,
-        label : `📈 Changement de rang`,
+        type: 'rank',
+        date: r.updated_at,
+        label: `📈 Changement de rang`,
         detail: `${r.previous_division} → ${r.division}`,
       });
     }
@@ -485,10 +497,10 @@ function renderTimeline(events, filter) {
   const list = document.getElementById('tl-list');
 
   const filtered = filter === 'all' ? events : events.filter(e => {
-    if (filter === 'member')     return e.type === 'member';
+    if (filter === 'member') return e.type === 'member';
     if (filter === 'moderation') return e.type === 'sanction';
     if (filter === 'tournament') return e.type === 'tournament';
-    if (filter === 'rank')       return e.type === 'rank';
+    if (filter === 'rank') return e.type === 'rank';
     return true;
   });
 
@@ -498,15 +510,15 @@ function renderTimeline(events, filter) {
   }
 
   const iconMap = {
-    member     : { cls: 'member',     icon: 'fa-user'    },
-    sanction   : { cls: 'sanction',   icon: 'fa-gavel'   },
-    tournament : { cls: 'tournament', icon: 'fa-trophy'  },
-    rank       : { cls: 'rank',       icon: 'fa-arrow-up'},
-    message    : { cls: 'message',    icon: 'fa-comment' },
+    member: { cls: 'member', icon: 'fa-user' },
+    sanction: { cls: 'sanction', icon: 'fa-gavel' },
+    tournament: { cls: 'tournament', icon: 'fa-trophy' },
+    rank: { cls: 'rank', icon: 'fa-arrow-up' },
+    message: { cls: 'message', icon: 'fa-comment' },
   };
 
   list.innerHTML = filtered.map(ev => {
-    const im      = iconMap[ev.type] || { cls: 'member', icon: 'fa-circle' };
+    const im = iconMap[ev.type] || { cls: 'member', icon: 'fa-circle' };
     const dateStr = new Date(ev.date).toLocaleDateString('fr-FR', {
       day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
     });
@@ -525,22 +537,22 @@ function renderTimeline(events, filter) {
 // ─── MODAL AJOUT ─────────────────────────────────────────────────────────────
 
 function initAddPlayerModal() {
-  const btnOpen      = document.getElementById('btn-add-player');
-  const modal        = document.getElementById('modal-add-player');
-  const btnClose     = document.getElementById('modal-add-close');
-  const btnConfirm   = document.getElementById('btn-add-confirm');
-  const btnFetch     = document.getElementById('btn-fetch-discord');
+  const btnOpen = document.getElementById('btn-add-player');
+  const modal = document.getElementById('modal-add-player');
+  const btnClose = document.getElementById('modal-add-close');
+  const btnConfirm = document.getElementById('btn-add-confirm');
+  const btnFetch = document.getElementById('btn-fetch-discord');
   const discordInput = document.getElementById('add-discord-id');
   const trackerInput = document.getElementById('add-tracker-url');
-  const trackerHint  = document.getElementById('add-tracker-hint');
-  const errorDiv     = document.getElementById('add-error');
-  const discordPreview  = document.getElementById('add-discord-preview');
-  const discordAvatar   = document.getElementById('add-discord-avatar');
+  const trackerHint = document.getElementById('add-tracker-hint');
+  const errorDiv = document.getElementById('add-error');
+  const discordPreview = document.getElementById('add-discord-preview');
+  const discordAvatar = document.getElementById('add-discord-avatar');
   const discordUsername = document.getElementById('add-discord-username');
-  const discordError    = document.getElementById('add-discord-error');
+  const discordError = document.getElementById('add-discord-error');
 
   let selectedPlatform = null;
-  let fetchedAvatar    = null;
+  let fetchedAvatar = null;
 
   if (!btnOpen || !modal) return;
 
@@ -552,27 +564,27 @@ function initAddPlayerModal() {
     const id = discordInput.value.trim();
     if (!id || !/^\d{15,20}$/.test(id)) {
       discordError.style.display = 'block';
-      discordError.textContent   = 'ID Discord invalide (15-20 chiffres)';
+      discordError.textContent = 'ID Discord invalide (15-20 chiffres)';
       return;
     }
-    btnFetch.disabled     = true;
-    btnFetch.innerHTML    = '<i class="fas fa-spinner fa-spin"></i>';
-    discordError.style.display   = 'none';
+    btnFetch.disabled = true;
+    btnFetch.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    discordError.style.display = 'none';
     discordPreview.style.display = 'none';
     try {
       const data = await callBotAPI(`user/${id}`);
       if (data?.error) throw new Error(data.error);
       document.getElementById('add-username').value = data.username;
       fetchedAvatar = data.avatar;
-      discordAvatar.src           = data.avatar;
+      discordAvatar.src = data.avatar;
       discordUsername.textContent = data.username;
       discordPreview.style.display = 'flex';
       checkAddReady();
     } catch (e) {
       discordError.style.display = 'block';
-      discordError.textContent   = '❌ ' + e.message;
+      discordError.textContent = '❌ ' + e.message;
     } finally {
-      btnFetch.disabled  = false;
+      btnFetch.disabled = false;
       btnFetch.innerHTML = '<i class="fas fa-search"></i> Fetch';
     }
   });
@@ -587,16 +599,16 @@ function initAddPlayerModal() {
   });
 
   trackerInput.addEventListener('input', () => {
-    const val   = trackerInput.value.trim();
+    const val = trackerInput.value.trim();
     const match = val.match(/\/(\d{8,})(?:\/|$)/);
     if (match) {
       trackerHint.style.display = 'block';
-      trackerHint.className     = 'hint ok';
-      trackerHint.textContent   = `✓ Tracker ID détecté : ${match[1]}`;
+      trackerHint.className = 'hint ok';
+      trackerHint.textContent = `✓ Tracker ID détecté : ${match[1]}`;
     } else if (val.length > 0) {
       trackerHint.style.display = 'block';
-      trackerHint.className     = 'hint';
-      trackerHint.textContent   = 'URL non reconnue — ajouté sans tracker';
+      trackerHint.className = 'hint';
+      trackerHint.textContent = 'URL non reconnue — ajouté sans tracker';
     } else {
       trackerHint.style.display = 'none';
     }
@@ -607,37 +619,37 @@ function initAddPlayerModal() {
   document.getElementById('add-pseudo-bf6').addEventListener('input', checkAddReady);
 
   function checkAddReady() {
-    const username  = document.getElementById('add-username').value.trim();
+    const username = document.getElementById('add-username').value.trim();
     const pseudoBf6 = document.getElementById('add-pseudo-bf6').value.trim();
     btnConfirm.disabled = !(username.length >= 2 && pseudoBf6.length >= 2 && !!selectedPlatform);
   }
 
   btnConfirm.addEventListener('click', async () => {
-    const username   = document.getElementById('add-username').value.trim();
-    const pseudoBf6  = document.getElementById('add-pseudo-bf6').value.trim();
+    const username = document.getElementById('add-username').value.trim();
+    const pseudoBf6 = document.getElementById('add-pseudo-bf6').value.trim();
     const trackerUrl = trackerInput.value.trim();
-    const discordId  = discordInput.value.trim();
-    const match      = trackerUrl.match(/\/(\d{8,})(?:\/|$)/);
-    const trackerId  = match ? match[1] : null;
+    const discordId = discordInput.value.trim();
+    const match = trackerUrl.match(/\/(\d{8,})(?:\/|$)/);
+    const trackerId = match ? match[1] : null;
     const finalDiscordId = discordId || `manual_${Date.now()}`;
 
     errorDiv.style.display = 'none';
-    btnConfirm.disabled    = true;
-    btnConfirm.innerHTML   = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
+    btnConfirm.disabled = true;
+    btnConfirm.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
 
     try {
       const existing = await fetchSupabase(`players?discord_id=eq.${finalDiscordId}`);
       if (existing?.length > 0) { showError('Ce Discord ID existe déjà.'); return; }
 
       await insertSupabase('players', {
-        discord_id : finalDiscordId,
-        username   : username,
-        pseudo_bf6 : pseudoBf6,
-        platform   : selectedPlatform,
-        tracker_id : trackerId,
+        discord_id: finalDiscordId,
+        username: username,
+        pseudo_bf6: pseudoBf6,
+        platform: selectedPlatform,
+        tracker_id: trackerId,
         tracker_url: trackerUrl || null,
-        avatar_url : fetchedAvatar || null,
-        created_at : new Date().toISOString(),
+        avatar_url: fetchedAvatar || null,
+        created_at: new Date().toISOString(),
       });
 
       modal.style.display = 'none';
@@ -650,31 +662,31 @@ function initAddPlayerModal() {
 
   function showError(msg) {
     errorDiv.style.display = 'block';
-    errorDiv.textContent   = '❌ ' + msg;
-    btnConfirm.disabled    = false;
-    btnConfirm.innerHTML   = '<i class="fas fa-plus"></i> INSCRIRE LE JOUEUR';
+    errorDiv.textContent = '❌ ' + msg;
+    btnConfirm.disabled = false;
+    btnConfirm.innerHTML = '<i class="fas fa-plus"></i> INSCRIRE LE JOUEUR';
   }
 
   function resetAddForm() {
-    document.getElementById('add-username').value    = '';
-    document.getElementById('add-pseudo-bf6').value  = '';
+    document.getElementById('add-username').value = '';
+    document.getElementById('add-pseudo-bf6').value = '';
     document.getElementById('add-tracker-url').value = '';
-    document.getElementById('add-discord-id').value  = '';
-    trackerHint.style.display    = 'none';
-    errorDiv.style.display       = 'none';
+    document.getElementById('add-discord-id').value = '';
+    trackerHint.style.display = 'none';
+    errorDiv.style.display = 'none';
     discordPreview.style.display = 'none';
-    discordError.style.display   = 'none';
-    btnConfirm.disabled          = true;
-    btnConfirm.innerHTML         = '<i class="fas fa-plus"></i> INSCRIRE LE JOUEUR';
-    selectedPlatform             = null;
-    fetchedAvatar                = null;
+    discordError.style.display = 'none';
+    btnConfirm.disabled = true;
+    btnConfirm.innerHTML = '<i class="fas fa-plus"></i> INSCRIRE LE JOUEUR';
+    selectedPlatform = null;
+    fetchedAvatar = null;
     document.querySelectorAll('#modal-add-player .platform-btn').forEach(b => b.classList.remove('selected'));
   }
 }
 
 // ─── DELETE ──────────────────────────────────────────────────────────────────
 
-window.deletePlayer = async function(discordId, username) {
+window.deletePlayer = async function (discordId, username) {
   if (!confirm(`Supprimer ${username} ?`)) return;
   await deleteSupabase(`players?discord_id=eq.${discordId}`);
   showToast('✅ Joueur supprimé');

@@ -1,13 +1,33 @@
 const { EmbedBuilder } = require('discord.js');
 const supabase         = require('../services/supabase');
 
+const BR_RANK_SCORES = {
+  'bronze i': 1, 'bronze ii': 2, 'bronze iii': 3,
+  'silver i': 4, 'silver ii': 5, 'silver iii': 6,
+  'gold i': 7, 'gold ii': 8, 'gold iii': 9,
+  'platinum i': 10, 'platinum ii': 11, 'platinum iii': 12,
+  'diamond i': 13, 'diamond ii': 14, 'diamond iii': 15,
+  'masters': 16, 'master': 16,
+};
+
 function calcScore(snapshot) {
   const kd      = parseFloat(snapshot.kd)      || 0;
   const winrate = parseFloat(snapshot.winrate) || 0;
   const kills   = parseInt(snapshot.kills)     || 0;
   const games   = parseInt(snapshot.games)     || 1;
   const kpm     = kills / games;
-  return ((Math.min(kd / 5, 1) * 100 * 0.30) + (Math.min(winrate / 60, 1) * 100 * 0.35) + (Math.min(kpm / 20, 1) * 100 * 0.25));
+
+  const brKey   = (snapshot.br_rank || '').toLowerCase().trim();
+  const brVal   = BR_RANK_SCORES[brKey] ?? 0;
+  const brScore = (brVal / 16) * 100;
+
+  return (
+    (Math.min(winrate / 60, 1) * 100 * 0.30) +
+    (Math.min(kd / 5, 1)       * 100 * 0.25) +
+    (Math.min(kpm / 20, 1)     * 100 * 0.15) +
+    (Math.min(games / 500, 1)  * 100 * 0.10) +
+    (brScore                         * 0.25)
+  );
 }
 
 function getDivision(score) {
@@ -32,6 +52,7 @@ async function updateLeaderboard(client) {
     if (error || !players?.length) return;
 
     const playerStats = [];
+
     for (const player of players) {
       const { data: snapshot } = await supabase
         .from('player_snapshots')
@@ -48,12 +69,13 @@ async function updateLeaderboard(client) {
 
       playerStats.push({
         username : player.username || 'Inconnu',
-        score    : score.toFixed(2),
+        score    : score.toFixed(1),
         division,
         kd       : snapshot.kd,
         kills    : snapshot.kills,
         wins     : snapshot.wins,
         winrate  : snapshot.winrate,
+        br_rank  : snapshot.br_rank || '—',
       });
     }
 
@@ -65,7 +87,7 @@ async function updateLeaderboard(client) {
 
     const rows = top10.map((p, i) => {
       const rank = podium[i] || `\`#${i + 1}\``;
-      return `${rank} **${p.username}** ${p.division.emoji} \`${p.division.name}\`\n┗ 📊 Score: \`${p.score}\` • 📈 K/D: \`${p.kd}\` • 🏆 Wins: \`${p.wins}\``;
+      return `${rank} **${p.username}** ${p.division.emoji} \`${p.division.name}\`\n┗ 📊 Score: \`${p.score}\` • 📈 K/D: \`${p.kd}\` • 🏆 Winrate: \`${p.winrate}%\` • 🎖️ BR: \`${p.br_rank}\``;
     });
 
     const totalKills = playerStats.reduce((s, p) => s + (parseInt(p.kills) || 0), 0);

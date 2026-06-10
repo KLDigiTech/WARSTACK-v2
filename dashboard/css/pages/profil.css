@@ -783,3 +783,95 @@
     }
   }
 }
+
+/* ── BLOC WARSTACK XP / GRADE / COINS ── */
+.profil-warstack-block {
+  background: linear-gradient(135deg, rgba(14,20,17,.98), rgba(8,12,10,.99));
+  border: 1px solid rgba(0,255,120,.12);
+  border-radius: 20px;
+  padding: 20px 24px;
+  margin: 0 0 24px 0;
+}
+
+.profil-ws-grade {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.profil-ws-grade-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.profil-ws-grade-info {
+  flex: 1;
+}
+
+.profil-ws-grade-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 1px;
+}
+
+.profil-ws-grade-level {
+  font-size: 0.75rem;
+  color: var(--green);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.profil-ws-bar-wrap {
+  height: 6px;
+  background: rgba(255,255,255,.06);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.profil-ws-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #00ff88, #00c864);
+  border-radius: 4px;
+  transition: width .4s ease;
+}
+
+.profil-ws-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.profil-ws-counters {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.profil-ws-counter {
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.05);
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+}
+
+.profil-ws-counter-val {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--green);
+  margin-bottom: 4px;
+}
+
+.profil-ws-counter-label {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}

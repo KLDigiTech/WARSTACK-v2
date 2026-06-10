@@ -7,6 +7,46 @@ const loading  = document.getElementById('profil-loading');
 const notfound = document.getElementById('profil-notfound');
 const content  = document.getElementById('profil-content');
 
+// ── GRADES MILITAIRES ─────────────────────────────────────────
+const GRADES = [
+  { level: 1,  xp: 0,     name: 'Recrue',           emoji: '🪖' },
+  { level: 2,  xp: 100,   name: 'Soldat',            emoji: '🎖️' },
+  { level: 3,  xp: 250,   name: 'Caporal',           emoji: '🎖️' },
+  { level: 4,  xp: 500,   name: 'Sergent',           emoji: '🎖️' },
+  { level: 5,  xp: 900,   name: 'Sergent-Chef',      emoji: '🎖️' },
+  { level: 6,  xp: 1400,  name: 'Adjudant',          emoji: '⭐' },
+  { level: 7,  xp: 2000,  name: 'Adjudant-Chef',     emoji: '⭐' },
+  { level: 8,  xp: 2800,  name: 'Lieutenant',        emoji: '⭐⭐' },
+  { level: 9,  xp: 3800,  name: 'Capitaine',         emoji: '⭐⭐' },
+  { level: 10, xp: 5000,  name: 'Commandant',        emoji: '⭐⭐⭐' },
+  { level: 11, xp: 7000,  name: 'Colonel',           emoji: '⭐⭐⭐' },
+  { level: 12, xp: 10000, name: 'Général',           emoji: '🏅' },
+  { level: 13, xp: 15000, name: 'Maréchal WARSTACK', emoji: '🏆' },
+];
+
+function getGrade(xp) {
+  let grade = GRADES[0];
+  for (const g of GRADES) {
+    if (xp >= g.xp) grade = g;
+    else break;
+  }
+  return grade;
+}
+
+function getNextGrade(xp) {
+  return GRADES.find(g => g.xp > xp) || null;
+}
+
+// ── BR RANK SCORE ─────────────────────────────────────────────
+const BR_RANK_SCORES = {
+  'bronze i': 1,    'bronze ii': 2,    'bronze iii': 3,
+  'silver i': 4,    'silver ii': 5,    'silver iii': 6,
+  'gold i': 7,      'gold ii': 8,      'gold iii': 9,
+  'platinum i': 10, 'platinum ii': 11, 'platinum iii': 12,
+  'diamond i': 13,  'diamond ii': 14,  'diamond iii': 15,
+  'masters': 16,    'master': 16,
+};
+
 // ── PAYS ──────────────────────────────────────────────────────
 const PAYS_LIST = [
   { name: 'France',         code: 'FR' }, { name: 'Belgique',       code: 'BE' },
@@ -85,7 +125,18 @@ function calcScore(s) {
   const kills   = parseInt(s.kills)     || 0;
   const games   = parseInt(s.games)     || 1;
   const kpm     = kills / games;
-  return ((Math.min(kd / 5, 1) * 100 * 0.30) + (Math.min(winrate / 60, 1) * 100 * 0.35) + (Math.min(kpm / 20, 1) * 100 * 0.25)).toFixed(2);
+
+  const brKey   = (s.br_rank || '').toLowerCase().trim();
+  const brVal   = BR_RANK_SCORES[brKey] ?? 0;
+  const brScore = (brVal / 16) * 100;
+
+  return (
+    (Math.min(winrate / 60, 1) * 100 * 0.30) +
+    (Math.min(kd / 5, 1)       * 100 * 0.25) +
+    (Math.min(kpm / 20, 1)     * 100 * 0.15) +
+    (Math.min(games / 500, 1)  * 100 * 0.10) +
+    (brScore                         * 0.25)
+  ).toFixed(1);
 }
 
 function getDivision(score) {
@@ -94,7 +145,7 @@ function getDivision(score) {
   if (s >= 55) return { name: 'Phantom',  emoji: '👻', color: '#9B59B6' };
   if (s >= 45) return { name: 'Elite',    emoji: '💎', color: '#00BFFF' };
   if (s >= 35) return { name: 'Veteran',  emoji: '🎖️', color: '#FF6600' };
-  if (s >= 25) return { name: 'Grunt',    emoji: '⚔️', color: '#95A5A6' };
+  if (s >= 25) return { name: 'Soldat',    emoji: '⚔️', color: '#95A5A6' };
   return             { name: 'Recruit',   emoji: '🪖', color: '#607D8B' };
 }
 
@@ -118,6 +169,51 @@ function initTabs() {
       document.getElementById(`tab-${tab.dataset.tab}`).style.display = 'block';
     });
   });
+}
+
+// ── BLOC WARSTACK XP / COINS / GRADE ─────────────────────────
+function renderWARSTACKBlock(xpData, walletData) {
+  const xp         = xpData?.xp     ?? 0;
+  const coins      = walletData?.coins ?? 0;
+  const grade      = getGrade(xp);
+  const nextGrade  = getNextGrade(xp);
+  const progress   = nextGrade
+    ? Math.round(((xp - grade.xp) / (nextGrade.xp - grade.xp)) * 100)
+    : 100;
+
+  const block = document.getElementById('profil-warstack-block');
+  if (!block) return;
+
+  block.innerHTML = `
+    <div class="profil-ws-grade">
+      <div class="profil-ws-grade-icon">${grade.emoji}</div>
+      <div class="profil-ws-grade-info">
+        <div class="profil-ws-grade-name">${grade.name}</div>
+        <div class="profil-ws-grade-level">Niveau ${grade.level}</div>
+      </div>
+    </div>
+    <div class="profil-ws-bar-wrap">
+      <div class="profil-ws-bar" style="width:${progress}%"></div>
+    </div>
+    <div class="profil-ws-bar-label">
+      <span>${xp.toLocaleString('fr-FR')} XP</span>
+      <span>${nextGrade ? `→ ${nextGrade.emoji} ${nextGrade.name} dans ${(nextGrade.xp - xp).toLocaleString('fr-FR')} XP` : '🏆 Grade MAX'}</span>
+    </div>
+    <div class="profil-ws-counters">
+      <div class="profil-ws-counter">
+        <div class="profil-ws-counter-val">✨ ${xp.toLocaleString('fr-FR')}</div>
+        <div class="profil-ws-counter-label">XP Total</div>
+      </div>
+      <div class="profil-ws-counter">
+        <div class="profil-ws-counter-val" style="color:#FFD700">💰 ${coins.toLocaleString('fr-FR')}</div>
+        <div class="profil-ws-counter-label">WAR Coins</div>
+      </div>
+      <div class="profil-ws-counter">
+        <div class="profil-ws-counter-val">${walletData?.total_earned?.toLocaleString('fr-FR') ?? 0}</div>
+        <div class="profil-ws-counter-label">Total gagné</div>
+      </div>
+    </div>
+  `;
 }
 
 // ── MODAL LOCALISATION ────────────────────────────────────────
@@ -202,7 +298,6 @@ async function injectEditLocalisation(player) {
     saveBtn.disabled    = true;
 
     try {
-      // 1. Mettre à jour players
       const res = await fetch(`${SUPABASE_URL}/rest/v1/players?discord_id=eq.${player.discord_id}`, {
         method : 'PATCH',
         headers: {
@@ -216,7 +311,6 @@ async function injectEditLocalisation(player) {
 
       if (!res.ok) throw new Error('Erreur serveur');
 
-      // 2. Enregistrer dans member_locations pour la carte
       const coords = getCityCoords(city, country);
       const flag   = getFlag(countryCode);
 
@@ -242,7 +336,6 @@ async function injectEditLocalisation(player) {
 
       modal.classList.remove('open');
 
-      // 3. Mise à jour badge localisation
       const loc = [city, region, country].filter(Boolean).join(', ');
       let locBadge = document.getElementById('p-localisation');
       if (!locBadge) {
@@ -267,8 +360,16 @@ async function injectEditLocalisation(player) {
 async function loadProfil() {
   if (!discordId) { showNotFound(); return; }
 
-  const players = await fetchSupabase(`players?discord_id=eq.${discordId}&select=*`);
-  const player  = players?.[0];
+  const [players, xpRows, walletRows] = await Promise.all([
+    fetchSupabase(`players?discord_id=eq.${discordId}&select=*`),
+    fetchSupabase(`warstack_xp?discord_id=eq.${discordId}&select=*`),
+    fetchSupabase(`warstack_wallets?discord_id=eq.${discordId}&select=*`),
+  ]);
+
+  const player     = players?.[0];
+  const xpData     = xpRows?.[0]    || null;
+  const walletData = walletRows?.[0] || null;
+
   if (!player) { showNotFound(); return; }
 
   let snapshot = null;
@@ -370,6 +471,9 @@ async function loadProfil() {
   }
 
   document.title = `${player.username || 'Joueur'} — WARSTACK`;
+
+  // Bloc WARSTACK
+  renderWARSTACKBlock(xpData, walletData);
 
   initTabs();
   await loadTournois(discordId);

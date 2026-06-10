@@ -1,14 +1,16 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const supabase                               = require('../services/supabase');
 const { getLeaderboard, getGrade }           = require('../services/points');
 
+const DASHBOARD_URL = 'https://warstack-v2.vercel.app';
+
 const BR_RANK_SCORES = {
-  'bronze i': 1, 'bronze ii': 2, 'bronze iii': 3,
-  'silver i': 4, 'silver ii': 5, 'silver iii': 6,
-  'gold i': 7, 'gold ii': 8, 'gold iii': 9,
+  'bronze i': 1,    'bronze ii': 2,    'bronze iii': 3,
+  'silver i': 4,    'silver ii': 5,    'silver iii': 6,
+  'gold i': 7,      'gold ii': 8,      'gold iii': 9,
   'platinum i': 10, 'platinum ii': 11, 'platinum iii': 12,
-  'diamond i': 13, 'diamond ii': 14, 'diamond iii': 15,
-  'masters': 16, 'master': 16,
+  'diamond i': 13,  'diamond ii': 14,  'diamond iii': 15,
+  'masters': 16,    'master': 16,
 };
 
 function calcScore(snapshot) {
@@ -40,9 +42,9 @@ module.exports = {
         .setDescription('Type de classement')
         .setRequired(false)
         .addChoices(
-          { name: '⭐ WARSTACK XP',    value: 'xp'      },
-          { name: '💰 WAR Coins',      value: 'coins'   },
-          { name: '🪖 Tracker BF6',    value: 'tracker' },
+          { name: '⭐ WARSTACK XP',  value: 'xp'      },
+          { name: '💰 WAR Coins',    value: 'coins'   },
+          { name: '🪖 Tracker BF6',  value: 'tracker' },
         )
     ),
 
@@ -51,6 +53,13 @@ module.exports = {
 
     const type    = interaction.options.getString('type') || 'xp';
     const guildId = interaction.guild.id;
+
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setLabel('🏆 Classement complet')
+        .setStyle(ButtonStyle.Link)
+        .setURL(`${DASHBOARD_URL}/#players`),
+    );
 
     // ── Classement WARSTACK XP ────────────────────────
     if (type === 'xp') {
@@ -88,7 +97,7 @@ module.exports = {
         .setFooter({ text: '⚔️ WARSTACK • XP Communautaire' })
         .setTimestamp();
 
-      return interaction.editReply({ embeds: [embed] });
+      return interaction.editReply({ embeds: [embed], components: [row] });
     }
 
     // ── Classement WAR Coins ──────────────────────────
@@ -126,7 +135,7 @@ module.exports = {
         .setFooter({ text: '⚔️ WARSTACK • WAR Coins' })
         .setTimestamp();
 
-      return interaction.editReply({ embeds: [embed] });
+      return interaction.editReply({ embeds: [embed], components: [row] });
     }
 
     // ── Classement Tracker BF6 ────────────────────────
@@ -190,7 +199,7 @@ module.exports = {
         .setFooter({ text: '⚔️ WARSTACK • Tracker BF6' })
         .setTimestamp();
 
-      return interaction.editReply({ embeds: [embed] });
+      return interaction.editReply({ embeds: [embed], components: [row] });
     }
   }
 };

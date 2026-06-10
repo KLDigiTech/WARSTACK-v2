@@ -2,12 +2,12 @@ const { EmbedBuilder } = require('discord.js');
 const supabase         = require('../services/supabase');
 
 const BR_RANK_SCORES = {
-  'bronze i': 1, 'bronze ii': 2, 'bronze iii': 3,
-  'silver i': 4, 'silver ii': 5, 'silver iii': 6,
-  'gold i': 7, 'gold ii': 8, 'gold iii': 9,
+  'bronze i': 1,    'bronze ii': 2,    'bronze iii': 3,
+  'silver i': 4,    'silver ii': 5,    'silver iii': 6,
+  'gold i': 7,      'gold ii': 8,      'gold iii': 9,
   'platinum i': 10, 'platinum ii': 11, 'platinum iii': 12,
-  'diamond i': 13, 'diamond ii': 14, 'diamond iii': 15,
-  'masters': 16, 'master': 16,
+  'diamond i': 13,  'diamond ii': 14,  'diamond iii': 15,
+  'masters': 16,    'master': 16,
 };
 
 function calcScore(snapshot) {
@@ -35,7 +35,7 @@ function getDivision(score) {
   if (score >= 55) return { name: 'Phantom',  emoji: '👻' };
   if (score >= 45) return { name: 'Elite',    emoji: '💎' };
   if (score >= 35) return { name: 'Veteran',  emoji: '🎖️' };
-  if (score >= 25) return { name: 'Grunt',    emoji: '⚔️' };
+  if (score >= 25) return { name: 'Soldat',    emoji: '⚔️' };
   return             { name: 'Recruit',       emoji: '🪖' };
 }
 

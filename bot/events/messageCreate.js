@@ -1,5 +1,6 @@
 const supabase      = require('../services/supabase');
 const { fireRules } = require('../jobs/rule-engine');
+const { award }     = require('../services/points');
 
 const spamTracker = new Map();
 
@@ -59,6 +60,11 @@ module.exports = {
 
     const guild = message.guild;
 
+    // ── XP + COINS message ────────────────────────────
+    // Cooldown 60 secondes anti-spam XP
+    await award(message.author.id, guild.id, 'message', { cooldownMs: 60000 });
+
+    // ── AUTOMOD ───────────────────────────────────────
     const { data: configs } = await supabase
       .from('config')
       .select('*')

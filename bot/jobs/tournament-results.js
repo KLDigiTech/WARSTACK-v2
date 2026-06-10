@@ -1,5 +1,6 @@
 const { EmbedBuilder } = require('discord.js');
 const supabase         = require('../services/supabase');
+const { award, addXP, addCoins } = require('../services/points');
 
 async function postTournamentResults(client, tournamentId) {
   try {
@@ -17,7 +18,7 @@ async function postTournamentResults(client, tournamentId) {
 
     if (!tournoi) return;
 
-    // Soumissions du tournoi
+    // Soumissions validées triées par KD
     const { data: subs } = await supabase
       .from('tournament_submissions')
       .select('*')
@@ -36,7 +37,7 @@ async function postTournamentResults(client, tournamentId) {
       return;
     }
 
-    // Récupère les usernames
+    // Récupère les usernames + attribue les points
     const results = await Promise.all(subs.map(async (sub, i) => {
       const { data: player } = await supabase
         .from('players')
@@ -44,17 +45,55 @@ async function postTournamentResults(client, tournamentId) {
         .eq('discord_id', sub.discord_id)
         .single();
 
+      const rank     = i + 1;
+      const username = player?.username || sub.discord_id;
+      const guildId  = tournoi.guild_id || channel.guild?.id;
+
+      // ── Attribution points selon le rang ──────────────
+      if (guildId && sub.discord_id) {
+
+        // Participation — tout le monde
+        await award(sub.discord_id, guildId, 'tournament_played');
+
+        // Gains selon classement
+        if (rank === 1) {
+          await award(sub.discord_id, guildId, 'tournament_win');
+          console.log(`🏆 ${username} — Victoire tournoi → XP + Coins`);
+        } else if (rank === 2) {
+          await award(sub.discord_id, guildId, 'tournament_finalist');
+          console.log(`🥈 ${username} — Finaliste → XP + Coins`);
+        } else if (rank === 3) {
+          await award(sub.discord_id, guildId, 'tournament_top3');
+          console.log(`🥉 ${username} — Top 3 → XP + Coins`);
+        } else if (rank <= 4) {
+          await award(sub.discord_id, guildId, 'tournament_top4');
+        } else if (rank <= 8) {
+          await award(sub.discord_id, guildId, 'tournament_top8');
+        }
+      }
+
       return {
-        rank     : i + 1,
-        username : player?.username || sub.discord_id,
+        rank,
+        username,
         discordId: sub.discord_id,
-        kd       : sub.kd       ?? '—',
-        kills    : sub.kills    ?? '—',
-        deaths   : sub.deaths   ?? '—',
-        score    : sub.score    ?? '—',
+        guildId,
+        kd     : sub.kd     ?? '—',
+        kills  : sub.kills  ?? '—',
+        deaths : sub.deaths ?? '—',
+        score  : sub.score  ?? '—',
       };
     }));
 
+    // ── MVP = meilleur KD ──────────────────────────────
+    const mvp = results[0];
+
+    // Bonus MVP (peut cumuler avec la victoire)
+    if (mvp?.guildId && mvp?.discordId) {
+      await award(mvp.discordId, mvp.guildId, 'tournament_mvp');
+      console.log(`⭐ MVP ${mvp.username} → XP + Coins bonus`);
+    }
+
+    // ── Embed résultats ────────────────────────────────
     const podium    = ['🥇', '🥈', '🥉'];
     const separator = '▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬';
 
@@ -63,16 +102,25 @@ async function postTournamentResults(client, tournamentId) {
       return `${rank} **${p.username}**\n┗ 📈 K/D: \`${p.kd}\` • 🎯 Kills: \`${p.kills}\` • 💀 Deaths: \`${p.deaths}\``;
     });
 
-    const mvp = results[0];
-
     const embed = new EmbedBuilder()
       .setTitle(`🏆 ${tournoi.name}${tournoi.phase ? ` — ${tournoi.phase}` : ''} — RÉSULTATS FINAUX`)
       .setColor(0xFF6600)
       .setDescription(`${separator}\n` + rows.join(`\n${separator}\n`) + `\n${separator}`)
-      .addFields({
-        name: '⭐ MVP DU TOURNOI',
-        value: `**${mvp.username}** • K/D \`${mvp.kd}\` • \`${mvp.kills}\` kills`,
-      })
+      .addFields(
+        {
+          name : '⭐ MVP DU TOURNOI',
+          value: `**${mvp.username}** • K/D \`${mvp.kd}\` • \`${mvp.kills}\` kills`,
+        },
+        {
+          name : '🎖️ Points attribués',
+          value:
+            `> 🥇 Victoire : \`+200 XP / +250 coins\`\n` +
+            `> 🥈 Finaliste : \`+125 XP / +150 coins\`\n` +
+            `> 🥉 Top 3 : \`+100 XP / +100 coins\`\n` +
+            `> 🎮 Participation : \`+30 XP / +25 coins\`\n` +
+            `> ⭐ MVP : \`+75 XP / +75 coins\` (bonus)`,
+        }
+      )
       .setFooter({ text: `⚔️ WARSTACK • ${tournoi.name}` })
       .setTimestamp();
 
@@ -87,7 +135,7 @@ async function postTournamentResults(client, tournamentId) {
       .update({ status: 'valide' })
       .eq('tournament_id', tournamentId);
 
-    console.log(`✅ Résultats tournoi ${tournoi.name} postés`);
+    console.log(`✅ Résultats tournoi ${tournoi.name} postés + points attribués`);
 
   } catch (error) {
     console.error('❌ Erreur tournament results:', error.message);

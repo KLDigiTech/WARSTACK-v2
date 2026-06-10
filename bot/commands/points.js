@@ -1,5 +1,7 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { getProfile }                         = require('../services/points');
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { getProfile } = require('../services/points');
+
+const DASHBOARD_URL = 'https://warstack-v2.vercel.app';
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -20,12 +22,10 @@ module.exports = {
 
     const profile = await getProfile(discordId, guildId);
 
-    // Barre de progression
-    const filled  = Math.round(profile.progress / 10);
-    const empty   = 10 - filled;
-    const xpBar   = '█'.repeat(filled) + '░'.repeat(empty);
+    const filled = Math.round(profile.progress / 10);
+    const empty  = 10 - filled;
+    const xpBar  = '█'.repeat(filled) + '░'.repeat(empty);
 
-    // Prochaine étape
     const nextInfo = profile.nextGrade
       ? `**${profile.nextGrade.emoji} ${profile.nextGrade.name}** dans \`${(profile.nextGrade.xp - profile.xp).toLocaleString('fr-FR')} XP\``
       : '🏆 Grade maximum atteint !';
@@ -73,6 +73,17 @@ module.exports = {
       .setFooter({ text: 'WARSTACK • Système de Points' })
       .setTimestamp();
 
-    await interaction.editReply({ embeds: [embed] });
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setLabel('👤 Mon profil')
+        .setStyle(ButtonStyle.Link)
+        .setURL(`${DASHBOARD_URL}/#players`),
+      new ButtonBuilder()
+        .setLabel('🏆 Classement')
+        .setStyle(ButtonStyle.Link)
+        .setURL(`${DASHBOARD_URL}/#classement`),
+    );
+
+    await interaction.editReply({ embeds: [embed], components: [row] });
   }
 };

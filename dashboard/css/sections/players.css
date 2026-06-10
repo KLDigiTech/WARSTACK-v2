@@ -537,3 +537,170 @@
   font-size: 11px;
   color: #ffd060;
 }
+/* ── ONGLETS PLAYERS ── */
+.players-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.players-tab {
+  padding: 0.5rem 1.1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,.08);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: .15s;
+  white-space: nowrap;
+}
+
+.players-tab:hover {
+  border-color: rgba(0,255,120,.2);
+  color: #fff;
+}
+
+.players-tab.active {
+  background: rgba(0,255,120,.1);
+  border-color: rgba(0,255,120,.3);
+  color: var(--green);
+}
+
+/* ── LEADERBOARD LIST ── */
+.leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.lb-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: linear-gradient(180deg, rgba(14,20,17,.96), rgba(8,12,10,.98));
+  border: 1px solid rgba(0,255,120,.08);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: .18s ease;
+}
+
+.lb-row:hover {
+  border-color: rgba(0,255,120,.2);
+  background: rgba(0,255,120,.04);
+  transform: translateX(4px);
+}
+
+.lb-rank {
+  font-size: 1.3rem;
+  font-weight: 700;
+  min-width: 36px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.lb-rank-num {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.lb-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1px solid rgba(0,255,120,.15);
+}
+
+.lb-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lb-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.lb-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lb-grade {
+  font-size: 0.75rem;
+  color: var(--green);
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.lb-bar-wrap {
+  height: 3px;
+  background: rgba(255,255,255,.06);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 4px;
+  max-width: 160px;
+}
+
+.lb-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green), #00c864);
+  border-radius: 2px;
+  transition: width .3s ease;
+}
+
+.lb-stats-mini {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.lb-stats-mini span {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.lb-stats-mini strong {
+  color: #fff;
+  margin-left: 3px;
+}
+
+.lb-value {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.lb-main {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--green);
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.lb-sub {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ── STATS BAR ÉLARGIE (7 colonnes) ── */
+#tl-stats-bar {
+  grid-template-columns: repeat(7, 1fr) !important;
+}

@@ -1,14 +1,51 @@
 import { fetchSupabase, deleteSupabase, insertSupabase, callBotAPI } from '../api.js';
 import { showToast } from '../ui/toast.js';
 
-let allPlayers = [];
+let allPlayers   = [];
+let allXP        = [];
+let allWallets   = [];
+let currentTab   = 'tracker';
 let currentFilter = 'all';
 let currentDiscordId = null;
 
-export async function initPlayers() {
-  const players = await fetchSupabase('players?select=*&order=created_at.desc');
-  allPlayers    = players || [];
+const GRADES = [
+  { level: 1,  xp: 0,     name: 'Recrue',           emoji: '🪖' },
+  { level: 2,  xp: 100,   name: 'Soldat',            emoji: '🎖️' },
+  { level: 3,  xp: 250,   name: 'Caporal',           emoji: '🎖️' },
+  { level: 4,  xp: 500,   name: 'Sergent',           emoji: '🎖️' },
+  { level: 5,  xp: 900,   name: 'Sergent-Chef',      emoji: '🎖️' },
+  { level: 6,  xp: 1400,  name: 'Adjudant',          emoji: '⭐' },
+  { level: 7,  xp: 2000,  name: 'Adjudant-Chef',     emoji: '⭐' },
+  { level: 8,  xp: 2800,  name: 'Lieutenant',        emoji: '⭐⭐' },
+  { level: 9,  xp: 3800,  name: 'Capitaine',         emoji: '⭐⭐' },
+  { level: 10, xp: 5000,  name: 'Commandant',        emoji: '⭐⭐⭐' },
+  { level: 11, xp: 7000,  name: 'Colonel',           emoji: '⭐⭐⭐' },
+  { level: 12, xp: 10000, name: 'Général',           emoji: '🏅' },
+  { level: 13, xp: 15000, name: 'Maréchal WARSTACK', emoji: '🏆' },
+];
 
+function getGrade(xp) {
+  let grade = GRADES[0];
+  for (const g of GRADES) {
+    if (xp >= g.xp) grade = g;
+    else break;
+  }
+  return grade;
+}
+
+export async function initPlayers() {
+  // Charge tout en parallèle
+  const [players, xpRows, walletRows] = await Promise.all([
+    fetchSupabase('players?select=*&order=created_at.desc'),
+    fetchSupabase('warstack_xp?select=*&order=xp.desc'),
+    fetchSupabase('warstack_wallets?select=*&order=total_earned.desc'),
+  ]);
+
+  allPlayers = players || [];
+  allXP      = xpRows  || [];
+  allWallets = walletRows || [];
+
+  // Snapshots BF6
   for (const player of allPlayers) {
     if (player.tracker_id) {
       const snaps     = await fetchSupabase(`player_snapshots?tracker_id=eq.${player.tracker_id}&order=snapshot_at.desc&limit=1`);
@@ -22,20 +59,19 @@ export async function initPlayers() {
       const tournois = await fetchSupabase(`tournaments?id=eq.${player.lastEntry.tournament_id}&select=name,phase`);
       player.lastTournoi = tournois?.[0] || null;
     }
+
+    // Enrichit avec XP + wallet
+    player.xpData     = allXP.find(x => x.discord_id === player.discord_id)     || null;
+    player.walletData = allWallets.find(w => w.discord_id === player.discord_id) || null;
   }
 
-  renderTable(allPlayers);
+  initTabs();
+  renderTab(currentTab);
 
   const searchInput = document.getElementById('search-player');
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
-      const q        = e.target.value.toLowerCase();
-      const filtered = allPlayers.filter(p =>
-        p.username?.toLowerCase().includes(q) ||
-        p.pseudo_bf6?.toLowerCase().includes(q) ||
-        p.tracker_id?.includes(q)
-      );
-      renderTable(filtered);
+      renderTab(currentTab, e.target.value.toLowerCase());
     });
   }
 
@@ -43,33 +79,184 @@ export async function initPlayers() {
   initTimelineFilters();
 }
 
-// ─── SCORE ───────────────────────────────────────────────────────────────────
+// ─── TABS ─────────────────────────────────────────────────────────────────────
 
-function calcScore(s) {
-  if (!s) return 0;
-  const kd      = parseFloat(s.kd)      || 0;
-  const winrate = parseFloat(s.winrate) || 0;
-  const kills   = parseInt(s.kills)     || 0;
-  const games   = parseInt(s.games)     || 1;
-  const kpm     = kills / games;
-  return ((Math.min(kd / 5, 1) * 100 * 0.30) + (Math.min(winrate / 60, 1) * 100 * 0.35) + (Math.min(kpm / 20, 1) * 100 * 0.25)).toFixed(2);
+function initTabs() {
+  document.querySelectorAll('.players-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.players-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentTab = tab.dataset.tab;
+      document.getElementById('search-player').value = '';
+      renderTab(currentTab);
+    });
+  });
 }
 
-function getDivision(score) {
-  const s = parseFloat(score);
-  if (s >= 65) return 'WARSTACK 🔱';
-  if (s >= 55) return 'Phantom 👻';
-  if (s >= 45) return 'Elite 💎';
-  if (s >= 35) return 'Veteran 🎖️';
-  if (s >= 25) return 'Grunt ⚔️';
-  return 'Recruit 🪖';
+function renderTab(tab, search = '') {
+  switch (tab) {
+    case 'xp':      renderXPLeaderboard(search);     break;
+    case 'coins':   renderCoinsLeaderboard(search);  break;
+    case 'tracker': renderTrackerLeaderboard(search); break;
+    case 'all':     renderAllPlayers(search);        break;
+  }
 }
 
-// ─── RENDER ──────────────────────────────────────────────────────────────────
+// ─── CLASSEMENT XP ───────────────────────────────────────────────────────────
 
-function renderTable(players) {
+function renderXPLeaderboard(search = '') {
   const wrapper = document.getElementById('players-grid');
-  if (!players || players.length === 0) {
+  const podium  = ['🥇', '🥈', '🥉'];
+
+  let rows = [...allXP];
+  if (search) {
+    rows = rows.filter(x => {
+      const p = allPlayers.find(p => p.discord_id === x.discord_id);
+      return p?.username?.toLowerCase().includes(search);
+    });
+  }
+
+  if (!rows.length) {
+    wrapper.innerHTML = '<div class="empty-state"><i class="fas fa-star"></i>Aucun joueur classé</div>';
+    return;
+  }
+
+  wrapper.innerHTML = `<div class="leaderboard-list">${rows.map((x, i) => {
+    const player = allPlayers.find(p => p.discord_id === x.discord_id);
+    const grade  = getGrade(x.xp);
+    const xp     = (x.xp || 0).toLocaleString('fr-FR');
+    const rank   = podium[i] || `<span class="lb-rank-num">#${i + 1}</span>`;
+    const nextGrade = GRADES.find(g => g.xp > x.xp);
+    const progress  = nextGrade
+      ? Math.round(((x.xp - grade.xp) / (nextGrade.xp - grade.xp)) * 100)
+      : 100;
+
+    return `
+      <div class="lb-row" onclick="openTimeline('${x.discord_id}')">
+        <div class="lb-rank">${rank}</div>
+        <div class="lb-avatar">
+          <img src="${player?.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png'}"
+            onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+        </div>
+        <div class="lb-info">
+          <div class="lb-name">${player?.username || x.discord_id}</div>
+          <div class="lb-grade">${grade.emoji} ${grade.name}</div>
+          <div class="lb-bar-wrap">
+            <div class="lb-bar" style="width:${progress}%"></div>
+          </div>
+        </div>
+        <div class="lb-value">
+          <div class="lb-main">✨ ${xp} XP</div>
+          <div class="lb-sub">Niv. ${grade.level}</div>
+        </div>
+      </div>`;
+  }).join('')}</div>`;
+}
+
+// ─── CLASSEMENT COINS ────────────────────────────────────────────────────────
+
+function renderCoinsLeaderboard(search = '') {
+  const wrapper = document.getElementById('players-grid');
+  const podium  = ['🥇', '🥈', '🥉'];
+
+  let rows = [...allWallets].sort((a, b) => (b.total_earned || 0) - (a.total_earned || 0));
+  if (search) {
+    rows = rows.filter(w => {
+      const p = allPlayers.find(p => p.discord_id === w.discord_id);
+      return p?.username?.toLowerCase().includes(search);
+    });
+  }
+
+  if (!rows.length) {
+    wrapper.innerHTML = '<div class="empty-state"><i class="fas fa-coins"></i>Aucun joueur classé</div>';
+    return;
+  }
+
+  wrapper.innerHTML = `<div class="leaderboard-list">${rows.map((w, i) => {
+    const player = allPlayers.find(p => p.discord_id === w.discord_id);
+    const rank   = podium[i] || `<span class="lb-rank-num">#${i + 1}</span>`;
+
+    return `
+      <div class="lb-row" onclick="openTimeline('${w.discord_id}')">
+        <div class="lb-rank">${rank}</div>
+        <div class="lb-avatar">
+          <img src="${player?.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png'}"
+            onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+        </div>
+        <div class="lb-info">
+          <div class="lb-name">${player?.username || w.discord_id}</div>
+          <div class="lb-grade">💰 Total gagné : ${(w.total_earned || 0).toLocaleString('fr-FR')}</div>
+        </div>
+        <div class="lb-value">
+          <div class="lb-main" style="color:#FFD700">💰 ${(w.coins || 0).toLocaleString('fr-FR')}</div>
+          <div class="lb-sub">coins dispo</div>
+        </div>
+      </div>`;
+  }).join('')}</div>`;
+}
+
+// ─── CLASSEMENT TRACKER BF6 ──────────────────────────────────────────────────
+
+function renderTrackerLeaderboard(search = '') {
+  const wrapper = document.getElementById('players-grid');
+  const podium  = ['🥇', '🥈', '🥉'];
+
+  let players = allPlayers.filter(p => p.snapshot);
+  if (search) players = players.filter(p => p.username?.toLowerCase().includes(search));
+
+  players.sort((a, b) => calcScore(b.snapshot) - calcScore(a.snapshot));
+
+  if (!players.length) {
+    wrapper.innerHTML = '<div class="empty-state"><i class="fas fa-gamepad"></i>Aucun joueur BF6 classé</div>';
+    return;
+  }
+
+  wrapper.innerHTML = `<div class="leaderboard-list">${players.map((p, i) => {
+    const s     = p.snapshot;
+    const score = calcScore(s).toFixed(1);
+    const rank  = podium[i] || `<span class="lb-rank-num">#${i + 1}</span>`;
+    const xpData = p.xpData;
+    const grade  = xpData ? getGrade(xpData.xp) : GRADES[0];
+
+    return `
+      <div class="lb-row" onclick="openTimeline('${p.discord_id}')">
+        <div class="lb-rank">${rank}</div>
+        <div class="lb-avatar">
+          <img src="${p.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png'}"
+            onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+        </div>
+        <div class="lb-info">
+          <div class="lb-name">${p.username || 'Unknown'}</div>
+          <div class="lb-grade">${grade.emoji} ${grade.name} ${s?.br_rank ? `• 🎖️ ${s.br_rank}` : ''}</div>
+          <div class="lb-stats-mini">
+            <span>K/D <strong>${s?.kd ?? '—'}</strong></span>
+            <span>Win% <strong>${s?.winrate ? parseFloat(s.winrate).toFixed(1) + '%' : '—'}</strong></span>
+            <span>Kills <strong>${s?.kills ? Number(s.kills).toLocaleString('fr-FR') : '—'}</strong></span>
+          </div>
+        </div>
+        <div class="lb-value">
+          <div class="lb-main" style="color:var(--green)">${score}</div>
+          <div class="lb-sub">score WS</div>
+        </div>
+      </div>`;
+  }).join('')}</div>`;
+}
+
+// ─── TOUS LES JOUEURS ────────────────────────────────────────────────────────
+
+function renderAllPlayers(search = '') {
+  const wrapper = document.getElementById('players-grid');
+
+  let players = [...allPlayers];
+  if (search) {
+    players = players.filter(p =>
+      p.username?.toLowerCase().includes(search) ||
+      p.pseudo_bf6?.toLowerCase().includes(search) ||
+      p.tracker_id?.includes(search)
+    );
+  }
+
+  if (!players.length) {
     wrapper.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i>Aucun joueur trouvé</div>';
     return;
   }
@@ -80,6 +267,7 @@ function renderTable(players) {
     const division = getDivision(score);
     const tournoi  = p.lastTournoi;
     const sub      = p.lastSub;
+    const grade    = p.xpData ? getGrade(p.xpData.xp) : GRADES[0];
 
     const tournoisBadge = tournoi ? `
       <div class="player-tournoi">
@@ -106,7 +294,8 @@ function renderTable(players) {
           </div>
           <div class="player-main">
             <div class="player-name">${p.username || 'Unknown'}</div>
-            <div class="player-division">${division}</div>
+            <div class="player-division">${grade.emoji} ${grade.name}</div>
+            <div class="player-division" style="font-size:0.75rem;opacity:0.7">${division}</div>
             ${brRankHtml}
           </div>
           <div class="player-card-actions">
@@ -125,16 +314,16 @@ function renderTable(players) {
             <strong>${s?.kd ?? '—'}</strong>
           </div>
           <div class="player-stat">
-            <span>Kills</span>
-            <strong>${s?.kills ? Number(s.kills).toLocaleString('fr-FR') : '—'}</strong>
+            <span>XP</span>
+            <strong style="color:var(--green)">${p.xpData ? (p.xpData.xp).toLocaleString('fr-FR') : '0'}</strong>
           </div>
           <div class="player-stat">
-            <span>Win Rate</span>
-            <strong>${s?.winrate ? `${parseFloat(s.winrate).toFixed(1)}%` : '—'}</strong>
+            <span>Coins</span>
+            <strong style="color:#FFD700">${p.walletData ? (p.walletData.coins).toLocaleString('fr-FR') : '0'}</strong>
           </div>
           <div class="player-stat">
             <span>Score WS</span>
-            <strong style="color:var(--green)">${score}</strong>
+            <strong style="color:var(--green)">${calcScore(s).toFixed(1)}</strong>
           </div>
         </div>
 
@@ -145,6 +334,28 @@ function renderTable(players) {
   }).join('')}</div>`;
 }
 
+// ─── SCORE ───────────────────────────────────────────────────────────────────
+
+function calcScore(s) {
+  if (!s) return 0;
+  const kd      = parseFloat(s.kd)      || 0;
+  const winrate = parseFloat(s.winrate) || 0;
+  const kills   = parseInt(s.kills)     || 0;
+  const games   = parseInt(s.games)     || 1;
+  const kpm     = kills / games;
+  return (Math.min(kd / 5, 1) * 100 * 0.30) + (Math.min(winrate / 60, 1) * 100 * 0.35) + (Math.min(kpm / 20, 1) * 100 * 0.25);
+}
+
+function getDivision(score) {
+  const s = parseFloat(score);
+  if (s >= 65) return 'WARSTACK 🔱';
+  if (s >= 55) return 'Phantom 👻';
+  if (s >= 45) return 'Elite 💎';
+  if (s >= 35) return 'Veteran 🎖️';
+  if (s >= 25) return 'Grunt ⚔️';
+  return 'Recruit 🪖';
+}
+
 // ─── TIMELINE ────────────────────────────────────────────────────────────────
 
 window.openTimeline = async function(discordId) {
@@ -152,16 +363,25 @@ window.openTimeline = async function(discordId) {
   const player = allPlayers.find(p => p.discord_id === discordId);
   if (!player) return;
 
-  document.getElementById('tl-avatar').src          = player.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png';
-  document.getElementById('tl-username').textContent = player.username || 'Unknown';
+  document.getElementById('tl-avatar').src           = player.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png';
+  document.getElementById('tl-username').textContent  = player.username || 'Unknown';
   const score = calcScore(player.snapshot);
-  document.getElementById('tl-division').textContent = getDivision(score);
+  document.getElementById('tl-division').textContent  = getDivision(score);
 
   const s = player.snapshot;
   document.getElementById('tl-kd').textContent      = s?.kd ?? '—';
   document.getElementById('tl-kills').textContent   = s?.kills ? Number(s.kills).toLocaleString('fr-FR') : '—';
   document.getElementById('tl-winrate').textContent = s?.winrate ? `${parseFloat(s.winrate).toFixed(1)}%` : '—';
-  document.getElementById('tl-score').textContent   = score;
+  document.getElementById('tl-score').textContent   = calcScore(s).toFixed(1);
+
+  // XP + Grade + Coins
+  const xpData     = allXP.find(x => x.discord_id === discordId);
+  const walletData = allWallets.find(w => w.discord_id === discordId);
+  const grade      = xpData ? getGrade(xpData.xp) : GRADES[0];
+
+  document.getElementById('tl-xp').textContent    = xpData ? (xpData.xp).toLocaleString('fr-FR') + ' XP' : '0 XP';
+  document.getElementById('tl-grade').textContent = `${grade.emoji} ${grade.name}`;
+  document.getElementById('tl-coins').textContent = walletData ? (walletData.coins).toLocaleString('fr-FR') + ' coins' : '0 coins';
 
   document.getElementById('timeline-overlay').style.display = 'block';
   document.getElementById('timeline-panel').classList.add('open');
@@ -212,8 +432,8 @@ async function loadTimeline(discordId) {
       events.push({
         type  : 'member',
         date  : log.created_at,
-        label : log.action === 'member_join'     ? '👋 A rejoint le serveur'
-              : log.action === 'member_leave'    ? '🚪 A quitté le serveur'
+        label : log.action === 'member_join'  ? '👋 A rejoint le serveur'
+              : log.action === 'member_leave' ? '🚪 A quitté le serveur'
               : '✅ Onboarding complété',
         detail: null,
       });
@@ -278,10 +498,10 @@ function renderTimeline(events, filter) {
   }
 
   const iconMap = {
-    member     : { cls: 'member',     icon: 'fa-user' },
-    sanction   : { cls: 'sanction',   icon: 'fa-gavel' },
-    tournament : { cls: 'tournament', icon: 'fa-trophy' },
-    rank       : { cls: 'rank',       icon: 'fa-arrow-up' },
+    member     : { cls: 'member',     icon: 'fa-user'    },
+    sanction   : { cls: 'sanction',   icon: 'fa-gavel'   },
+    tournament : { cls: 'tournament', icon: 'fa-trophy'  },
+    rank       : { cls: 'rank',       icon: 'fa-arrow-up'},
     message    : { cls: 'message',    icon: 'fa-comment' },
   };
 

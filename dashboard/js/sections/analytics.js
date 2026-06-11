@@ -278,8 +278,11 @@ async function loadWeeklyRecap() {
 
 async function loadTopPlayers() {
   const players = await fetchSupabase('players?select=*&order=created_at.desc');
+  const container = document.getElementById('an-top-players');
+  if (!container) return;
+
   if (!players?.length) {
-    document.getElementById('an-top-players').innerHTML =
+    container.innerHTML =
       '<div class="an-empty"><i class="fas fa-users"></i>Aucun joueur enregistré</div>';
     return;
   }
@@ -301,7 +304,7 @@ async function loadTopPlayers() {
   const rankClass = i => i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
   const rankIcon  = i => i === 0 ? '🥇'  : i === 1 ? '🥈'    : i === 2 ? '🥉'    : `#${i + 1}`;
 
-  document.getElementById('an-top-players').innerHTML = top10.map((p, i) => `
+  container.innerHTML = top10.map((p, i) => `
     <div class="an-player-row">
       <div class="an-rank ${rankClass(i)}">${rankIcon(i)}</div>
       <img class="an-player-avatar"
@@ -410,6 +413,6 @@ function getDivision(score) {
   if (score >= 55) return 'Phantom 👻';
   if (score >= 45) return 'Elite 💎';
   if (score >= 35) return 'Veteran 🎖️';
-  if (score >= 25) return 'Grunt ⚔️';
+  if (score >= 25) return 'Soldat ⚔️';
   return 'Recruit 🪖';
 }

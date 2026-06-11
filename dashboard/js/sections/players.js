@@ -55,6 +55,14 @@ function calcScore(s) {
   );
 }
 
+function getGrade(xp = 0) {
+  let grade = GRADES[0];
+  for (const g of GRADES) {
+    if (xp >= g.xp) grade = g;
+  }
+  return grade;
+}
+
 function getDivision(score) {
   const s = parseFloat(score);
   if (s >= 65) return 'WARSTACK 🔱';

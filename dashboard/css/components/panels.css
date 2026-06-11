@@ -1,7 +1,7 @@
 .panel {
   width: 100%;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   margin-bottom: 22px;
   border-radius: 28px;
   background: linear-gradient(180deg, rgba(11,18,14,.94), rgba(7,11,9,.98));
@@ -32,6 +32,9 @@
   padding: 20px 24px;
   border-bottom: 1px solid rgba(0,255,120,.06);
   background: linear-gradient(90deg, rgba(0,255,120,.04), transparent);
+  overflow: visible;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .panel-header h2 {

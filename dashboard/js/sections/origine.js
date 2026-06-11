@@ -68,10 +68,17 @@ function initMap(members) {
     zoomControl: true,
   });
 
-  // Tuile dark type WARSTACK
-  window.L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  // Fond sombre CartoDB
+  window.L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
     attribution: '© OpenStreetMap © CARTO',
-    maxZoom    : 18,
+    maxZoom    : 20,
+  }).addTo(map);
+
+  // Labels en français par-dessus
+  window.L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
+    opacity    : 0.55,
+    maxZoom    : 20,
+    pane       : 'shadowPane',
   }).addTo(map);
 
   addMarkers(members);

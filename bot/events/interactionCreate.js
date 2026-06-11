@@ -48,11 +48,62 @@ module.exports = {
     }
 
     // ── BOUTONS OUVERTURE TICKET (ticket_cat_{uuid}) ──────
+    // Affiche un modal pour que le membre décrive son problème avant création du salon
     if (interaction.isButton() && interaction.customId.startsWith('ticket_cat_')) {
-
       const categoryId = interaction.customId.replace('ticket_cat_', '');
+
+      // Vérifier ticket existant AVANT d'afficher le modal
+      const { data: existing } = await supabase
+        .from('tickets')
+        .select('id')
+        .eq('discord_id', interaction.user.id)
+        .in('status', ['open', 'in_progress'])
+        .maybeSingle();
+
+      if (existing) {
+        return interaction.reply({ content: '❌ Tu as déjà un ticket ouvert !', ephemeral: true });
+      }
+
+      const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
+
+      const modal = new ModalBuilder()
+        .setCustomId(`ticket_modal_${categoryId}`)
+        .setTitle('📋 Ouvrir un ticket');
+
+      const subjectInput = new TextInputBuilder()
+        .setCustomId('ticket_subject')
+        .setLabel('Sujet')
+        .setPlaceholder('Résumé en quelques mots...')
+        .setStyle(TextInputStyle.Short)
+        .setMinLength(5)
+        .setMaxLength(100)
+        .setRequired(true);
+
+      const descInput = new TextInputBuilder()
+        .setCustomId('ticket_description')
+        .setLabel('Description')
+        .setPlaceholder('Décris ton problème en détail...')
+        .setStyle(TextInputStyle.Paragraph)
+        .setMinLength(10)
+        .setMaxLength(1000)
+        .setRequired(true);
+
+      modal.addComponents(
+        new ActionRowBuilder().addComponents(subjectInput),
+        new ActionRowBuilder().addComponents(descInput),
+      );
+
+      await interaction.showModal(modal);
+      return;
+    }
+
+    // ── MODAL SUBMIT TICKET (ticket_modal_{uuid}) ─────────
+    if (interaction.isModalSubmit() && interaction.customId.startsWith('ticket_modal_')) {
+      const categoryId = interaction.customId.replace('ticket_modal_', '');
       const guild      = interaction.guild;
       const member     = interaction.member;
+      const subject    = interaction.fields.getTextInputValue('ticket_subject');
+      const description = interaction.fields.getTextInputValue('ticket_description');
 
       await interaction.deferReply({ ephemeral: true });
 
@@ -72,23 +123,11 @@ module.exports = {
           .select('*')
           .eq('guild_id', guild.id);
 
-        const getConfig = (key) => configs?.find(c => c.key === key)?.value;
+        const getConfig         = (key) => configs?.find(c => c.key === key)?.value;
         const categoryWaitingId = getConfig('ticket_category_waiting');
-        const categoryId2       = categoryWaitingId || getConfig('ticket_category');
         const staffRoleId       = getConfig('ticket_staff_role');
         const leaderRoleId      = getConfig('ticket_leader_role');
         const logChId           = getConfig('ticket_logs_channel');
-
-        const { data: existing } = await supabase
-          .from('tickets')
-          .select('id')
-          .eq('discord_id', member.user.id)
-          .eq('status', 'open')
-          .single();
-
-        if (existing) {
-          return interaction.editReply({ content: '❌ Tu as déjà un ticket ouvert !' });
-        }
 
         const channelName = `ticket-${member.user.username.toLowerCase().replace(/[^a-z0-9]/g, '')}-${Date.now().toString().slice(-4)}`;
 
@@ -114,7 +153,7 @@ module.exports = {
         const ticketChannel = await guild.channels.create({
           name    : channelName,
           type    : 0,
-          parent  : categoryId2 || null,
+          parent  : categoryWaitingId || null,
           permissionOverwrites,
         });
 
@@ -123,12 +162,24 @@ module.exports = {
           discord_id      : member.user.id,
           username        : member.user.username,
           type            : ticketType.id,
+          subject         : subject,
           channel_id      : ticketChannel.id,
           status          : 'open',
           last_activity_at: new Date().toISOString(),
         });
 
-        const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+        const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
+
+        const embed = new EmbedBuilder()
+          .setColor(0x00ff66)
+          .setTitle(`${ticketType.emoji} Ticket — ${ticketType.label}`)
+          .setDescription(`**${member.user.username}** a ouvert un ticket.`)
+          .addFields(
+            { name: '📌 Sujet',       value: subject,      inline: false },
+            { name: '📋 Description', value: description,  inline: false },
+          )
+          .setTimestamp()
+          .setFooter({ text: 'Un membre du staff va te répondre rapidement.' });
 
         const row = new ActionRowBuilder().addComponents(
           new ButtonBuilder()
@@ -148,22 +199,28 @@ module.exports = {
             .setStyle(ButtonStyle.Danger),
         );
 
-        await ticketChannel.send({
-          content   : `${ticketType.emoji} **Ticket ${ticketType.label}**\n\n${member} a ouvert un ticket.\n\n📋 **Décris ton problème ci-dessous.**\n\n⏳ Un membre du staff va te répondre rapidement.`,
-          components: [row],
-        });
+        await ticketChannel.send({ embeds: [embed], components: [row] });
 
         if (logChId) {
           const logCh = guild.channels.cache.get(logChId);
           if (logCh) {
-            await logCh.send(`🎫 Nouveau ticket **${ticketType.label}** ouvert par **${member.user.username}** → ${ticketChannel}`);
+            const logEmbed = new EmbedBuilder()
+              .setColor(0x5865f2)
+              .setTitle(`🎫 Nouveau ticket — ${ticketType.label}`)
+              .addFields(
+                { name: 'Membre',  value: `${member}`,  inline: true },
+                { name: 'Sujet',   value: subject,      inline: true },
+                { name: 'Salon',   value: `${ticketChannel}`, inline: true },
+              )
+              .setTimestamp();
+            await logCh.send({ embeds: [logEmbed] });
           }
         }
 
         await interaction.editReply({ content: `✅ Ton ticket a été créé : ${ticketChannel}` });
 
       } catch (err) {
-        console.error('❌ Ticket error:', err.message);
+        console.error('❌ Ticket modal error:', err.message);
         await interaction.editReply({ content: '❌ Erreur lors de la création du ticket.' });
       }
       return;

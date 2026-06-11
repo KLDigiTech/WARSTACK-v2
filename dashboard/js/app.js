@@ -160,6 +160,12 @@ const PUBLIC_SECTIONS = [
 // ── ROUTER ────────────────────────────────────────────────────────────────────
 
 async function navigate(section) {
+  // Cleanup sections avec polling actif
+  try {
+    const ticketsMod = await import('./sections/tickets.js').catch(() => null);
+    if (ticketsMod?.destroyTickets) ticketsMod.destroyTickets();
+  } catch {}
+
   document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
   const item = document.querySelector(`[data-section="${section}"]`);
   if (!item) return;

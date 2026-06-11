@@ -6,6 +6,12 @@ import { GUILD_ID }                            from '../config.js';
 let currentTicket    = null;
 let currentFilter    = 'all';
 let ticketCategories = [];
+let _refreshInterval = null;
+
+// Nettoyage du polling quand on quitte la section
+export function destroyTickets() {
+  if (_refreshInterval) { clearInterval(_refreshInterval); _refreshInterval = null; }
+}
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 
@@ -138,6 +144,13 @@ export async function initTickets() {
 
   await loadTickets();
   await loadStats();
+
+  // Refresh automatique toutes les 30s
+  if (_refreshInterval) clearInterval(_refreshInterval);
+  _refreshInterval = setInterval(async () => {
+    await loadTickets();
+    await loadStats();
+  }, 30000);
 }
 
 // ── CATÉGORIES CUSTOM ─────────────────────────────────────────────────────────
@@ -251,6 +264,7 @@ async function loadTickets() {
         </div>
         <div class="ticket-card-meta">
           <span>📅 ${new Date(t.created_at).toLocaleDateString('fr-FR')}</span>
+          ${t.subject ? `<span style="color:var(--text-muted);font-style:italic;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.subject}</span>` : ''}
           ${t.assigned_to ? `<span>🎖️ ${t.assigned_to}</span>` : '<span style="color:var(--text-muted)">Non assigné</span>'}
           ${t.taken_by_id ? `<span style="color:var(--green);font-size:0.72rem">✅ Pris en charge</span>` : ''}
         </div>
@@ -285,6 +299,7 @@ async function openTicket(id, list) {
     <div class="ticket-meta-grid">
       <div><span class="meta-label">Type</span><span>${cat.emoji} ${cat.label}</span></div>
       <div><span class="meta-label">Statut</span><span>${statusLabel(currentTicket.status)}</span></div>
+      ${currentTicket.subject ? `<div style="grid-column:1/-1"><span class="meta-label">Sujet</span><span>${currentTicket.subject}</span></div>` : ''}
       <div><span class="meta-label">Ouvert le</span><span>${new Date(currentTicket.created_at).toLocaleString('fr-FR')}</span></div>
       ${currentTicket.assigned_to ? `<div><span class="meta-label">Assigné à</span><span>🎖️ ${currentTicket.assigned_to}</span></div>` : ''}
       ${currentTicket.taken_at    ? `<div><span class="meta-label">Pris en charge le</span><span>${new Date(currentTicket.taken_at).toLocaleString('fr-FR')}</span></div>` : ''}

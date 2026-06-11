@@ -1,7 +1,6 @@
 import { callBotAPI, fetchSupabase } from '../api.js';
 import { showToast }                 from '../ui/toast.js';
-
-const GUILD_ID = '1501685144501620798';
+import { GUILD_ID }                  from '../config.js';
 
 let menus     = [];
 let editingId = null;

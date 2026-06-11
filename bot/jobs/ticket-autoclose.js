@@ -53,6 +53,25 @@ async function autoCloseInactiveTickets(client) {
             '⏰ **Ticket fermé automatiquement** après 7 jours d\'inactivité.'
           );
 
+          // Transcription si activée
+          const transcriptEnabled = getConfig('ticket_transcript') !== 'false';
+          if (transcriptEnabled && logChId) {
+            try {
+              const logCh = guild.channels.cache.get(logChId);
+              if (logCh) {
+                const messages = await channel.messages.fetch({ limit: 100 });
+                const lines = [...messages.values()]
+                  .reverse()
+                  .map(m => `[${new Date(m.createdTimestamp).toLocaleString('fr-FR')}] ${m.author.username}: ${m.content}`)
+                  .join('\n');
+                const { AttachmentBuilder } = require('discord.js');
+                const buf = Buffer.from(lines, 'utf-8');
+                const att = new AttachmentBuilder(buf, { name: `ticket-${ticket.id}.txt` });
+                await logCh.send({ content: `📄 Transcription — ticket auto-fermé (inactivité)`, files: [att] });
+              }
+            } catch {}
+          }
+
           // Déplacer vers catégorie clôturé si configurée
           if (categoryClosedId) {
             await channel.setParent(categoryClosedId, { lockPermissions: false }).catch(() => {});

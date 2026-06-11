@@ -1,7 +1,6 @@
 import { fetchSupabase, callBotAPI } from '../api.js';
 import { showSkeleton } from '../ui/skeleton.js';
-
-const GUILD_ID = '1501685144501620798';
+import { GUILD_ID }     from '../config.js';
 
 export async function initOverview() {
   // Skeletons immédiats

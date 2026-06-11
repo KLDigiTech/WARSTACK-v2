@@ -1,12 +1,11 @@
 import { loadConfigs, saveConfig, getConfig } from '../services/configService.js';
 import { callBotAPI, fetchSupabase }           from '../api.js';
 import { showToast }                           from '../ui/toast.js';
+import { GUILD_ID }                            from '../config.js';
 
 let currentTicket    = null;
 let currentFilter    = 'all';
 let ticketCategories = [];
-
-const GUILD_ID = '1501685144501620798';
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 

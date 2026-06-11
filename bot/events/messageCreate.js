@@ -64,6 +64,24 @@ module.exports = {
     // Cooldown 60 secondes anti-spam XP
     await award(message.author.id, guild.id, 'message', { cooldownMs: 60000 });
 
+    // ── TICKET ACTIVITY ───────────────────────────────
+    // Met à jour last_activity_at si le message est dans un salon ticket
+    supabase
+      .from('tickets')
+      .select('id')
+      .eq('channel_id', message.channelId)
+      .in('status', ['open', 'in_progress'])
+      .single()
+      .then(({ data }) => {
+        if (data?.id) {
+          supabase.from('tickets')
+            .update({ last_activity_at: new Date().toISOString() })
+            .eq('id', data.id)
+            .catch(() => {});
+        }
+      })
+      .catch(() => {});
+
     // ── AUTOMOD ───────────────────────────────────────
     const { data: configs } = await supabase
       .from('config')

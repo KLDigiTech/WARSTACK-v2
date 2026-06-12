@@ -22,47 +22,40 @@ if (userAvatar) {
   await supabase.from('players').update({ avatar_url: userAvatar }).eq('discord_id', discordId);
 }
 
-// ── Récupérer guild_id automatiquement ───────────────────────
-let guildId = session.user.user_metadata.guild_id || null;
+// ── Récupérer guild_id via Supabase ───────────────────────────
+let guildId = null;
 
-if (!guildId) {
-  try {
-    const res  = await fetch(`${BOT_URL}/api/guilds/${discordId}`, {
-      headers: { 'x-api-key': API_KEY }
-    });
-    const data = await res.json();
+try {
+  // Cherche le serveur configuré de cet admin
+  const { data: guildData } = await supabase
+    .from('guilds')
+    .select('guild_id, name, icon')
+    .eq('owner_id', discordId)
+    .eq('setup_complete', true)
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .single();
 
-    if (data.guilds?.length === 1) {
-      // Un seul serveur → on prend direct
-      guildId = data.guilds[0].guild_id;
-      const g = data.guilds[0];
-      document.getElementById('server-title').textContent = g.name;
-      document.getElementById('server-logo').src          = g.icon || userAvatar;
-      if (document.getElementById('server-name'))
-        document.getElementById('server-name').textContent = g.name;
-
-    } else if (data.guilds?.length > 1) {
-      // Plusieurs serveurs → stocker la liste, rediriger vers sélection
-      sessionStorage.setItem('warstack_guilds', JSON.stringify(data.guilds));
-      // Si on n'est pas déjà sur la page de sélection
-      if (!window.location.pathname.includes('select-guild')) {
-        window.location.href = '/select-guild.html';
-      }
-    } else {
-      // Pas de serveur trouvé → setup
-      window.location.href = '/setup.html';
-    }
-  } catch (err) {
-    console.error('Guild fetch error:', err);
+  if (guildData) {
+    guildId = guildData.guild_id;
+    document.getElementById('server-title').textContent = guildData.name;
+    document.getElementById('server-logo').src          = guildData.icon || userAvatar;
+    if (document.getElementById('server-name'))
+      document.getElementById('server-name').textContent = guildData.name;
+  } else {
+    // Aucun serveur configuré → setup
+    window.location.href = '/setup.html';
   }
+} catch (err) {
+  console.error('Guild fetch error:', err);
+  window.location.href = '/setup.html';
 }
 
 // Stocker guild_id dans sessionStorage pour toute l'app
 if (guildId) sessionStorage.setItem('warstack_guild_id', guildId);
 
-// Exposer globalement
-window.WARSTACK_GUILD_ID = guildId;
-window.WARSTACK_DISCORD_ID = discordId;
+window.WARSTACK_GUILD_ID    = guildId;
+window.WARSTACK_DISCORD_ID  = discordId;
 
 // ── DROPDOWN ─────────────────────────────────────────────────
 const userMenu     = document.getElementById('user-menu');

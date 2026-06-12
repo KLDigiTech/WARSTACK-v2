@@ -154,7 +154,7 @@ const sections = {
 
 const PUBLIC_SECTIONS = [
   'overview', 'players', 'analytics', 'tournament', 'welcome', 'onboarding', 'roles',
-  'birthdays', 'suggestions', 'events', 'origine',  'messages', 'reactions', 'channels', 'ocr-test', 'rulebuilder',
+  'birthdays', 'suggestions', 'events', 'origine',  'messages', 'reactions', 'channels', 'ocr-test', 'rulebuilder','team',
 ];
 
 // ── ROUTER ────────────────────────────────────────────────────────────────────

@@ -3,9 +3,17 @@ import { BOT_URL, API_KEY } from './config.js';
 
 let guildId         = null;
 let scannedMembers  = [];
-let selectedTeam    = [];
 let selectedModules = [];
 
+// Rôles par défaut — nom modifiable, membres assignables
+let roles = [
+  { id: 'fondateur',    label: 'Fondateur',    emoji: '👑', members: [] },
+  { id: 'teamleader',   label: 'Team Leader',  emoji: '⭐', members: [] },
+  { id: 'organisateur', label: 'Organisateur', emoji: '🎮', members: [] },
+  { id: 'moderateur',   label: 'Modérateur',   emoji: '🛡', members: [] },
+];
+
+// ── Init ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
 
   const { data: { session } } = await supabase.auth.getSession();
@@ -30,7 +38,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (error || !guildData) {
       document.getElementById('members-loading').innerHTML =
-        '<span style="color:var(--danger)">❌ Aucun serveur en attente d\'installation. Invitez d\'abord le bot sur votre serveur.</span>';
+        '<span style="color:var(--danger)">❌ Aucun serveur en attente. Invitez d\'abord le bot sur votre serveur.</span>';
       return;
     }
 
@@ -46,6 +54,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initModuleCards();
 });
 
+// ── SCAN ─────────────────────────────────────────────────────
 async function scanServer() {
   try {
     const res  = await fetch(`${BOT_URL}/api/setup/scan/${guildId}`, {
@@ -54,49 +63,98 @@ async function scanServer() {
     const data = await res.json();
     if (!data.success) throw new Error(data.error || 'Scan échoué');
     scannedMembers = data.privileged || [];
-    renderMembers();
+    renderScreen1();
   } catch (err) {
     document.getElementById('members-loading').innerHTML =
       `<span style="color:var(--danger)">❌ Scan impossible : ${err.message}</span>`;
   }
 }
 
-function renderMembers() {
+// ── SCREEN 1 — ÉQUIPE ─────────────────────────────────────────
+function renderScreen1() {
   const loading = document.getElementById('members-loading');
   const list    = document.getElementById('members-list');
 
   loading.style.display = 'none';
-  list.style.display    = 'grid';
+  list.style.display    = 'block';
   document.getElementById('btn-next-1').disabled = false;
 
-  if (!scannedMembers.length) {
-    list.innerHTML = '<p style="color:var(--text-muted)">Aucun membre avec des accès élevés détecté.</p>';
-    return;
-  }
-
-  list.innerHTML = scannedMembers.map((m, i) => `
-    <div class="member-card ${i < 4 ? 'checked' : ''}" data-id="${m.discord_id}" onclick="toggleMember(this)">
-      <div class="member-check">${i < 4 ? '✅' : '☐'}</div>
-      <img src="${m.avatar}" alt="${m.username}" class="member-avatar"
-           onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-      <div class="member-info">
-        <div class="member-name">${m.display || m.username}</div>
-        <select class="member-role" onclick="event.stopPropagation()">
-          <option value="👑 Fondateur"    ${i === 0 ? 'selected' : ''}>👑 Fondateur</option>
-          <option value="⭐ Team Leader"  ${i === 1 ? 'selected' : ''}>⭐ Team Leader</option>
-          <option value="🎮 Organisateur" ${i === 2 ? 'selected' : ''}>🎮 Organisateur</option>
-          <option value="🛡 Modérateur"   ${i >= 3  ? 'selected' : ''}>🛡 Modérateur</option>
-        </select>
-      </div>
-    </div>
-  `).join('');
+  renderRoles();
 }
 
-window.toggleMember = function(card) {
-  card.classList.toggle('checked');
-  card.querySelector('.member-check').textContent = card.classList.contains('checked') ? '✅' : '☐';
+function renderRoles() {
+  const list = document.getElementById('members-list');
+
+  list.innerHTML = `
+    <div class="roles-grid">
+      ${roles.map((role, ri) => `
+        <div class="role-block" data-role-id="${role.id}">
+          <div class="role-header">
+            <span class="role-emoji">${role.emoji}</span>
+            <input class="role-label-input" value="${role.label}" 
+                   onchange="updateRoleLabel(${ri}, this.value)"
+                   placeholder="Nom du rôle">
+            <button class="btn-remove-role" onclick="removeRole(${ri})" title="Supprimer ce rôle">✕</button>
+          </div>
+
+          <div class="role-members">
+            ${role.members.map((m, mi) => `
+              <div class="role-member-card">
+                <img src="${m.avatar}" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                <span>${m.display || m.username}</span>
+                <button onclick="removeMemberFromRole(${ri}, ${mi})">✕</button>
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="role-add-member">
+            <select onchange="addMemberToRole(${ri}, this)">
+              <option value="">+ Ajouter un membre</option>
+              ${scannedMembers
+                .filter(m => !roles.some(r => r.members.find(rm => rm.discord_id === m.discord_id)))
+                .map(m => `<option value="${m.discord_id}">${m.display || m.username}</option>`)
+                .join('')}
+            </select>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <button class="btn-add-role" onclick="addRole()">+ Ajouter un rôle</button>
+  `;
+}
+
+// ── ACTIONS RÔLES ─────────────────────────────────────────────
+window.updateRoleLabel = function(ri, value) {
+  roles[ri].label = value;
 };
 
+window.addMemberToRole = function(ri, select) {
+  const id = select.value;
+  if (!id) return;
+  const member = scannedMembers.find(m => m.discord_id === id);
+  if (!member) return;
+  roles[ri].members.push(member);
+  select.value = '';
+  renderRoles();
+};
+
+window.removeMemberFromRole = function(ri, mi) {
+  roles[ri].members.splice(mi, 1);
+  renderRoles();
+};
+
+window.removeRole = function(ri) {
+  roles.splice(ri, 1);
+  renderRoles();
+};
+
+window.addRole = function() {
+  roles.push({ id: `role_${Date.now()}`, label: 'Nouveau rôle', emoji: '🔹', members: [] });
+  renderRoles();
+};
+
+// ── MODULES ───────────────────────────────────────────────────
 function initModuleCards() {
   document.querySelectorAll('.module-card').forEach(card => {
     card.addEventListener('click', () => {
@@ -106,16 +164,10 @@ function initModuleCards() {
   });
 }
 
+// ── NAVIGATION ────────────────────────────────────────────────
 window.goToStep1 = function() { showScreen(1); };
 
 window.goToStep2 = function() {
-  selectedTeam = [];
-  document.querySelectorAll('.member-card.checked').forEach(card => {
-    const id     = card.dataset.id;
-    const member = scannedMembers.find(m => m.discord_id === id);
-    const role   = card.querySelector('.member-role').value;
-    if (member) selectedTeam.push({ ...member, role });
-  });
   showScreen(2);
 };
 
@@ -141,6 +193,7 @@ function showScreen(n) {
   }
 }
 
+// ── RÉSUMÉ ────────────────────────────────────────────────────
 const moduleChannelMap = {
   welcome    : ['bienvenue'],
   tickets    : ['tickets', 'logs-tickets'],
@@ -160,9 +213,11 @@ const moduleLabels = {
 };
 
 function buildSummary() {
-  document.getElementById('summary-team').innerHTML = selectedTeam.length
-    ? selectedTeam.map(m => `<div class="summary-item">${m.role} — <strong>${m.display || m.username}</strong></div>`).join('')
-    : '<div class="summary-item" style="color:var(--text-muted)">Aucun membre sélectionné</div>';
+  const teamFlat = roles.flatMap(r => r.members.map(m => ({ ...m, role: r.label })));
+
+  document.getElementById('summary-team').innerHTML = teamFlat.length
+    ? teamFlat.map(m => `<div class="summary-item">${m.role} — <strong>${m.display || m.username}</strong></div>`).join('')
+    : '<div class="summary-item" style="color:var(--text-muted)">Aucun membre assigné</div>';
 
   document.getElementById('summary-modules').innerHTML = selectedModules.length
     ? selectedModules.map(m => `<div class="summary-item">✅ ${moduleLabels[m] || m}</div>`).join('')
@@ -174,24 +229,31 @@ function buildSummary() {
     : '<div class="summary-item" style="color:var(--text-muted)">Aucun salon à créer</div>';
 }
 
+// ── INSTALL ───────────────────────────────────────────────────
 window.install = async function() {
   const btn = document.getElementById('btn-install');
   btn.disabled    = true;
   btn.textContent = '⏳ Installation en cours...';
 
+  const teamFlat = roles.flatMap(r => r.members.map(m => ({
+    discord_id: m.discord_id,
+    username  : m.username,
+    avatar    : m.avatar,
+    role      : r.label,
+  })));
+
   try {
     const res  = await fetch(`${BOT_URL}/api/setup/install`, {
       method : 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY },
-      body   : JSON.stringify({ guild_id: guildId, team: selectedTeam, modules: selectedModules }),
+      body   : JSON.stringify({ guild_id: guildId, team: teamFlat, modules: selectedModules }),
     });
     const data = await res.json();
     if (!data.success) throw new Error(data.error || 'Erreur installation');
 
     document.getElementById('install-summary').innerHTML = `
-      <div class="result-item">✅ ${data.created.roles?.length || 0} rôles créés</div>
       <div class="result-item">✅ ${data.created.channels?.length || 0} salons créés</div>
-      <div class="result-item">✅ ${selectedTeam.length} membres configurés</div>
+      <div class="result-item">✅ ${teamFlat.length} membres configurés</div>
     `;
 
     document.querySelectorAll('.setup-screen').forEach(s => s.classList.remove('active'));

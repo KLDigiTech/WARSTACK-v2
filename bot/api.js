@@ -1068,13 +1068,14 @@ router.get('/setup/scan/:guild_id', auth, async (req, res) => {
     const guild = global.botClient.guilds.cache.get(req.params.guild_id);
     if (!guild) return res.status(404).json({ error: 'Serveur introuvable' });
 
-    await guild.members.fetch();
+    // Utilise le cache si dispo, sinon fetch avec limite
+    if (guild.members.cache.size < 2) {
+      await guild.members.fetch({ limit: 100 }).catch(() => {});
+    }
 
-    // Permissions de base de @everyone
     const everyonePerms = guild.roles.everyone.permissions.bitfield;
-
-    // Membres avec plus de permissions que @everyone
     const privileged = [];
+
     guild.members.cache.forEach(member => {
       if (member.user.bot) return;
       const memberPerms = member.permissions.bitfield;
@@ -1084,20 +1085,17 @@ router.get('/setup/scan/:guild_id', auth, async (req, res) => {
           username   : member.user.username,
           display    : member.displayName,
           avatar     : member.user.displayAvatarURL({ size: 64, extension: 'png' }),
-          perm_score : Number(memberPerms), // plus c'est haut, plus il a de droits
+          perm_score : Number(memberPerms),
         });
       }
     });
 
-    // Trier par score décroissant
     privileged.sort((a, b) => b.perm_score - a.perm_score);
 
-    // Salons texte existants
     const channels = guild.channels.cache
       .filter(c => c.type === ChannelType.GuildText)
       .map(c => ({ id: c.id, name: c.name, category: c.parent?.name || null }));
 
-    // Rôles existants
     const roles = guild.roles.cache
       .filter(r => r.name !== '@everyone' && !r.managed)
       .sort((a, b) => b.position - a.position)

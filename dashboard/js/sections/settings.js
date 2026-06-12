@@ -1,7 +1,8 @@
-import { BOT_URL, GUILD_ID }                  from '../config.js';
+import { BOT_URL }                             from '../config.js';
 import { loadConfigs, saveConfig, getConfig }  from '../services/configService.js';
 import { callBotAPI, fetchSupabase }           from '../api.js';
 import { showToast }                           from '../ui/toast.js';
+import { getActiveGuildId }                    from '../services/guildService.js';
 
 const MODULES = [
   { id: 'welcome',     label: 'Welcome',            icon: '👋' },
@@ -16,7 +17,6 @@ const MODULES = [
   { id: 'messages',    label: 'Messages récurrents', icon: '📢' },
 ];
 
-// Tokens modifiables + leurs défauts
 const THEME_TOKENS = [
   { id: 'primary',  var: '--primary',  hex: '#00ff66', dot: 'dot-primary', hexEl: 'hex-primary' },
   { id: 'danger',   var: '--danger',   hex: '#ff4444', dot: 'dot-danger',  hexEl: 'hex-danger'  },
@@ -40,7 +40,6 @@ export async function initSettings() {
   renderModules();
   initThemeEditor(configs);
 
-  // Sauvegarder config générale
   document.getElementById('btn-save-settings').addEventListener('click', async () => {
     await Promise.all([
       saveConfig('settings_language', document.getElementById('settings-language').value),
@@ -52,8 +51,9 @@ export async function initSettings() {
 
   // Export config
   document.getElementById('btn-export-config').addEventListener('click', async () => {
-    const data = await fetchSupabase(`config?guild_id=eq.${GUILD_ID}`) || [];
-    const json = JSON.stringify({ guild_id: GUILD_ID, exported_at: new Date().toISOString(), config: data }, null, 2);
+    const guildId = await getActiveGuildId();
+    const data = await fetchSupabase(`config?guild_id=eq.${guildId}`) || [];
+    const json = JSON.stringify({ guild_id: guildId, exported_at: new Date().toISOString(), config: data }, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
@@ -71,6 +71,7 @@ export async function initSettings() {
   document.getElementById('import-file-input').addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    const guildId = await getActiveGuildId();
     const text = await file.text();
     let parsed;
     try { parsed = JSON.parse(text); } catch { return showToast('❌ Fichier JSON invalide', 'error'); }
@@ -79,8 +80,8 @@ export async function initSettings() {
     status.style.display = 'block';
     status.textContent   = '⏳ Import en cours...';
     for (const entry of parsed.config) {
-      await fetchSupabase('config', 'POST', { guild_id: GUILD_ID, key: entry.key, value: entry.value })
-        .catch(() => fetchSupabase(`config?guild_id=eq.${GUILD_ID}&key=eq.${entry.key}`, 'PATCH', { value: entry.value }));
+      await fetchSupabase('config', 'POST', { guild_id: guildId, key: entry.key, value: entry.value })
+        .catch(() => fetchSupabase(`config?guild_id=eq.${guildId}&key=eq.${entry.key}`, 'PATCH', { value: entry.value }));
     }
     status.textContent = `✅ ${parsed.config.length} paramètres importés`;
     showToast('✅ Configuration importée');
@@ -124,7 +125,8 @@ export async function initSettings() {
   document.getElementById('btn-reset-config').addEventListener('click', async () => {
     if (!confirm('⚠️ Réinitialiser TOUTE la configuration ? Cette action est irréversible.')) return;
     if (!confirm('Dernière confirmation — supprimer toute la config ?')) return;
-    await fetchSupabase(`config?guild_id=eq.${GUILD_ID}`, 'DELETE');
+    const guildId = await getActiveGuildId();
+    await fetchSupabase(`config?guild_id=eq.${guildId}`, 'DELETE');
     showToast('🗑 Configuration réinitialisée');
   });
 }
@@ -133,13 +135,11 @@ export async function initSettings() {
 
 function initThemeEditor(configs) {
 
-  // Charger thème sauvegardé
   const saved = getConfig(configs, 'theme_tokens');
   if (saved) {
     try {
       const tokens = JSON.parse(saved);
       applyTheme(tokens);
-      // Pré-remplir les pickers
       for (const [varName, value] of Object.entries(tokens)) {
         const token = THEME_TOKENS.find(t => t.var === varName);
         if (token) {
@@ -150,7 +150,6 @@ function initThemeEditor(configs) {
     } catch {}
   }
 
-  // Police sauvegardée
   const savedFont = getConfig(configs, 'theme_font');
   if (savedFont) {
     const fontSel = document.getElementById('theme-font');
@@ -159,7 +158,6 @@ function initThemeEditor(configs) {
     loadGoogleFont(savedFont);
   }
 
-  // Radius sauvegardé
   const savedRadius = getConfig(configs, 'theme_radius');
   if (savedRadius) {
     const radiusInput = document.getElementById('theme-radius');
@@ -169,17 +167,12 @@ function initThemeEditor(configs) {
     document.documentElement.style.setProperty('--radius', savedRadius);
   }
 
-  // Init color pickers
   THEME_TOKENS.forEach(token => {
     const input  = document.getElementById(`theme-${token.id}`);
     const dotEl  = document.getElementById(token.dot);
     const hexEl  = document.getElementById(token.hexEl);
     if (!input) return;
-
-    // Init dot
     if (dotEl) dotEl.style.background = input.value;
-
-    // Live update
     input.addEventListener('input', () => {
       const val = input.value;
       applyTokenLive(token.var, val);
@@ -188,7 +181,6 @@ function initThemeEditor(configs) {
     });
   });
 
-  // Police
   const fontSel = document.getElementById('theme-font');
   fontSel?.addEventListener('change', () => {
     const font = fontSel.value;
@@ -196,7 +188,6 @@ function initThemeEditor(configs) {
     loadGoogleFont(font);
   });
 
-  // Radius slider
   const radiusInput = document.getElementById('theme-radius');
   const radiusVal   = document.getElementById('val-radius');
   radiusInput?.addEventListener('input', () => {
@@ -206,7 +197,6 @@ function initThemeEditor(configs) {
     document.documentElement.style.setProperty('--radius-xs', val);
   });
 
-  // Reset thème
   document.getElementById('btn-reset-theme')?.addEventListener('click', () => {
     THEME_TOKENS.forEach(token => {
       document.documentElement.style.setProperty(token.var, token.hex);
@@ -229,33 +219,26 @@ function initThemeEditor(configs) {
     showToast('🎨 Thème réinitialisé');
   });
 
-  // Sauvegarder thème
   document.getElementById('btn-save-theme')?.addEventListener('click', async () => {
     const tokens = {};
     THEME_TOKENS.forEach(token => {
       const input = document.getElementById(`theme-${token.id}`);
       if (input) tokens[token.var] = input.value;
     });
-
     const font   = document.getElementById('theme-font')?.value || "'Rajdhani', sans-serif";
     const radius = `${document.getElementById('theme-radius')?.value || 2}px`;
-
     await Promise.all([
       saveConfig('theme_tokens', JSON.stringify(tokens)),
       saveConfig('theme_font',   font),
       saveConfig('theme_radius', radius),
     ]);
-
     showToast('✅ Thème sauvegardé !');
   });
 }
 
-// Applique un token CSS en live + recalcule les dérivés
 function applyTokenLive(varName, value) {
   const root = document.documentElement;
   root.style.setProperty(varName, value);
-
-  // Recalcule les variantes automatiquement
   if (varName === '--primary') {
     root.style.setProperty('--green',          value);
     root.style.setProperty('--primary-glow',   hexToRgba(value, .08));
@@ -283,17 +266,15 @@ function applyTokenLive(varName, value) {
   }
 }
 
-// Applique un objet tokens complet
 function applyTheme(tokens) {
   for (const [varName, value] of Object.entries(tokens)) {
     applyTokenLive(varName, value);
   }
 }
 
-// Charge une Google Font dynamiquement
 function loadGoogleFont(fontFamily) {
   const name = fontFamily.replace(/'/g, '').split(',')[0].trim();
-  const safe = ['Rajdhani', 'Inter']; // déjà chargées
+  const safe = ['Rajdhani', 'Inter'];
   if (safe.includes(name)) return;
   const id = `gfont-${name.replace(/\s/g, '-')}`;
   if (document.getElementById(id)) return;
@@ -323,6 +304,7 @@ function lightenHex(hex, amount) {
 // ── INFOS SERVEUR ─────────────────────────────────────────────────────────────
 
 async function loadGuildInfo() {
+  const guildId = await getActiveGuildId();
   const [guildData, channelsData, rolesData, emojisData] = await Promise.all([
     callBotAPI('guild'),
     callBotAPI('channels'),
@@ -332,7 +314,7 @@ async function loadGuildInfo() {
 
   if (guildData?.name) {
     document.getElementById('settings-guild-name').textContent       = guildData.name;
-    document.getElementById('settings-guild-id-display').textContent = GUILD_ID;
+    document.getElementById('settings-guild-id-display').textContent = guildId;
 
     if (guildData.icon) {
       const img = document.getElementById('settings-guild-icon');
@@ -354,7 +336,6 @@ async function loadGuildInfo() {
 async function loadBotHealth() {
   const data  = await callBotAPI('status');
   const badge = document.getElementById('health-bot');
-
   if (data?.status === 'online') {
     badge.textContent = '🟢 Online';
     badge.className   = 'settings-health-badge green';
@@ -362,14 +343,12 @@ async function loadBotHealth() {
     badge.textContent = '🔴 Offline';
     badge.className   = 'settings-health-badge red';
   }
-
   if (data?.uptime) {
     const mins = Math.floor(data.uptime / 60);
     const hrs  = Math.floor(mins / 60);
     document.getElementById('health-uptime').textContent =
       hrs > 0 ? `${hrs}h ${mins % 60}min` : `${mins}min`;
   }
-
   document.getElementById('health-sync').textContent = 'À l\'instant';
 }
 

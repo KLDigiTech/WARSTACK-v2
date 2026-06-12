@@ -1,16 +1,12 @@
-// dashboard/js/services/permissionService.js
-// Récupère le discord_id depuis la session Supabase Auth (plus de hardcode)
-
 import { fetchSupabase } from '../api.js';
 import { supabase }      from '../supabaseClient.js';
-import { GUILD_ID }      from '../config.js';
+import { getActiveGuildId } from './guildService.js';
 
 const FOUNDER_DISCORD_ID = '1233271006236377180';
 
-// Cache session pour éviter les appels répétés
-let _cachedDiscordId  = null;
-let _cachedRole       = null;
-let _cachedPerms      = null;
+let _cachedDiscordId = null;
+let _cachedRole      = null;
+let _cachedPerms     = null;
 
 export async function getCurrentDiscordId() {
   if (_cachedDiscordId) return _cachedDiscordId;
@@ -34,8 +30,10 @@ export async function getCurrentRole() {
     _cachedRole = { name: 'Fondateur', color: '#FFD700', is_system: true, priority: 0 };
     return _cachedRole;
   }
+  const guildId = await getActiveGuildId();
+  if (!guildId) return null;
   const rows = await fetchSupabase(
-    `dashboard_user_roles?guild_id=eq.${GUILD_ID}&discord_id=eq.${discordId}&select=role_id`
+    `dashboard_user_roles?guild_id=eq.${guildId}&discord_id=eq.${discordId}&select=role_id`
   );
   if (!rows?.length) return null;
   const roleId = rows[0].role_id;
@@ -50,7 +48,6 @@ export async function getUserPermissions() {
     const discordId = await getCurrentDiscordId();
     if (!discordId) { _cachedPerms = []; return []; }
 
-    // Fondateur = tout
     if (isFounder(discordId)) {
       _cachedPerms = [
         'overview','players','tournament','welcome','roles','birthdays',
@@ -60,9 +57,11 @@ export async function getUserPermissions() {
       return _cachedPerms;
     }
 
-    // Récupère le role_id du user
+    const guildId = await getActiveGuildId();
+    if (!guildId) { _cachedPerms = []; return []; }
+
     const userRoles = await fetchSupabase(
-      `dashboard_user_roles?guild_id=eq.${GUILD_ID}&discord_id=eq.${discordId}&select=role_id`
+      `dashboard_user_roles?guild_id=eq.${guildId}&discord_id=eq.${discordId}&select=role_id`
     );
     if (!userRoles?.length) { _cachedPerms = []; return []; }
 
@@ -80,7 +79,6 @@ export async function getUserPermissions() {
   }
 }
 
-// Vide le cache (utile après changement de rôle)
 export function clearPermissionCache() {
   _cachedDiscordId = null;
   _cachedRole      = null;

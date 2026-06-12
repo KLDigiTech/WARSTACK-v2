@@ -2,7 +2,7 @@ import { loadConfigs, saveConfig, getConfig } from '../services/configService.js
 import { callBotAPI }                          from '../api.js';
 import { showToast }                           from '../ui/toast.js';
 import { fetchSupabase }                       from '../api.js';
-import { GUILD_ID }                            from '../config.js';
+import { getActiveGuildId }                    from '../services/guildService.js';
 import { showSkeleton }                        from '../ui/skeleton.js';
 
 let _teams = [];
@@ -84,13 +84,11 @@ export async function initOnboarding() {
   renderGames();
   updatePreviews();
 
-  // ── Wizard auto si pas de config ──────────────────────────────────
   const hasConfig = getConfig(configs, 'ob_channel');
   if (!hasConfig) {
     initWizard(textChannels, _roles);
   }
 
-  // Toggle règlement
   document.getElementById('ob-rules-enabled').addEventListener('change', e => {
     document.getElementById('ob-rules-group').style.display = e.target.checked ? 'block' : 'none';
     updatePreviews();
@@ -98,14 +96,12 @@ export async function initOnboarding() {
   document.getElementById('ob-rules-group').style.display =
     document.getElementById('ob-rules-enabled').checked ? 'block' : 'none';
 
-  // Toggle DM
   document.getElementById('ob-dm-enabled').addEventListener('change', e => {
     document.getElementById('ob-dm-group').style.display = e.target.checked ? 'block' : 'none';
   });
   document.getElementById('ob-dm-group').style.display =
     document.getElementById('ob-dm-enabled').checked ? 'block' : 'none';
 
-  // Variables cliquables
   document.querySelectorAll('.var-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const textarea = document.getElementById(btn.dataset.target);
@@ -287,22 +283,22 @@ async function saveOnboarding() {
 
   try {
     await Promise.all([
-      saveConfig('ob_channel',        document.getElementById('ob-channel').value),
-      saveConfig('ob_role_unverified', document.getElementById('ob-role-unverified').value),
-      saveConfig('ob_role_member',     document.getElementById('ob-role-member').value),
-      saveConfig('ob_rules_enabled',   String(document.getElementById('ob-rules-enabled').checked)),
-      saveConfig('ob_rules_text',      document.getElementById('ob-rules-text').value),
-      saveConfig('ob_confirm_msg',     document.getElementById('ob-confirm-msg').value),
-      saveConfig('ob_dm_enabled',      String(document.getElementById('ob-dm-enabled').checked)),
-      saveConfig('ob_dm_msg',          document.getElementById('ob-dm-msg').value),
-      saveConfig('ob_pc_enabled',      String(document.getElementById('ob-pc-enabled').checked)),
-      saveConfig('ob_psn_enabled',     String(document.getElementById('ob-psn-enabled').checked)),
-      saveConfig('ob_xbox_enabled',    String(document.getElementById('ob-xbox-enabled').checked)),
-      saveConfig('ob_pc_role',         document.getElementById('ob-pc-role').value),
-      saveConfig('ob_psn_role',        document.getElementById('ob-psn-role').value),
-      saveConfig('ob_xbox_role',       document.getElementById('ob-xbox-role').value),
-      saveConfig('ob_teams',           JSON.stringify(_teams)),
-      saveConfig('ob_games',           JSON.stringify(_games)),
+      saveConfig('ob_channel',         document.getElementById('ob-channel').value),
+      saveConfig('ob_role_unverified',  document.getElementById('ob-role-unverified').value),
+      saveConfig('ob_role_member',      document.getElementById('ob-role-member').value),
+      saveConfig('ob_rules_enabled',    String(document.getElementById('ob-rules-enabled').checked)),
+      saveConfig('ob_rules_text',       document.getElementById('ob-rules-text').value),
+      saveConfig('ob_confirm_msg',      document.getElementById('ob-confirm-msg').value),
+      saveConfig('ob_dm_enabled',       String(document.getElementById('ob-dm-enabled').checked)),
+      saveConfig('ob_dm_msg',           document.getElementById('ob-dm-msg').value),
+      saveConfig('ob_pc_enabled',       String(document.getElementById('ob-pc-enabled').checked)),
+      saveConfig('ob_psn_enabled',      String(document.getElementById('ob-psn-enabled').checked)),
+      saveConfig('ob_xbox_enabled',     String(document.getElementById('ob-xbox-enabled').checked)),
+      saveConfig('ob_pc_role',          document.getElementById('ob-pc-role').value),
+      saveConfig('ob_psn_role',         document.getElementById('ob-psn-role').value),
+      saveConfig('ob_xbox_role',        document.getElementById('ob-xbox-role').value),
+      saveConfig('ob_teams',            JSON.stringify(_teams)),
+      saveConfig('ob_games',            JSON.stringify(_games)),
     ]);
     showToast('✅ Configuration onboarding sauvegardée !');
   } catch (e) {
@@ -358,8 +354,9 @@ async function postPanel() {
 
 async function loadStats() {
   try {
+    const guildId = await getActiveGuildId();
     const data = await fetchSupabase(
-      `onboarding_logs?guild_id=eq.${GUILD_ID}&order=created_at.desc&limit=50`
+      `onboarding_logs?guild_id=eq.${guildId}&order=created_at.desc&limit=50`
     );
     const logs = Array.isArray(data) ? data : [];
 
@@ -519,7 +516,7 @@ function initWizard(channels, roles) {
     const wzRoleM   = document.getElementById('wz-role-member').value;
     const wzMsg     = document.getElementById('wz-confirm-msg').value;
 
-    if (wzChannel) document.getElementById('ob-channel').value         = wzChannel;
+    if (wzChannel) document.getElementById('ob-channel').value          = wzChannel;
     if (wzRoleU)   document.getElementById('ob-role-unverified').value  = wzRoleU;
     if (wzRoleM)   document.getElementById('ob-role-member').value      = wzRoleM;
     if (wzMsg)     document.getElementById('ob-confirm-msg').value      = wzMsg;

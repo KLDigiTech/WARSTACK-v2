@@ -1,18 +1,15 @@
 import { fetchSupabase } from '../api.js';
-import { GUILD_ID }      from '../config.js';
+import { getActiveGuildId } from '../services/guildService.js';
 
 let notifications = [];
 let unreadCount   = 0;
 let activeFilter  = 'all';
-
-// ── INIT ──────────────────────────────────────────────────────────────────────
 
 export async function initNotifications() {
   const bell     = document.getElementById('notif-bell');
   const bellMob  = document.getElementById('notif-bell-mobile');
   const dropdown = document.getElementById('notif-dropdown');
 
-  // Remplacer le header basique par le header premium
   const header = dropdown.querySelector('.notif-header');
   if (header) {
     header.innerHTML = `
@@ -24,7 +21,6 @@ export async function initNotifications() {
     `;
   }
 
-  // Injecter les filtres après le header
   const filterBar = document.createElement('div');
   filterBar.className = 'notif-filters';
   filterBar.id = 'notif-filters';
@@ -39,13 +35,11 @@ export async function initNotifications() {
   `;
   dropdown.insertBefore(filterBar, dropdown.querySelector('.notif-list'));
 
-  // Ajouter footer
   const footer = document.createElement('div');
   footer.className = 'notif-footer';
   footer.innerHTML = `<button class="notif-footer-btn" id="notif-clear-all">🗑 Effacer tout l'historique</button>`;
   dropdown.appendChild(footer);
 
-  // Events filtres
   filterBar.querySelectorAll('.notif-filter-btn').forEach(btn => {
     btn.addEventListener('click', e => {
       e.stopPropagation();
@@ -56,7 +50,6 @@ export async function initNotifications() {
     });
   });
 
-  // Toggle dropdown — desktop + mobile
   function toggleDropdown(e) {
     e.stopPropagation();
     const isOpen = dropdown.style.display === 'flex';
@@ -67,7 +60,6 @@ export async function initNotifications() {
   bell?.addEventListener('click', toggleDropdown);
   bellMob?.addEventListener('click', toggleDropdown);
 
-  // Fermer en cliquant ailleurs — le dropdown est hors des wrappers donc on vérifie les 3
   document.addEventListener('click', e => {
     if (dropdown.style.display !== 'flex') return;
     const inDropdown = dropdown.contains(e.target);
@@ -78,7 +70,6 @@ export async function initNotifications() {
     }
   });
 
-  // Clear boutons
   dropdown.addEventListener('click', e => {
     e.stopPropagation();
     if (e.target.id === 'notif-clear' || e.target.closest('#notif-clear')) {
@@ -96,24 +87,22 @@ export async function initNotifications() {
   setInterval(loadNotifications, 30000);
 }
 
-// ── CHARGER ───────────────────────────────────────────────────────────────────
-
 async function loadNotifications() {
+  const guildId   = await getActiveGuildId();
   const yesterday = hoursAgo(24);
   const oneHour   = hoursAgo(1);
   const now       = new Date().toISOString().split('T')[0];
 
   const [tickets, suggestions, sanctions, auditLogs, onboardingLogs, events] = await Promise.all([
-    fetchSupabase(`tickets?guild_id=eq.${GUILD_ID}&status=eq.open&order=created_at.desc&limit=5`).catch(() => []),
+    fetchSupabase(`tickets?guild_id=eq.${guildId}&status=eq.open&order=created_at.desc&limit=5`).catch(() => []),
     fetchSupabase(`suggestions?status=eq.pending&order=created_at.desc&limit=3`).catch(() => []),
-    fetchSupabase(`sanctions?guild_id=eq.${GUILD_ID}&active=eq.true&created_at=gte.${yesterday}&order=created_at.desc&limit=3`).catch(() => []),
-    fetchSupabase(`audit_logs?guild_id=eq.${GUILD_ID}&type=eq.moderation&action=in.(automod_ban,automod_kick)&created_at=gte.${oneHour}&order=created_at.desc&limit=3`).catch(() => []),
-    fetchSupabase(`onboarding_logs?guild_id=eq.${GUILD_ID}&created_at=gte.${yesterday}&order=created_at.desc&limit=5`).catch(() => []),
+    fetchSupabase(`sanctions?guild_id=eq.${guildId}&active=eq.true&created_at=gte.${yesterday}&order=created_at.desc&limit=3`).catch(() => []),
+    fetchSupabase(`audit_logs?guild_id=eq.${guildId}&type=eq.moderation&action=in.(automod_ban,automod_kick)&created_at=gte.${oneHour}&order=created_at.desc&limit=3`).catch(() => []),
+    fetchSupabase(`onboarding_logs?guild_id=eq.${guildId}&created_at=gte.${yesterday}&order=created_at.desc&limit=5`).catch(() => []),
     fetchSupabase(`events?date=gte.${now}&status=eq.open&order=date.asc&limit=3`).catch(() => []),
   ]);
 
   const newNotifs = [];
-
   const add = (id, notif) => {
     if (!notifications.find(n => n.id === id)) {
       newNotifs.push({ id, ...notif, read: false });
@@ -193,8 +182,6 @@ async function loadNotifications() {
   }
 }
 
-// ── RENDER ────────────────────────────────────────────────────────────────────
-
 function renderNotifications() {
   const el = document.getElementById('notif-list');
   if (!el) return;
@@ -269,8 +256,6 @@ function renderNotifications() {
   });
 }
 
-// ── BADGE ─────────────────────────────────────────────────────────────────────
-
 function updateBadge() {
   const badge      = document.getElementById('notif-badge');
   const badgeMob   = document.getElementById('notif-badge-mobile');
@@ -300,8 +285,6 @@ function markAllRead() {
   updateBadge();
   renderNotifications();
 }
-
-// ── HELPERS ───────────────────────────────────────────────────────────────────
 
 function arr(v) { return Array.isArray(v) ? v : []; }
 

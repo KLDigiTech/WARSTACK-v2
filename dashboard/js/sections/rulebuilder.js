@@ -1,6 +1,6 @@
 import { fetchSupabase, insertSupabase, deleteSupabase } from '../api.js';
 import { showToast } from '../ui/toast.js';
-import { GUILD_ID } from '../config.js';
+import { getActiveGuildId } from '../services/guildService.js';
 
 let allRules  = [];
 let editingId = null;
@@ -39,7 +39,8 @@ export async function initRuleBuilder() {
 // ─── LOAD ─────────────────────────────────────────────────────────────────────
 
 async function loadRules() {
-  const rules = await fetchSupabase(`automation_rules?guild_id=eq.${GUILD_ID}&order=created_at.desc`);
+  const guildId = await getActiveGuildId();
+  const rules = await fetchSupabase(`automation_rules?guild_id=eq.${guildId}&order=created_at.desc`);
   allRules = rules || [];
   renderRules();
 }
@@ -230,6 +231,7 @@ function getActionConfig() {
 // ─── SAVE ─────────────────────────────────────────────────────────────────────
 
 async function saveRule() {
+  const guildId     = await getActiveGuildId();
   const name        = document.getElementById('rb-name').value.trim();
   const triggerType = document.getElementById('rb-trigger-type').value;
   const actionType  = document.getElementById('rb-action-type').value;
@@ -246,7 +248,7 @@ async function saveRule() {
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
 
   const payload = {
-    guild_id      : GUILD_ID,
+    guild_id      : guildId,
     name,
     enabled       : true,
     trigger_type  : triggerType,
@@ -306,10 +308,8 @@ window.deleteRule = async function(id, name) {
 
 function initExport() {
 
-  // ── Export règles JSON ──────────────────────────────────
   document.getElementById('btn-export-rules').addEventListener('click', () => {
     if (!allRules.length) return showToast('❌ Aucune règle à exporter', 'error');
-
     const data = allRules.map(r => ({
       name          : r.name,
       enabled       : r.enabled,
@@ -318,12 +318,10 @@ function initExport() {
       action_type   : r.action_type,
       action_config : r.action_config,
     }));
-
     downloadJSON(data, `warstack-rules-${dateStamp()}.json`);
     showToast(`✅ ${data.length} règle(s) exportée(s)`);
   });
 
-  // ── Import règles JSON ──────────────────────────────────
   document.getElementById('btn-import-rules').addEventListener('click', () => {
     document.getElementById('import-file-input').click();
   });
@@ -331,18 +329,16 @@ function initExport() {
   document.getElementById('import-file-input').addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
+    const guildId = await getActiveGuildId();
     try {
       const text  = await file.text();
       const rules = JSON.parse(text);
-
       if (!Array.isArray(rules)) throw new Error('Format invalide');
-
       let imported = 0;
       for (const r of rules) {
         if (!r.name || !r.trigger_type || !r.action_type) continue;
         await insertSupabase('automation_rules', {
-          guild_id      : GUILD_ID,
+          guild_id      : guildId,
           name          : r.name,
           enabled       : r.enabled ?? true,
           trigger_type  : r.trigger_type,
@@ -353,21 +349,17 @@ function initExport() {
         });
         imported++;
       }
-
       showToast(`✅ ${imported} règle(s) importée(s)`);
       await loadRules();
     } catch (err) {
       showToast('❌ Fichier invalide : ' + err.message, 'error');
     }
-
     e.target.value = '';
   });
 
-  // ── Export Membres CSV ──────────────────────────────────
   document.getElementById('btn-export-members').addEventListener('click', async () => {
     const data = await fetchSupabase('players?select=*&order=created_at.desc');
     if (!data?.length) return showToast('❌ Aucun membre', 'error');
-
     const rows = [
       ['Discord ID', 'Username', 'Pseudo BF6', 'Plateforme', 'Tracker ID', 'K/D', 'Kills', 'Wins', 'Win Rate', 'Date inscription'],
       ...data.map(p => [
@@ -376,16 +368,13 @@ function initExport() {
         p.winrate || '', fmtDate(p.created_at),
       ])
     ];
-
     downloadCSV(rows, `warstack-membres-${dateStamp()}.csv`);
     showToast(`✅ ${data.length} membres exportés`);
   });
 
-  // ── Export Sanctions CSV ────────────────────────────────
   document.getElementById('btn-export-sanctions').addEventListener('click', async () => {
     const data = await fetchSupabase('sanctions?select=*&order=created_at.desc');
     if (!data?.length) return showToast('❌ Aucune sanction', 'error');
-
     const rows = [
       ['Discord ID', 'Username', 'Type', 'Raison', 'Modérateur', 'Durée (min)', 'Active', 'Date'],
       ...data.map(s => [
@@ -393,16 +382,13 @@ function initExport() {
         s.moderator_name || '', s.duration || '', s.active ? 'Oui' : 'Non', fmtDate(s.created_at),
       ])
     ];
-
     downloadCSV(rows, `warstack-sanctions-${dateStamp()}.csv`);
     showToast(`✅ ${data.length} sanctions exportées`);
   });
 
-  // ── Export Suggestions CSV ──────────────────────────────
   document.getElementById('btn-export-suggestions').addEventListener('click', async () => {
     const data = await fetchSupabase('suggestions?select=*&order=created_at.desc');
     if (!data?.length) return showToast('❌ Aucune suggestion', 'error');
-
     const rows = [
       ['ID', 'Username', 'Contenu', 'Statut', 'Votes +', 'Votes -', 'Note staff', 'Date'],
       ...data.map(s => [
@@ -411,16 +397,13 @@ function initExport() {
         `"${(s.staff_note || '').replace(/"/g, '""')}"`, fmtDate(s.created_at),
       ])
     ];
-
     downloadCSV(rows, `warstack-suggestions-${dateStamp()}.csv`);
     showToast(`✅ ${data.length} suggestions exportées`);
   });
 
-  // ── Export Événements CSV ───────────────────────────────
   document.getElementById('btn-export-events').addEventListener('click', async () => {
     const data = await fetchSupabase('events?select=*&order=date.desc');
     if (!data?.length) return showToast('❌ Aucun événement', 'error');
-
     const rows = [
       ['Titre', 'Description', 'Date', 'Heure', 'Places max', 'Statut', 'Check-in', 'Date création'],
       ...data.map(e => [
@@ -430,16 +413,13 @@ function initExport() {
         e.status, e.checkin_enabled ? 'Oui' : 'Non', fmtDate(e.created_at),
       ])
     ];
-
     downloadCSV(rows, `warstack-events-${dateStamp()}.csv`);
     showToast(`✅ ${data.length} événements exportés`);
   });
 
-  // ── Export Tickets CSV ──────────────────────────────────
   document.getElementById('btn-export-tickets').addEventListener('click', async () => {
     const data = await fetchSupabase('tickets?select=*&order=created_at.desc');
     if (!data?.length) return showToast('❌ Aucun ticket', 'error');
-
     const rows = [
       ['ID', 'Username', 'Type', 'Statut', 'Assigné à', 'Date ouverture', 'Date fermeture'],
       ...data.map(t => [
@@ -447,7 +427,6 @@ function initExport() {
         t.assigned_to || '', fmtDate(t.created_at), fmtDate(t.closed_at),
       ])
     ];
-
     downloadCSV(rows, `warstack-tickets-${dateStamp()}.csv`);
     showToast(`✅ ${data.length} tickets exportés`);
   });
@@ -469,15 +448,11 @@ function downloadJSON(data, filename) {
 function triggerDownload(blob, filename) {
   const url = URL.createObjectURL(blob);
   const a   = document.createElement('a');
-  a.href     = url;
-  a.download = filename;
-  a.click();
+  a.href = url; a.download = filename; a.click();
   URL.revokeObjectURL(url);
 }
 
-function dateStamp() {
-  return new Date().toISOString().slice(0, 10);
-}
+function dateStamp() { return new Date().toISOString().slice(0, 10); }
 
 function fmtDate(str) {
   if (!str) return '';

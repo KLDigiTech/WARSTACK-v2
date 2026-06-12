@@ -1,34 +1,23 @@
 import { loadConfigs, saveConfig, getConfig } from '../services/configService.js';
 import { callBotAPI, fetchSupabase }           from '../api.js';
 import { showToast }                           from '../ui/toast.js';
-import { GUILD_ID }                            from '../config.js';
-const PAGE_SIZE  = 25;
+import { getActiveGuildId }                    from '../services/guildService.js';
 
-let currentFilter  = 'all';
-let currentPage    = 0;
-let currentSearch  = '';
-let searchTimeout  = null;
-let allLogs        = [];
-
-// ── INIT ──────────────────────────────────────────────────────────────────────
+const PAGE_SIZE = 25;
+let currentFilter = 'all';
+let currentPage   = 0;
+let currentSearch = '';
+let searchTimeout = null;
+let allLogs       = [];
 
 export async function initLogs() {
-
-  const [configs, channelsData] = await Promise.all([
-    loadConfigs(),
-    callBotAPI('channels'),
-  ]);
-
+  const [configs, channelsData] = await Promise.all([loadConfigs(), callBotAPI('channels')]);
   const textChannels = (channelsData?.channels || []).filter(c => c.type === 'text');
   const chOpts = `<option value="">Aucun</option>` +
     textChannels.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-
   ['message', 'moderation', 'member', 'ticket', 'suggestion'].forEach(type => {
     const el = document.getElementById(`log-channel-${type}`);
-    if (el) {
-      el.innerHTML = chOpts;
-      el.value = getConfig(configs, `log_channel_${type}`) || '';
-    }
+    if (el) { el.innerHTML = chOpts; el.value = getConfig(configs, `log_channel_${type}`) || ''; }
   });
 
   document.getElementById('btn-save-logs').addEventListener('click', async () => {
@@ -42,7 +31,6 @@ export async function initLogs() {
     showToast('✅ Configuration sauvegardée !');
   });
 
-  // ── Filtres ──────────────────────────────────────────────
   document.querySelectorAll('.log-filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.log-filter-btn').forEach(b => b.classList.remove('active'));
@@ -53,7 +41,6 @@ export async function initLogs() {
     });
   });
 
-  // ── Recherche ────────────────────────────────────────────
   document.getElementById('log-search').addEventListener('input', e => {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
@@ -63,17 +50,10 @@ export async function initLogs() {
     }, 300);
   });
 
-  // ── Pagination ───────────────────────────────────────────
   document.getElementById('btn-logs-prev').addEventListener('click', () => {
     if (currentPage > 0) { currentPage--; renderLogs(); }
   });
-
-  document.getElementById('btn-logs-next').addEventListener('click', () => {
-    currentPage++;
-    renderLogs();
-  });
-
-  // ── Modal ────────────────────────────────────────────────
+  document.getElementById('btn-logs-next').addEventListener('click', () => { currentPage++; renderLogs(); });
   document.getElementById('modal-log-close').addEventListener('click', () => {
     document.getElementById('modal-log').style.display = 'none';
   });
@@ -81,19 +61,13 @@ export async function initLogs() {
   await loadLogs();
 }
 
-// ── CHARGER LOGS ──────────────────────────────────────────────────────────────
-
 async function loadLogs() {
-  const data = await fetchSupabase(
-    `audit_logs?guild_id=eq.${GUILD_ID}&order=created_at.desc&limit=500`
-  ) || [];
-
+  const guildId = await getActiveGuildId();
+  const data = await fetchSupabase(`audit_logs?guild_id=eq.${guildId}&order=created_at.desc&limit=500`) || [];
   allLogs = data;
   await loadStats(data);
   renderLogs();
 }
-
-// ── STATS ─────────────────────────────────────────────────────────────────────
 
 async function loadStats(data) {
   document.getElementById('stat-logs-total').textContent      = data.length;
@@ -103,53 +77,29 @@ async function loadStats(data) {
   document.getElementById('stat-logs-ticket').textContent     = data.filter(l => l.type === 'ticket').length;
 }
 
-// ── RENDER ────────────────────────────────────────────────────────────────────
-
 function renderLogs() {
   let filtered = allLogs;
-
-  if (currentFilter !== 'all') {
-    filtered = filtered.filter(l => l.type === currentFilter);
-  }
-
+  if (currentFilter !== 'all') filtered = filtered.filter(l => l.type === currentFilter);
   if (currentSearch) {
     filtered = filtered.filter(l =>
-      (l.author_name  || '').toLowerCase().includes(currentSearch) ||
-      (l.action       || '').toLowerCase().includes(currentSearch) ||
+      (l.author_name || '').toLowerCase().includes(currentSearch) ||
+      (l.action || '').toLowerCase().includes(currentSearch) ||
       (l.channel_name || '').toLowerCase().includes(currentSearch) ||
-      (l.content      || '').toLowerCase().includes(currentSearch)
+      (l.content || '').toLowerCase().includes(currentSearch)
     );
   }
-
-  const total     = filtered.length;
+  const total      = filtered.length;
   const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
   if (currentPage >= totalPages) currentPage = totalPages - 1;
-
   const page = filtered.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
-
   document.getElementById('logs-page-info').textContent = `Page ${currentPage + 1} / ${totalPages}`;
   document.getElementById('btn-logs-prev').disabled = currentPage === 0;
   document.getElementById('btn-logs-next').disabled = currentPage >= totalPages - 1;
-
   const container = document.getElementById('logs-table-container');
-
-  if (!page.length) {
-    container.innerHTML = `<div style="color:var(--text-muted);font-size:0.85rem">Aucun log trouvé.</div>`;
-    return;
-  }
-
+  if (!page.length) { container.innerHTML = `<div style="color:var(--text-muted);font-size:0.85rem">Aucun log trouvé.</div>`; return; }
   container.innerHTML = `
     <table class="logs-table">
-      <thead>
-        <tr>
-          <th>Heure</th>
-          <th>Type</th>
-          <th>Action</th>
-          <th>Auteur</th>
-          <th>Salon</th>
-          <th></th>
-        </tr>
-      </thead>
+      <thead><tr><th>Heure</th><th>Type</th><th>Action</th><th>Auteur</th><th>Salon</th><th></th></tr></thead>
       <tbody>
         ${page.map(l => `
           <tr class="log-row" data-id="${l.id}">
@@ -164,7 +114,6 @@ function renderLogs() {
       </tbody>
     </table>
   `;
-
   container.querySelectorAll('.btn-log-detail').forEach(btn => {
     btn.addEventListener('click', () => {
       const log = allLogs.find(l => l.id === btn.dataset.id);
@@ -173,14 +122,10 @@ function renderLogs() {
   });
 }
 
-// ── MODAL DETAIL ──────────────────────────────────────────────────────────────
-
 function openLogDetail(log) {
-  document.getElementById('modal-log-title').textContent = `${actionLabel(log.action)}`;
+  document.getElementById('modal-log-title').textContent = actionLabel(log.action);
   document.getElementById('modal-log').style.display     = 'flex';
-
   const extra = log.extra || {};
-
   document.getElementById('modal-log-body').innerHTML = `
     <div class="ticket-meta-grid" style="margin-bottom:0.75rem">
       <div><span class="meta-label">Type</span><span>${typeLabel(log.type)}</span></div>
@@ -190,58 +135,21 @@ function openLogDetail(log) {
       ${log.channel_name ? `<div><span class="meta-label">Salon</span><span>#${log.channel_name}</span></div>` : ''}
       ${log.target_name  ? `<div><span class="meta-label">Cible</span><span>${log.target_name}</span></div>` : ''}
     </div>
-    ${log.content ? `
-      <div class="welcome-section-title">Contenu</div>
-      <div style="background:var(--surface-3);border:1px solid var(--border);border-radius:var(--radius);padding:0.6rem 0.75rem;font-size:0.82rem;color:var(--text-dim);margin-bottom:0.5rem;word-break:break-word">
-        ${log.content}
-      </div>
-    ` : ''}
-    ${extra.new_content ? `
-      <div class="welcome-section-title">Nouveau contenu</div>
-      <div style="background:var(--surface-3);border:1px solid var(--border);border-radius:var(--radius);padding:0.6rem 0.75rem;font-size:0.82rem;color:var(--green);margin-bottom:0.5rem;word-break:break-word">
-        ${extra.new_content}
-      </div>
-    ` : ''}
-    ${extra.roles?.length ? `
-      <div class="welcome-section-title">Rôles</div>
-      <div style="font-size:0.82rem;color:var(--text-dim)">${extra.roles.join(', ')}</div>
-    ` : ''}
+    ${log.content ? `<div class="welcome-section-title">Contenu</div><div style="background:var(--surface-3);border:1px solid var(--border);border-radius:var(--radius);padding:0.6rem 0.75rem;font-size:0.82rem;color:var(--text-dim);margin-bottom:0.5rem;word-break:break-word">${log.content}</div>` : ''}
+    ${extra.new_content ? `<div class="welcome-section-title">Nouveau contenu</div><div style="background:var(--surface-3);border:1px solid var(--border);border-radius:var(--radius);padding:0.6rem 0.75rem;font-size:0.82rem;color:var(--green);margin-bottom:0.5rem;word-break:break-word">${extra.new_content}</div>` : ''}
+    ${extra.roles?.length ? `<div class="welcome-section-title">Rôles</div><div style="font-size:0.82rem;color:var(--text-dim)">${extra.roles.join(', ')}</div>` : ''}
   `;
 }
 
-// ── HELPERS ───────────────────────────────────────────────────────────────────
-
 function formatTime(iso) {
   const d = new Date(iso);
-  return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) +
-    ' ' + d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+  return d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', second:'2-digit' }) + ' ' + d.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit' });
 }
 
 function typeLabel(t) {
-  return {
-    message   : '📨 Message',
-    moderation: '🛡 Modération',
-    member    : '👥 Membre',
-    ticket    : '🎫 Ticket',
-    suggestion: '💡 Suggestion',
-  }[t] || t;
+  return { message:'📨 Message', moderation:'🛡 Modération', member:'👥 Membre', ticket:'🎫 Ticket', suggestion:'💡 Suggestion' }[t] || t;
 }
 
 function actionLabel(a) {
-  return {
-    message_delete  : '🗑 Message supprimé',
-    message_edit    : '✏️ Message modifié',
-    member_join     : '➕ Membre rejoint',
-    member_leave    : '➖ Membre parti',
-    automod_kick    : '🤖 AutoMod Kick',
-    automod_ban     : '🤖 AutoMod Ban',
-    automod_timeout : '🤖 AutoMod Timeout',
-    ticket_open     : '🎫 Ticket ouvert',
-    ticket_close    : '🔒 Ticket fermé',
-    suggestion_post : '💡 Suggestion postée',
-    ban             : '🔨 Ban',
-    kick            : '👢 Kick',
-    warn            : '⚠️ Warn',
-    mute            : '🔇 Mute',
-  }[a] || a;
+  return { message_delete:'🗑 Message supprimé', message_edit:'✏️ Message modifié', member_join:'➕ Membre rejoint', member_leave:'➖ Membre parti', automod_kick:'🤖 AutoMod Kick', automod_ban:'🤖 AutoMod Ban', automod_timeout:'🤖 AutoMod Timeout', ticket_open:'🎫 Ticket ouvert', ticket_close:'🔒 Ticket fermé', suggestion_post:'💡 Suggestion postée', ban:'🔨 Ban', kick:'👢 Kick', warn:'⚠️ Warn', mute:'🔇 Mute' }[a] || a;
 }

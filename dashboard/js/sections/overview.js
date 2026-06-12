@@ -1,15 +1,13 @@
 import { fetchSupabase, callBotAPI } from '../api.js';
 import { showSkeleton } from '../ui/skeleton.js';
-import { GUILD_ID }     from '../config.js';
+import { getActiveGuildId } from '../services/guildService.js';
 
 export async function initOverview() {
-  // Skeletons immédiats
   showSkeleton('ov-activity-list',    'activity',   7);
   showSkeleton('ov-tickets-list',     'panel-rows', 4);
   showSkeleton('ov-suggestions-list', 'panel-rows', 4);
   showSkeleton('ov-events-list',      'panel-rows', 3);
 
-  // Skeleton KPI values
   document.querySelectorAll('.ov-kpi-value').forEach(el => {
     el.innerHTML = `<span class="skeleton sk-title" style="width:52px;display:inline-block"></span>`;
   });
@@ -26,14 +24,12 @@ export async function initOverview() {
     loadEvents(),
   ]);
 
-  // Clicks KPI → section
   document.querySelectorAll('.ov-kpi-card[data-section]').forEach(card => {
     card.addEventListener('click', () => {
       document.querySelector(`[data-section="${card.dataset.section}"]`)?.click();
     });
   });
 
-  // Clicks "Voir tout"
   document.querySelectorAll('.ov-link').forEach(link => {
     link.addEventListener('click', e => {
       e.preventDefault();
@@ -43,16 +39,15 @@ export async function initOverview() {
   });
 }
 
-// ── KPI STATS ──────────────────────────────────────────────────────────────────
-
 async function loadServerStats() {
+  const guildId = await getActiveGuildId();
   const [guildData, tickets, suggestions, events, sanctions, automodLogs] = await Promise.all([
     callBotAPI('guild').catch(() => null),
-    fetchSupabase(`tickets?guild_id=eq.${GUILD_ID}&status=eq.open&select=id`).catch(() => []),
+    fetchSupabase(`tickets?guild_id=eq.${guildId}&status=eq.open&select=id`).catch(() => []),
     fetchSupabase(`suggestions?select=id`).catch(() => []),
     fetchSupabase(`events?select=id`).catch(() => []),
-    fetchSupabase(`sanctions?guild_id=eq.${GUILD_ID}&created_at=gte.${weekAgo()}&select=id`).catch(() => []),
-    fetchSupabase(`audit_logs?guild_id=eq.${GUILD_ID}&type=eq.moderation&created_at=gte.${weekAgo()}&select=id`).catch(() => []),
+    fetchSupabase(`sanctions?guild_id=eq.${guildId}&created_at=gte.${weekAgo()}&select=id`).catch(() => []),
+    fetchSupabase(`audit_logs?guild_id=eq.${guildId}&type=eq.moderation&created_at=gte.${weekAgo()}&select=id`).catch(() => []),
   ]);
 
   const members     = guildData?.member_count    || 0;
@@ -74,30 +69,20 @@ function setKPI(id, value, trend, barPct) {
   const valueEl = document.getElementById(id);
   const trendEl = document.getElementById(`${id}-trend`);
   const barEl   = document.getElementById(`${id}-bar`);
-
   if (valueEl) valueEl.textContent = value || '0';
-
   if (trendEl) {
     const labels = { up: '▲ Actif', down: '▼ Élevé', flat: '— Stable' };
-    trendEl.textContent  = labels[trend] || '—';
-    trendEl.className    = `ov-kpi-trend ${trend}`;
+    trendEl.textContent = labels[trend] || '—';
+    trendEl.className   = `ov-kpi-trend ${trend}`;
   }
-
-  if (barEl) {
-    // Délai pour que l'animation CSS soit visible
-    setTimeout(() => { barEl.style.width = `${barPct}%`; }, 100);
-  }
+  if (barEl) setTimeout(() => { barEl.style.width = `${barPct}%`; }, 100);
 }
-
-// ── SANTÉ BOT ──────────────────────────────────────────────────────────────────
 
 async function loadBotHealth() {
   const data   = await callBotAPI('status').catch(() => null);
   const badge  = document.getElementById('ov-bot-status');
   const uptime = document.getElementById('ov-uptime');
-
   if (!badge) return;
-
   if (data?.status === 'online') {
     badge.textContent = '🟢 Online';
     badge.className   = 'ov-health-badge green';
@@ -105,7 +90,6 @@ async function loadBotHealth() {
     badge.textContent = '🔴 Offline';
     badge.className   = 'ov-health-badge red';
   }
-
   if (uptime && data?.uptime) {
     const mins = Math.floor(data.uptime / 60);
     const hrs  = Math.floor(mins / 60);
@@ -113,11 +97,10 @@ async function loadBotHealth() {
   }
 }
 
-// ── ACTIVITY FEED ──────────────────────────────────────────────────────────────
-
 async function loadActivity() {
+  const guildId = await getActiveGuildId();
   const logs = await fetchSupabase(
-    `audit_logs?guild_id=eq.${GUILD_ID}&order=created_at.desc&limit=12`
+    `audit_logs?guild_id=eq.${guildId}&order=created_at.desc&limit=12`
   ).catch(() => []) || [];
 
   const el = document.getElementById('ov-activity-list');
@@ -162,11 +145,10 @@ async function loadActivity() {
   }).join('');
 }
 
-// ── TICKETS ────────────────────────────────────────────────────────────────────
-
 async function loadTickets() {
+  const guildId = await getActiveGuildId();
   const tickets = await fetchSupabase(
-    `tickets?guild_id=eq.${GUILD_ID}&status=neq.closed&order=created_at.desc&limit=5`
+    `tickets?guild_id=eq.${guildId}&status=neq.closed&order=created_at.desc&limit=5`
   ).catch(() => []) || [];
 
   const el = document.getElementById('ov-tickets-list');
@@ -192,21 +174,14 @@ async function loadTickets() {
   }).join('');
 }
 
-// ── SUGGESTIONS ────────────────────────────────────────────────────────────────
-
 async function loadSuggestions() {
-  const suggestions = await fetchSupabase(
-    `suggestions?order=created_at.desc&limit=4`
-  ).catch(() => []) || [];
-
+  const suggestions = await fetchSupabase(`suggestions?order=created_at.desc&limit=4`).catch(() => []) || [];
   const el = document.getElementById('ov-suggestions-list');
   if (!el) return;
-
   if (!suggestions.length) {
     el.innerHTML = `<div class="ov-empty"><i class="fas fa-lightbulb"></i> Aucune suggestion.</div>`;
     return;
   }
-
   const statusMap = {
     pending    : { cls: 'ov-status-pending',  label: 'En attente' },
     reviewing  : { cls: 'ov-status-progress', label: 'En cours' },
@@ -214,7 +189,6 @@ async function loadSuggestions() {
     refused    : { cls: 'ov-status-refused',  label: 'Refusée' },
     implemented: { cls: 'ov-status-past',     label: 'Implémentée' },
   };
-
   el.innerHTML = suggestions.map(s => {
     const st = statusMap[s.status] || { cls: 'ov-status-pending', label: s.status || '—' };
     return `
@@ -229,21 +203,14 @@ async function loadSuggestions() {
   }).join('');
 }
 
-// ── EVENTS ─────────────────────────────────────────────────────────────────────
-
 async function loadEvents() {
-  const events = await fetchSupabase(
-    `events?order=date.asc&limit=3`
-  ).catch(() => []) || [];
-
+  const events = await fetchSupabase(`events?order=date.asc&limit=3`).catch(() => []) || [];
   const el = document.getElementById('ov-events-list');
   if (!el) return;
-
   if (!events.length) {
     el.innerHTML = `<div class="ov-empty"><i class="fas fa-calendar-times"></i> Aucun event à venir.</div>`;
     return;
   }
-
   el.innerHTML = events.map(e => {
     const d    = new Date(e.date);
     const past = d < new Date();
@@ -260,8 +227,6 @@ async function loadEvents() {
     `;
   }).join('');
 }
-
-// ── HELPERS ────────────────────────────────────────────────────────────────────
 
 function weekAgo() {
   const d = new Date();

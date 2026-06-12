@@ -1,0 +1,57 @@
+.setup-page { background: var(--bg-primary); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+
+.setup-container { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 16px; width: 100%; max-width: 680px; padding: 2.5rem; }
+
+.setup-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2.5rem; }
+.setup-logo { font-size: 1.4rem; font-weight: 700; color: var(--accent); }
+.setup-steps { display: flex; align-items: center; gap: 0; }
+.step { width: 32px; height: 32px; border-radius: 50%; background: var(--bg-tertiary); border: 2px solid var(--border); color: var(--text-muted); display: flex; align-items: center; justify-content: center; font-size: .85rem; font-weight: 700; }
+.step.active { border-color: var(--accent); color: var(--accent); }
+.step.done { background: var(--accent); border-color: var(--accent); color: #000; }
+.step-line { width: 40px; height: 2px; background: var(--border); }
+
+.setup-screen { display: none; }
+.setup-screen.active { display: block; }
+
+.setup-screen h2 { font-size: 1.4rem; font-weight: 700; color: var(--text-primary); margin-bottom: .5rem; }
+.setup-subtitle { color: var(--text-muted); margin-bottom: 1.5rem; font-size: .9rem; }
+
+/* Membres */
+.members-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: .75rem; margin-bottom: 2rem; }
+.member-card { display: flex; align-items: center; gap: .75rem; padding: .75rem 1rem; background: var(--bg-tertiary); border: 2px solid var(--border); border-radius: 10px; cursor: pointer; transition: all .15s; }
+.member-card.checked { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--bg-tertiary)); }
+.member-check { font-size: 1.1rem; width: 24px; }
+.member-avatar { width: 40px; height: 40px; border-radius: 50%; }
+.member-info { flex: 1; }
+.member-name { font-weight: 600; color: var(--text-primary); font-size: .9rem; }
+.member-role { margin-top: .25rem; width: 100%; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary); padding: .25rem .5rem; font-size: .8rem; }
+
+/* Modules */
+.modules-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: .75rem; margin-bottom: 2rem; }
+.module-card { display: flex; flex-direction: column; align-items: center; gap: .4rem; padding: 1.25rem; background: var(--bg-tertiary); border: 2px solid var(--border); border-radius: 10px; cursor: pointer; transition: all .15s; text-align: center; }
+.module-card input { display: none; }
+.module-card.checked { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--bg-tertiary)); }
+.module-icon { font-size: 1.8rem; }
+.module-name { font-weight: 700; color: var(--text-primary); font-size: .9rem; }
+.module-desc { color: var(--text-muted); font-size: .75rem; }
+
+/* Résumé */
+.summary-block { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+.summary-title { font-weight: 700; color: var(--text-primary); margin-bottom: .5rem; font-size: .9rem; }
+.summary-item { color: var(--text-secondary); font-size: .85rem; padding: .2rem 0; }
+
+/* Nav */
+.setup-nav { display: flex; justify-content: space-between; margin-top: 2rem; }
+.btn-primary { background: var(--accent); color: #000; border: none; padding: .75rem 1.5rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: .9rem; }
+.btn-primary:hover { opacity: .85; }
+.btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); padding: .75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: .9rem; }
+
+/* Succès */
+.success-icon { font-size: 4rem; text-align: center; margin-bottom: 1rem; }
+.install-result { display: flex; flex-direction: column; gap: .5rem; margin-top: 1rem; }
+.result-item { color: var(--text-secondary); font-size: .9rem; }
+
+/* Loading */
+.loading-state { display: flex; align-items: center; gap: 1rem; color: var(--text-muted); padding: 2rem 0; }
+.spinner { width: 24px; height: 24px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }

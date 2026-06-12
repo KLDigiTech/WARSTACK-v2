@@ -1062,5 +1062,153 @@ router.post('/message/send-now', auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// ── SETUP — SCAN SERVEUR ──────────────────────────────────────────────────────
+router.get('/setup/scan/:guild_id', auth, async (req, res) => {
+  try {
+    const guild = global.botClient.guilds.cache.get(req.params.guild_id);
+    if (!guild) return res.status(404).json({ error: 'Serveur introuvable' });
 
+    await guild.members.fetch();
+
+    // Permissions de base de @everyone
+    const everyonePerms = guild.roles.everyone.permissions.bitfield;
+
+    // Membres avec plus de permissions que @everyone
+    const privileged = [];
+    guild.members.cache.forEach(member => {
+      if (member.user.bot) return;
+      const memberPerms = member.permissions.bitfield;
+      if (memberPerms > everyonePerms) {
+        privileged.push({
+          discord_id : member.user.id,
+          username   : member.user.username,
+          display    : member.displayName,
+          avatar     : member.user.displayAvatarURL({ size: 64, extension: 'png' }),
+          perm_score : Number(memberPerms), // plus c'est haut, plus il a de droits
+        });
+      }
+    });
+
+    // Trier par score décroissant
+    privileged.sort((a, b) => b.perm_score - a.perm_score);
+
+    // Salons texte existants
+    const channels = guild.channels.cache
+      .filter(c => c.type === ChannelType.GuildText)
+      .map(c => ({ id: c.id, name: c.name, category: c.parent?.name || null }));
+
+    // Rôles existants
+    const roles = guild.roles.cache
+      .filter(r => r.name !== '@everyone' && !r.managed)
+      .sort((a, b) => b.position - a.position)
+      .map(r => ({ id: r.id, name: r.name, color: r.hexColor }));
+
+    res.json({ success: true, privileged, channels, roles });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── SETUP — INSTALL ───────────────────────────────────────────────────────────
+router.post('/setup/install', auth, async (req, res) => {
+  try {
+    const { guild_id, team, modules } = req.body;
+    // team = [{ discord_id, username, avatar, role: 'Fondateur'|'Team Leader'|'Organisateur'|'Modérateur' }]
+    // modules = ['welcome', 'tickets', 'events', 'suggestions', 'logs', 'automod']
+
+    const guild = global.botClient.guilds.cache.get(guild_id);
+    if (!guild) return res.status(404).json({ error: 'Serveur introuvable' });
+
+    const { PermissionFlagsBits } = require('discord.js');
+    const created = { roles: [], channels: [] };
+
+    // ── 1. Créer les rôles WARSTACK ──────────────────────────────────
+    const rolesDef = [
+      { name: '👑 Fondateur',    color: 0xFFD700, perms: PermissionFlagsBits.Administrator },
+      { name: '⭐ Team Leader',  color: 0x00BFFF, perms: PermissionFlagsBits.ManageGuild },
+      { name: '🎮 Organisateur', color: 0xFF6B35, perms: PermissionFlagsBits.ManageEvents },
+      { name: '🛡 Modérateur',   color: 0x95A5A6, perms: PermissionFlagsBits.ModerateMembers },
+    ];
+
+    const discordRoles = {};
+    for (const def of rolesDef) {
+      let role = guild.roles.cache.find(r => r.name === def.name);
+      if (!role) {
+        role = await guild.roles.create({
+          name       : def.name,
+          color      : def.color,
+          permissions: def.perms,
+          reason     : 'WARSTACK — Setup initial'
+        });
+      }
+      discordRoles[def.name] = role;
+      created.roles.push(def.name);
+    }
+
+    // ── 2. Attribuer les rôles aux membres sélectionnés ──────────────
+    for (const member of team || []) {
+      const discordMember = await guild.members.fetch(member.discord_id).catch(() => null);
+      if (!discordMember) continue;
+      const role = discordRoles[member.role];
+      if (role) await discordMember.roles.add(role).catch(() => {});
+
+      // Sauvegarder en Supabase
+      await supabase.from('team_members').upsert({
+        guild_id  : guild_id,
+        discord_id: member.discord_id,
+        username  : member.username,
+        avatar    : member.avatar,
+        role      : member.role,
+        created_at: new Date().toISOString(),
+      }, { onConflict: 'guild_id,discord_id' });
+    }
+
+    // ── 3. Créer les salons selon modules activés ────────────────────
+    const moduleChannels = {
+      welcome    : [{ name: 'bienvenue',    locked: true  }],
+      tickets    : [{ name: 'tickets',      locked: false }, { name: 'logs-tickets', locked: true }],
+      events     : [{ name: 'événements',   locked: true  }, { name: 'inscriptions', locked: false }],
+      suggestions: [{ name: 'suggestions',  locked: false }],
+      logs       : [{ name: 'logs',         locked: true  }],
+      automod    : [{ name: 'logs-automod', locked: true  }],
+    };
+
+    for (const mod of modules || []) {
+      const chans = moduleChannels[mod] || [];
+      for (const ch of chans) {
+        const exists = guild.channels.cache.find(c => c.name === ch.name);
+        if (exists) continue;
+        const newCh = await guild.channels.create({
+          name: ch.name,
+          type: ChannelType.GuildText,
+          permissionOverwrites: ch.locked
+            ? [{ id: guild.roles.everyone.id, deny: [PermissionFlagsBits.SendMessages] }]
+            : [],
+          reason: `WARSTACK — Module ${mod}`
+        });
+        created.channels.push(newCh.name);
+
+        // Sauvegarder config du module
+        await supabase.from('config').upsert({
+          guild_id: guild_id,
+          key     : `${mod}_channel`,
+          value   : newCh.id,
+        }, { onConflict: 'guild_id,key' });
+      }
+    }
+
+    // ── 4. Marquer le setup comme terminé ────────────────────────────
+    await supabase.from('guilds').update({
+      setup_complete: true,
+      modules       : modules,
+      updated_at    : new Date().toISOString(),
+    }).eq('guild_id', guild_id);
+
+    res.json({ success: true, created });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 module.exports = router;

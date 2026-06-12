@@ -1,7 +1,3 @@
-// ═══════════════════════════════════════════════════
-//  WARSTACK — Setup Wizard
-// ═══════════════════════════════════════════════════
-
 import { supabase } from './supabaseClient.js';
 import { BOT_URL, API_KEY } from './config.js';
 
@@ -10,12 +6,11 @@ let scannedMembers  = [];
 let selectedTeam    = [];
 let selectedModules = [];
 
-// ── Init ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
 
-  // 1. Session OAuth Discord via Supabase
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) {
+    localStorage.setItem('warstack_redirect', '/setup.html');
     window.location.href = '/login.html';
     return;
   }
@@ -23,21 +18,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   const discordId = session.user?.user_metadata?.provider_id
                  || session.user?.user_metadata?.sub;
 
-  // 2. Récupérer automatiquement le guild_id
   try {
-    const res  = await fetch(`${BOT_URL}/api/guilds/${discordId}`, {
+    const res    = await fetch(`${BOT_URL}/api/guilds/${discordId}`, {
       headers: { 'x-api-key': API_KEY }
     });
-    const data = await res.json();
+    const data   = await res.json();
     const guilds = data.guilds || [];
 
     if (guilds.length === 0) {
       document.getElementById('members-loading').innerHTML =
-        '<span style="color:var(--danger)">❌ Aucun serveur trouvé. Le bot est-il bien invité sur votre serveur ?</span>';
+        '<span style="color:var(--danger)">❌ Aucun serveur trouvé. Le bot est-il bien invité ?</span>';
       return;
     }
 
-    // Prend le premier serveur trouvé
     guildId = guilds[0].guild_id;
 
   } catch (err) {
@@ -50,34 +43,27 @@ document.addEventListener('DOMContentLoaded', async () => {
   initModuleCards();
 });
 
-// ── SCAN SERVEUR ──────────────────────────────────────────────
 async function scanServer() {
   try {
     const res  = await fetch(`${BOT_URL}/api/setup/scan/${guildId}`, {
       headers: { 'x-api-key': API_KEY }
     });
     const data = await res.json();
-
     if (!data.success) throw new Error(data.error || 'Scan échoué');
-
     scannedMembers = data.privileged || [];
     renderMembers();
-
   } catch (err) {
     document.getElementById('members-loading').innerHTML =
-      `<span style="color:var(--danger)">❌ Impossible de scanner le serveur. Le bot est-il bien présent ?<br><small>${err.message}</small></span>`;
+      `<span style="color:var(--danger)">❌ Scan impossible : ${err.message}</span>`;
   }
 }
 
-// ── RENDER MEMBRES ────────────────────────────────────────────
 function renderMembers() {
   const loading = document.getElementById('members-loading');
   const list    = document.getElementById('members-list');
 
   loading.style.display = 'none';
   list.style.display    = 'grid';
-
-  // Bouton suivant activé une fois le scan terminé
   document.getElementById('btn-next-1').disabled = false;
 
   if (!scannedMembers.length) {
@@ -103,14 +89,11 @@ function renderMembers() {
   `).join('');
 }
 
-// ── TOGGLE MEMBRE ─────────────────────────────────────────────
 window.toggleMember = function(card) {
   card.classList.toggle('checked');
-  const check = card.querySelector('.member-check');
-  check.textContent = card.classList.contains('checked') ? '✅' : '☐';
+  card.querySelector('.member-check').textContent = card.classList.contains('checked') ? '✅' : '☐';
 };
 
-// ── MODULES ───────────────────────────────────────────────────
 function initModuleCards() {
   document.querySelectorAll('.module-card').forEach(card => {
     card.addEventListener('click', () => {
@@ -120,7 +103,6 @@ function initModuleCards() {
   });
 }
 
-// ── NAVIGATION ────────────────────────────────────────────────
 window.goToStep1 = function() { showScreen(1); };
 
 window.goToStep2 = function() {
@@ -146,10 +128,8 @@ window.goToStep3 = function() {
 function showScreen(n) {
   document.querySelectorAll('.setup-screen').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.step').forEach(s => s.classList.remove('active', 'done'));
-
   const target = document.getElementById(`screen-${n}`);
   if (target) target.classList.add('active');
-
   for (let i = 1; i <= 3; i++) {
     const dot = document.getElementById(`step-dot-${i}`);
     if (!dot) continue;
@@ -158,7 +138,6 @@ function showScreen(n) {
   }
 }
 
-// ── RÉSUMÉ ────────────────────────────────────────────────────
 const moduleChannelMap = {
   welcome    : ['bienvenue'],
   tickets    : ['tickets', 'logs-tickets'],
@@ -179,15 +158,11 @@ const moduleLabels = {
 
 function buildSummary() {
   document.getElementById('summary-team').innerHTML = selectedTeam.length
-    ? selectedTeam.map(m =>
-        `<div class="summary-item">${m.role} — <strong>${m.display || m.username}</strong></div>`
-      ).join('')
+    ? selectedTeam.map(m => `<div class="summary-item">${m.role} — <strong>${m.display || m.username}</strong></div>`).join('')
     : '<div class="summary-item" style="color:var(--text-muted)">Aucun membre sélectionné</div>';
 
   document.getElementById('summary-modules').innerHTML = selectedModules.length
-    ? selectedModules.map(m =>
-        `<div class="summary-item">✅ ${moduleLabels[m] || m}</div>`
-      ).join('')
+    ? selectedModules.map(m => `<div class="summary-item">✅ ${moduleLabels[m] || m}</div>`).join('')
     : '<div class="summary-item" style="color:var(--text-muted)">Aucun module sélectionné</div>';
 
   const chans = selectedModules.flatMap(m => moduleChannelMap[m] || []);
@@ -196,26 +171,17 @@ function buildSummary() {
     : '<div class="summary-item" style="color:var(--text-muted)">Aucun salon à créer</div>';
 }
 
-// ── INSTALL ───────────────────────────────────────────────────
 window.install = async function() {
   const btn = document.getElementById('btn-install');
   btn.disabled    = true;
   btn.textContent = '⏳ Installation en cours...';
 
   try {
-    const res = await fetch(`${BOT_URL}/api/setup/install`, {
+    const res  = await fetch(`${BOT_URL}/api/setup/install`, {
       method : 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key'   : API_KEY,
-      },
-      body: JSON.stringify({
-        guild_id: guildId,
-        team    : selectedTeam,
-        modules : selectedModules,
-      }),
+      headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY },
+      body   : JSON.stringify({ guild_id: guildId, team: selectedTeam, modules: selectedModules }),
     });
-
     const data = await res.json();
     if (!data.success) throw new Error(data.error || 'Erreur installation');
 

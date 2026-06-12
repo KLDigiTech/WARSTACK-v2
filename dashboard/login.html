@@ -36,27 +36,27 @@
   </div>
 
   <script type="module">
-    import { supabase } from './js/supabaseClient.js';
+  import { supabase } from './js/supabaseClient.js';
 
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      const redirect = localStorage.getItem('warstack_redirect') || '/';
-      localStorage.removeItem('warstack_redirect');
-      window.location.href = redirect;
-    }
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) {
+    const redirect = localStorage.getItem('warstack_redirect') || '/';
+    localStorage.removeItem('warstack_redirect');
+    window.location.href = redirect;
+  }
 
-    try {
-      const guild = await fetch('https://warstack-bot.onrender.com/api/guild').then(r => r.json());
-      document.getElementById('login-server-logo').src = guild.icon || 'https://cdn.discordapp.com/embed/avatars/0.png';
-    } catch { }
+  try {
+    const guild = await fetch('https://warstack-bot.onrender.com/api/guild').then(r => r.json());
+    document.getElementById('login-server-logo').src = guild.icon || 'https://cdn.discordapp.com/embed/avatars/0.png';
+  } catch { }
 
-    document.getElementById('discord-login-btn').addEventListener('click', async () => {
-      await supabase.auth.signInWithOAuth({
-        provider: 'discord',
-        options: { redirectTo: 'https://warstack-v2.vercel.app/login.html' }
-      });
+  document.getElementById('discord-login-btn').addEventListener('click', async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'discord',
+      options: { redirectTo: 'https://warstack-v2.vercel.app/login.html' }
     });
-  </script>
+  });
+</script>
 
 </body>
 </html>

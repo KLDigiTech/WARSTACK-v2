@@ -1,6 +1,7 @@
-import { supabase }           from '../supabaseClient.js';
-import { BOT_URL, API_KEY }   from '../config.js';
-import { showToast }          from '../ui/toast.js';
+import { supabase }              from '../supabaseClient.js';
+import { BOT_URL, API_KEY }      from '../config.js';
+import { showToast }             from '../ui/toast.js';
+import { showModal, closeModal } from '../ui/modal.js';
 
 const GUILD_ID = sessionStorage.getItem('warstack_guild_id') || window.WARSTACK_GUILD_ID;
 
@@ -11,16 +12,21 @@ const ROLE_PERMS = {
   '🛡 Modérateur'  : ['overview','tickets','logs','suggestions','moderation'],
 };
 
+const PERMS_LIST = ['logs','tickets','suggestions','events','tournament','moderation','analytics','settings'];
+const PERMS_LABELS = { logs:'Logs', tickets:'Tickets', suggestions:'Suggestions', events:'Événements', tournament:'Tournois', moderation:'Modération', analytics:'Analytics', settings:'Paramètres' };
+const ROLES = ['👑 Fondateur','⭐ Team Leader','🎮 Organisateur','🛡 Modérateur'];
+
 let _members      = [];
 let _editingId    = null;
 let _selectedUser = null;
 let _selectedRole = null;
+let _deleteId     = null;
 let _searchTimer  = null;
 
 export async function initTeam() {
   await loadTeam();
   renderRolePerms();
-  bindEvents();
+  document.getElementById('btn-add-member').onclick = () => openAddModal();
 }
 
 // ── LOAD ──────────────────────────────────────────────────────
@@ -53,10 +59,10 @@ function renderTable() {
   }
 
   tbody.innerHTML = _members.map(m => {
-    const perms   = ROLE_PERMS[m.role] || [];
-    const extra   = m.extra_perms ? JSON.parse(m.extra_perms) : [];
-    const total   = new Set([...perms, ...extra]).size;
-    const pct     = Math.round((total / 16) * 100);
+    const perms = ROLE_PERMS[m.role] || [];
+    const extra = m.extra_perms ? JSON.parse(m.extra_perms) : [];
+    const total = new Set([...perms, ...extra]).size;
+    const pct   = Math.round((total / 16) * 100);
 
     return `
       <tr>
@@ -110,7 +116,43 @@ function renderRolePerms() {
   `).join('');
 }
 
-// ── MODALS ────────────────────────────────────────────────────
+// ── MODAL BODY HELPERS ────────────────────────────────────────
+function roleChoicesHTML(selected = null) {
+  return `
+    <div class="role-choices" id="modal-role-choices">
+      ${ROLES.map(r => `
+        <div class="role-choice ${r === selected ? 'active' : ''}" data-role="${r}" onclick="selectRole(this)">
+          <span class="role-choice-emoji">${r.split(' ')[0]}</span>
+          <span class="role-choice-label">${r.split(' ').slice(1).join(' ')}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function extraPermsHTML(checked = []) {
+  return `
+    <div class="perms-list" id="modal-extra-perms">
+      ${PERMS_LIST.map(p => `
+        <label class="perm-item">
+          <input type="checkbox" value="${p}" ${checked.includes(p) ? 'checked' : ''}>
+          ${PERMS_LABELS[p]}
+        </label>
+      `).join('')}
+    </div>
+  `;
+}
+
+function modalFooter() {
+  return `
+    <div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:1.5rem">
+      <button class="btn-secondary" onclick="closeModal()">Annuler</button>
+      <button class="btn-primary" onclick="saveMember()">Enregistrer</button>
+    </div>
+  `;
+}
+
+// ── OPEN EDIT ─────────────────────────────────────────────────
 window.openEditModal = function(discordId) {
   const m = _members.find(x => x.discord_id === discordId);
   if (!m) return;
@@ -119,57 +161,87 @@ window.openEditModal = function(discordId) {
   _selectedUser = { discord_id: m.discord_id, username: m.username, avatar: m.avatar };
   _selectedRole = m.role;
 
-  document.getElementById('team-modal-title').textContent = 'Modifier ' + m.username;
-  document.getElementById('search-group').style.display         = 'none';
-  document.getElementById('selected-member-group').style.display = 'block';
-  document.getElementById('selected-member-card').innerHTML = `
-    <img src="${m.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'}"
-         style="width:32px;height:32px;border-radius:50%">
-    <span style="font-weight:700;color:var(--text)">${m.username}</span>
-  `;
-
-  // Sélectionner le rôle
-  document.querySelectorAll('.role-choice').forEach(c => {
-    c.classList.toggle('active', c.dataset.role === m.role);
-  });
-
-  // Cocher les permissions extra
   const extra = m.extra_perms ? JSON.parse(m.extra_perms) : [];
-  document.querySelectorAll('#extra-perms input').forEach(cb => {
-    cb.checked = extra.includes(cb.value);
-  });
 
-  document.getElementById('team-modal').style.display = 'flex';
+  showModal({
+    title: `Modifier ${m.username}`,
+    body: `
+      <div class="form-group">
+        <label class="form-label">Membre</label>
+        <div class="selected-member-card">
+          <img src="${m.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'}"
+               onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'"
+               style="width:32px;height:32px;border-radius:50%">
+          <span style="font-weight:700;color:var(--text);margin-left:.75rem">${m.username}</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Rôle</label>
+        ${roleChoicesHTML(m.role)}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Permissions supplémentaires</label>
+        ${extraPermsHTML(extra)}
+      </div>
+      ${modalFooter()}
+    `
+  });
 };
 
+// ── OPEN ADD ──────────────────────────────────────────────────
 window.openAddModal = function() {
   _editingId    = null;
   _selectedUser = null;
   _selectedRole = null;
 
-  document.getElementById('team-modal-title').textContent = 'Ajouter un membre';
-  document.getElementById('search-group').style.display          = 'block';
-  document.getElementById('selected-member-group').style.display = 'none';
-  document.getElementById('member-search').value                 = '';
-  document.getElementById('search-results').innerHTML            = '';
-  document.querySelectorAll('.role-choice').forEach(c => c.classList.remove('active'));
-  document.querySelectorAll('#extra-perms input').forEach(cb => cb.checked = false);
-
-  document.getElementById('team-modal').style.display = 'flex';
+  showModal({
+    title: 'Ajouter un membre',
+    body: `
+      <div class="form-group" id="search-group">
+        <label class="form-label">Rechercher un membre Discord</label>
+        <input type="text" class="form-input" id="member-search" placeholder="Tapez un pseudo..." oninput="searchMembersModal(this.value)">
+        <div id="search-results" class="search-results"></div>
+      </div>
+      <div class="form-group" id="selected-member-group" style="display:none">
+        <label class="form-label">Membre sélectionné</label>
+        <div class="selected-member-card" id="selected-member-card"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Rôle</label>
+        ${roleChoicesHTML()}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Permissions supplémentaires</label>
+        ${extraPermsHTML()}
+      </div>
+      ${modalFooter()}
+    `
+  });
 };
 
-window.selectRole = function(card) {
-  document.querySelectorAll('.role-choice').forEach(c => c.classList.remove('active'));
-  card.classList.add('active');
-  _selectedRole = card.dataset.role;
-};
-
-let _deleteId = null;
-
+// ── OPEN DELETE ───────────────────────────────────────────────
 window.openDeleteModal = function(discordId, username) {
   _deleteId = discordId;
-  document.getElementById('delete-member-name').textContent = username;
-  document.getElementById('team-delete-modal').style.display = 'flex';
+  showModal({
+    title: 'Retirer ce membre ?',
+    body: `
+      <p style="color:var(--text-muted)">
+        Cette action retire <strong style="color:var(--text)">${username}</strong>
+        de l'équipe WARSTACK. Ses accès au dashboard seront supprimés.
+      </p>
+      <div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:1.5rem">
+        <button class="btn-secondary" onclick="closeModal()">Annuler</button>
+        <button class="btn-danger" onclick="confirmDelete()">Retirer</button>
+      </div>
+    `
+  });
+};
+
+// ── ACTIONS ───────────────────────────────────────────────────
+window.selectRole = function(card) {
+  document.querySelectorAll('#modal-role-choices .role-choice').forEach(c => c.classList.remove('active'));
+  card.classList.add('active');
+  _selectedRole = card.dataset.role;
 };
 
 window.confirmDelete = async function() {
@@ -181,45 +253,34 @@ window.confirmDelete = async function() {
     .eq('discord_id', _deleteId);
 
   if (error) { showToast('Erreur suppression', 'error'); return; }
-
-  document.getElementById('team-delete-modal').style.display = 'none';
+  closeModal();
   showToast('Membre retiré', 'success');
   await loadTeam();
 };
 
-// ── SEARCH MEMBRES ────────────────────────────────────────────
-function bindEvents() {
-  document.getElementById('btn-add-member').onclick = () => openAddModal();
-
-  document.getElementById('member-search').addEventListener('input', (e) => {
-    clearTimeout(_searchTimer);
-    const q = e.target.value.trim();
-    if (q.length < 2) { document.getElementById('search-results').innerHTML = ''; return; }
-    _searchTimer = setTimeout(() => searchMembers(q), 300);
-  });
-}
-
-async function searchMembers(q) {
-  try {
-    const res  = await fetch(`${BOT_URL}/api/member/search?q=${encodeURIComponent(q)}`, {
-      headers: { 'x-api-key': API_KEY }
-    });
-    const data = await res.json();
-    const results = document.getElementById('search-results');
-
-    if (!data.members?.length) {
-      results.innerHTML = '<div style="color:var(--text-muted);padding:.5rem">Aucun résultat</div>';
-      return;
-    }
-
-    results.innerHTML = data.members.map(m => `
-      <div class="search-result-item" onclick="selectMember('${m.discord_id}', '${m.username}', '${m.avatar}')">
-        <img src="${m.avatar}" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-        <span>${m.display || m.username}</span>
-      </div>
-    `).join('');
-  } catch {}
-}
+window.searchMembersModal = async function(q) {
+  clearTimeout(_searchTimer);
+  if (q.length < 2) { document.getElementById('search-results').innerHTML = ''; return; }
+  _searchTimer = setTimeout(async () => {
+    try {
+      const res  = await fetch(`${BOT_URL}/api/member/search?q=${encodeURIComponent(q)}`, {
+        headers: { 'x-api-key': API_KEY }
+      });
+      const data = await res.json();
+      const results = document.getElementById('search-results');
+      if (!data.members?.length) {
+        results.innerHTML = '<div style="color:var(--text-muted);padding:.5rem">Aucun résultat</div>';
+        return;
+      }
+      results.innerHTML = data.members.map(m => `
+        <div class="search-result-item" onclick="selectMember('${m.discord_id}','${m.username}','${m.avatar}')">
+          <img src="${m.avatar}" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+          <span>${m.display || m.username}</span>
+        </div>
+      `).join('');
+    } catch {}
+  }, 300);
+};
 
 window.selectMember = function(id, username, avatar) {
   _selectedUser = { discord_id: id, username, avatar };
@@ -228,8 +289,9 @@ window.selectMember = function(id, username, avatar) {
   document.getElementById('selected-member-card').innerHTML = `
     <img src="${avatar}" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'"
          style="width:32px;height:32px;border-radius:50%">
-    <span style="font-weight:700;color:var(--text)">${username}</span>
-    <button onclick="clearSelectedMember()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;margin-left:auto">✕</button>
+    <span style="font-weight:700;color:var(--text);margin-left:.75rem">${username}</span>
+    <button onclick="clearSelectedMember()"
+            style="background:none;border:none;color:var(--text-muted);cursor:pointer;margin-left:auto">✕</button>
   `;
 };
 
@@ -241,12 +303,11 @@ window.clearSelectedMember = function() {
   document.getElementById('search-results').innerHTML            = '';
 };
 
-// ── SAVE ──────────────────────────────────────────────────────
 window.saveMember = async function() {
   if (!_selectedUser) { showToast('Sélectionnez un membre', 'error'); return; }
   if (!_selectedRole) { showToast('Sélectionnez un rôle', 'error'); return; }
 
-  const extraPerms = [...document.querySelectorAll('#extra-perms input:checked')].map(cb => cb.value);
+  const extraPerms = [...document.querySelectorAll('#modal-extra-perms input:checked')].map(cb => cb.value);
 
   const { error } = await supabase.from('team_members').upsert({
     guild_id   : GUILD_ID,
@@ -260,7 +321,7 @@ window.saveMember = async function() {
 
   if (error) { showToast('Erreur enregistrement', 'error'); return; }
 
-  document.getElementById('team-modal').style.display = 'none';
+  closeModal();
   showToast(_editingId ? 'Membre modifié' : 'Membre ajouté', 'success');
   await loadTeam();
 };

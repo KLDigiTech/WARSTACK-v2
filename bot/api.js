@@ -1062,13 +1062,11 @@ router.post('/message/send-now', auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-// ── SETUP — SCAN SERVEUR ──────────────────────────────────────────────────────
 router.get('/setup/scan/:guild_id', auth, async (req, res) => {
   try {
     const guild = global.botClient.guilds.cache.get(req.params.guild_id);
     if (!guild) return res.status(404).json({ error: 'Serveur introuvable' });
 
-    // Utilise le cache si dispo, sinon fetch avec limite
     if (guild.members.cache.size < 2) {
       await guild.members.fetch({ limit: 100 }).catch(() => {});
     }
@@ -1100,6 +1098,32 @@ router.get('/setup/scan/:guild_id', auth, async (req, res) => {
       .filter(r => r.name !== '@everyone' && !r.managed)
       .sort((a, b) => b.position - a.position)
       .map(r => ({ id: r.id, name: r.name, color: r.hexColor }));
+
+    // ── Sauvegarder salons en Supabase ────────────────────────
+    await supabase.from('guild_channels').delete().eq('guild_id', req.params.guild_id);
+    if (channels.length) {
+      await supabase.from('guild_channels').insert(
+        channels.map(c => ({
+          guild_id  : req.params.guild_id,
+          channel_id: c.id,
+          name      : c.name,
+          category  : c.category,
+        }))
+      );
+    }
+
+    // ── Sauvegarder rôles en Supabase ─────────────────────────
+    await supabase.from('guild_roles').delete().eq('guild_id', req.params.guild_id);
+    if (roles.length) {
+      await supabase.from('guild_roles').insert(
+        roles.map(r => ({
+          guild_id: req.params.guild_id,
+          role_id : r.id,
+          name    : r.name,
+          color   : r.color,
+        }))
+      );
+    }
 
     res.json({ success: true, privileged, channels, roles });
 

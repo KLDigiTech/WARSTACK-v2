@@ -149,12 +149,12 @@ const sections = {
   'ocr-test':  () => import('./sections/ocr-test.js').then(m => m.initOcrTest()),
   origine:     () => import('./sections/origine.js').then(m => m.initOrigine()),
   rulebuilder: () => import('./sections/rulebuilder.js').then(m => m.initRuleBuilder()),
+  team:        () => import('./sections/team.js').then(m => m.initTeam()),
 };
 
 const PUBLIC_SECTIONS = [
   'overview', 'players', 'analytics', 'tournament', 'welcome', 'onboarding', 'roles',
-  'birthdays', 'suggestions', 'events', 'origine',
-  'messages', 'reactions', 'channels', 'ocr-test', 'rulebuilder',
+  'birthdays', 'suggestions', 'events', 'origine',  'messages', 'reactions', 'channels', 'ocr-test', 'rulebuilder',
 ];
 
 // ── ROUTER ────────────────────────────────────────────────────────────────────

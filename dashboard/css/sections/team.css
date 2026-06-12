@@ -1,0 +1,196 @@
+.team-loading {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--text-muted);
+  padding: 3rem 0;
+}
+
+.team-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.team-table th {
+  text-align: left;
+  padding: .75rem 1rem;
+  color: var(--text-muted);
+  font-size: .8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--border);
+}
+
+.team-table td {
+  padding: .75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: .9rem;
+}
+
+.team-table tr:last-child td { border-bottom: none; }
+.team-table tr:hover td { background: var(--surface-3); }
+
+.role-badge {
+  background: var(--primary-glow);
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  border-radius: 20px;
+  padding: .2rem .75rem;
+  font-size: .8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.perm-bar {
+  width: 80px;
+  height: 6px;
+  background: var(--surface-4);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.perm-bar-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 3px;
+  transition: width .3s;
+}
+
+.btn-icon {
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: .3rem .6rem;
+  cursor: pointer;
+  font-size: .85rem;
+  transition: all .15s;
+}
+
+.btn-icon:hover { border-color: var(--primary); }
+.btn-icon-danger:hover { border-color: var(--danger); }
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+  border: none;
+  padding: .75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: .9rem;
+}
+
+/* ROLE CHOICES */
+.role-choices {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: .5rem;
+}
+
+.role-choice {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .6rem 1rem;
+  background: var(--surface-3);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.role-choice:hover { border-color: var(--border-hover); }
+.role-choice.active { border-color: var(--primary); background: var(--primary-glow); }
+
+.role-choice-emoji { font-size: 1.1rem; }
+.role-choice-label { font-weight: 700; color: var(--text); font-size: .9rem; }
+
+/* PERMISSIONS */
+.perms-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: .4rem;
+}
+
+.perm-item {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  color: var(--text-muted);
+  font-size: .85rem;
+  cursor: pointer;
+  padding: .3rem;
+  border-radius: 4px;
+}
+
+.perm-item:hover { color: var(--text); background: var(--surface-3); }
+.perm-item input { accent-color: var(--primary); }
+
+/* SEARCH */
+.search-results {
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-top: .5rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .6rem 1rem;
+  cursor: pointer;
+  transition: background .1s;
+}
+
+.search-result-item:hover { background: var(--surface-4); }
+.search-result-item img { width: 28px; height: 28px; border-radius: 50%; }
+.search-result-item span { color: var(--text); font-size: .9rem; }
+
+.selected-member-card {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .6rem 1rem;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+/* ROLE PERMS GRID */
+.role-perms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.role-perm-card {
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.role-perm-title {
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: .75rem;
+  font-family: 'Rajdhani', sans-serif;
+  letter-spacing: 1px;
+}
+
+.role-perm-list { display: flex; flex-wrap: wrap; gap: .4rem; }
+
+.perm-tag {
+  background: var(--surface-4);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: .15rem .5rem;
+  font-size: .75rem;
+  color: var(--text-muted);
+}

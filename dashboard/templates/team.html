@@ -1,0 +1,118 @@
+<div class="section-header">
+  <div>
+    <h1 class="section-title">👥 Équipe</h1>
+    <p class="section-subtitle">Gérez les membres de votre staff et leurs rôles WARSTACK.</p>
+  </div>
+  <button class="btn-primary" id="btn-add-member">+ Ajouter un membre</button>
+</div>
+
+<div id="team-loading" class="team-loading">
+  <div class="spinner"></div>
+  <span>Chargement de l'équipe...</span>
+</div>
+
+<div id="team-content" style="display:none">
+
+  <!-- TABLEAU MEMBRES -->
+  <div class="card" style="margin-bottom:1.5rem">
+    <table class="team-table">
+      <thead>
+        <tr>
+          <th>Membre</th>
+          <th>Rôle</th>
+          <th>Accès</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="team-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- PERMISSIONS PAR RÔLE -->
+  <div class="card">
+    <div class="card-title">Permissions par rôle</div>
+    <div class="role-perms-grid" id="role-perms-grid"></div>
+  </div>
+
+</div>
+
+<!-- MODAL AJOUTER / MODIFIER -->
+<div class="modal-overlay" id="team-modal" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="team-modal-title">Ajouter un membre</div>
+      <button class="modal-close" onclick="document.getElementById('team-modal').style.display='none'">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="form-group" id="search-group">
+        <label class="form-label">Rechercher un membre Discord</label>
+        <input type="text" class="form-input" id="member-search" placeholder="Tapez un pseudo...">
+        <div id="search-results" class="search-results"></div>
+      </div>
+
+      <div class="form-group" id="selected-member-group" style="display:none">
+        <label class="form-label">Membre sélectionné</label>
+        <div class="selected-member-card" id="selected-member-card"></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Rôle</label>
+        <div class="role-choices" id="role-choices">
+          <div class="role-choice" data-role="👑 Fondateur" onclick="selectRole(this)">
+            <span class="role-choice-emoji">👑</span>
+            <span class="role-choice-label">Fondateur</span>
+          </div>
+          <div class="role-choice" data-role="⭐ Team Leader" onclick="selectRole(this)">
+            <span class="role-choice-emoji">⭐</span>
+            <span class="role-choice-label">Team Leader</span>
+          </div>
+          <div class="role-choice" data-role="🎮 Organisateur" onclick="selectRole(this)">
+            <span class="role-choice-emoji">🎮</span>
+            <span class="role-choice-label">Organisateur</span>
+          </div>
+          <div class="role-choice" data-role="🛡 Modérateur" onclick="selectRole(this)">
+            <span class="role-choice-emoji">🛡</span>
+            <span class="role-choice-label">Modérateur</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Permissions supplémentaires</label>
+        <div class="perms-list" id="extra-perms">
+          <label class="perm-item"><input type="checkbox" value="logs"> Logs</label>
+          <label class="perm-item"><input type="checkbox" value="tickets"> Tickets</label>
+          <label class="perm-item"><input type="checkbox" value="suggestions"> Suggestions</label>
+          <label class="perm-item"><input type="checkbox" value="events"> Événements</label>
+          <label class="perm-item"><input type="checkbox" value="tournament"> Tournois</label>
+          <label class="perm-item"><input type="checkbox" value="moderation"> Modération</label>
+          <label class="perm-item"><input type="checkbox" value="analytics"> Analytics</label>
+          <label class="perm-item"><input type="checkbox" value="settings"> Paramètres</label>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="document.getElementById('team-modal').style.display='none'">Annuler</button>
+      <button class="btn-primary" id="btn-save-member" onclick="saveMember()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMATION SUPPRESSION -->
+<div class="modal-overlay" id="team-delete-modal" style="display:none">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <div class="modal-title">Retirer ce membre ?</div>
+      <button class="modal-close" onclick="document.getElementById('team-delete-modal').style.display='none'">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--text-muted)">Cette action retire <strong id="delete-member-name"></strong> de l'équipe WARSTACK. Ses accès au dashboard seront supprimés.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="document.getElementById('team-delete-modal').style.display='none'">Annuler</button>
+      <button class="btn-danger" id="btn-confirm-delete" onclick="confirmDelete()">Retirer</button>
+    </div>
+  </div>
+</div>

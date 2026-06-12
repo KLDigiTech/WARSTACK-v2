@@ -12,14 +12,12 @@ module.exports = {
     try {
       await guild.channels.fetch();
 
-      // Vérifier si le salon existe déjà
       const existing = guild.channels.cache.find(c => c.name === 'warstack-dashboard');
       if (existing) {
         console.log(`⚠️ #warstack-dashboard déjà présent sur ${guild.name}`);
         return;
       }
 
-      // Créer le salon
       const channel = await guild.channels.create({
         name: 'warstack-dashboard',
         type: ChannelType.GuildText,
@@ -29,7 +27,6 @@ module.exports = {
         reason: 'WARSTACK — Installation initiale'
       });
 
-      // Embed
       const embed = new EmbedBuilder()
         .setTitle('🚀 Bienvenue sur WARSTACK')
         .setDescription(
@@ -53,12 +50,12 @@ module.exports = {
 
       await channel.send({ embeds: [embed], components: [row] });
 
-      // Enregistrer en Supabase
       await supabase.from('guilds').upsert({
         guild_id      : guild.id,
         name          : guild.name,
         icon          : guild.iconURL({ size: 256 }),
         member_count  : guild.memberCount,
+        owner_id      : guild.ownerId,
         setup_complete: false,
         joined_at     : new Date().toISOString(),
       }, { onConflict: 'guild_id' });

@@ -19,62 +19,33 @@ document.addEventListener('DOMContentLoaded', async () => {
                  || session.user?.user_metadata?.sub;
 
   try {
-    const res    = await fetch(`${BOT_URL}/api/guilds/${discordId}`, {
-      headers: { 'x-api-key': API_KEY }
-    });
-    const data   = await res.json();
-    const guilds = data.guilds || [];
+    const { data: guildData, error } = await supabase
+      .from('guilds')
+      .select('guild_id, name')
+      .eq('owner_id', discordId)
+      .eq('setup_complete', false)
+      .order('joined_at', { ascending: false })
+      .limit(1)
+      .single();
 
-    if (guilds.length === 0) {
+    if (error || !guildData) {
       document.getElementById('members-loading').innerHTML =
-        '<span style="color:var(--danger)">❌ Aucun serveur trouvé. Le bot est-il bien invité ?</span>';
+        '<span style="color:var(--danger)">❌ Aucun serveur en attente d\'installation. Invitez d\'abord le bot sur votre serveur.</span>';
       return;
     }
 
-    if (guilds.length === 1) {
-      guildId = guilds[0].guild_id;
-      await scanServer();
-      initModuleCards();
-
-    } else {
-      // Plusieurs serveurs → sélecteur
-      const loading = document.getElementById('members-loading');
-      loading.innerHTML = `
-        <div style="width:100%">
-          <p style="margin-bottom:1rem;color:var(--text-primary);font-weight:600">Sur quel serveur installer WARSTACK ?</p>
-          ${guilds.map(g => `
-            <div class="member-card" style="margin-bottom:.5rem;cursor:pointer" onclick="selectGuild('${g.guild_id}', this)">
-              <img src="${g.icon || 'https://cdn.discordapp.com/embed/avatars/0.png'}"
-                   style="width:40px;height:40px;border-radius:50%;margin-right:.75rem"
-                   onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-              <div>
-                <div style="font-weight:700;color:var(--text-primary)">${g.name}</div>
-                <div style="font-size:.8rem;color:var(--text-muted)">${g.member_count} membres</div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      `;
-      initModuleCards();
-    }
+    guildId = guildData.guild_id;
 
   } catch (err) {
     document.getElementById('members-loading').innerHTML =
-      `<span style="color:var(--danger)">❌ Erreur connexion bot : ${err.message}</span>`;
+      `<span style="color:var(--danger)">❌ Erreur : ${err.message}</span>`;
+    return;
   }
+
+  await scanServer();
+  initModuleCards();
 });
 
-// ── SÉLECTION SERVEUR ─────────────────────────────────────────
-window.selectGuild = async function(id, card) {
-  document.querySelectorAll('#members-loading .member-card').forEach(c => c.classList.remove('checked'));
-  card.classList.add('checked');
-  guildId = id;
-  document.getElementById('members-loading').innerHTML = '<div style="display:flex;align-items:center;gap:1rem"><div class="spinner"></div> Scan en cours...</div>';
-  document.getElementById('members-list').style.display = 'none';
-  await scanServer();
-};
-
-// ── SCAN SERVEUR ──────────────────────────────────────────────
 async function scanServer() {
   try {
     const res  = await fetch(`${BOT_URL}/api/setup/scan/${guildId}`, {
@@ -90,7 +61,6 @@ async function scanServer() {
   }
 }
 
-// ── RENDER MEMBRES ────────────────────────────────────────────
 function renderMembers() {
   const loading = document.getElementById('members-loading');
   const list    = document.getElementById('members-list');
@@ -122,13 +92,11 @@ function renderMembers() {
   `).join('');
 }
 
-// ── TOGGLE MEMBRE ─────────────────────────────────────────────
 window.toggleMember = function(card) {
   card.classList.toggle('checked');
   card.querySelector('.member-check').textContent = card.classList.contains('checked') ? '✅' : '☐';
 };
 
-// ── MODULES ───────────────────────────────────────────────────
 function initModuleCards() {
   document.querySelectorAll('.module-card').forEach(card => {
     card.addEventListener('click', () => {
@@ -138,7 +106,6 @@ function initModuleCards() {
   });
 }
 
-// ── NAVIGATION ────────────────────────────────────────────────
 window.goToStep1 = function() { showScreen(1); };
 
 window.goToStep2 = function() {
@@ -174,7 +141,6 @@ function showScreen(n) {
   }
 }
 
-// ── RÉSUMÉ ────────────────────────────────────────────────────
 const moduleChannelMap = {
   welcome    : ['bienvenue'],
   tickets    : ['tickets', 'logs-tickets'],
@@ -208,7 +174,6 @@ function buildSummary() {
     : '<div class="summary-item" style="color:var(--text-muted)">Aucun salon à créer</div>';
 }
 
-// ── INSTALL ───────────────────────────────────────────────────
 window.install = async function() {
   const btn = document.getElementById('btn-install');
   btn.disabled    = true;

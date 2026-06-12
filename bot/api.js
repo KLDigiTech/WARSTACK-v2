@@ -1116,10 +1116,9 @@ router.post('/setup/install', auth, async (req, res) => {
     const guild = global.botClient.guilds.cache.get(guild_id);
     if (!guild) return res.status(404).json({ error: 'Serveur introuvable' });
 
-    const { PermissionFlagsBits } = require('discord.js');
     const created = { channels: [] };
 
-    // ── 1. Enregistrer l'équipe en Supabase uniquement ───────────
+    // ── 1. Enregistrer l'équipe en Supabase ──────────────────────
     for (const member of team || []) {
       await supabase.from('team_members').upsert({
         guild_id  : guild_id,
@@ -1170,6 +1169,34 @@ router.post('/setup/install', auth, async (req, res) => {
       modules       : modules,
       updated_at    : new Date().toISOString(),
     }).eq('guild_id', guild_id);
+
+    // ── 4. Mettre à jour #warstack-dashboard ─────────────────────
+    const dashChannel = guild.channels.cache.find(c => c.name === 'warstack-dashboard');
+    if (dashChannel) {
+      const messages = await dashChannel.messages.fetch({ limit: 10 });
+      const botMsgs  = messages.filter(m => m.author.id === global.botClient.user.id);
+      await Promise.all(botMsgs.map(m => m.delete().catch(() => {})));
+
+      const embed = new EmbedBuilder()
+        .setTitle('✅ WARSTACK est installé !')
+        .setDescription(
+          '**Votre serveur est configuré et prêt.**\n\n' +
+          '> Accédez au dashboard pour gérer votre communauté.'
+        )
+        .setColor(0x00FF66)
+        .setFooter({ text: 'WARSTACK • Battlefield 6' })
+        .setTimestamp();
+
+      const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setLabel('📊 Accéder au Dashboard')
+          .setStyle(ButtonStyle.Link)
+          .setURL(`${process.env.DASHBOARD_URL || 'https://warstack-v2.vercel.app'}`)
+      );
+
+      await dashChannel.send({ embeds: [embed], components: [row] });
+    }
 
     res.json({ success: true, created });
 

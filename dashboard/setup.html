@@ -1,140 +1,136 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WARSTACK — Installation</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/setup.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WARSTACK — Installation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/setup.css">
 </head>
-
 <body class="setup-page">
 
-    <div class="setup-container">
-        <!-- HEADER -->
-        <div class="setup-header">
-            <div class="setup-logo">⚔️ WARSTACK</div>
-            <div class="setup-steps">
-                <div class="step active" id="step-dot-1">1</div>
-                <div class="step-line"></div>
-                <div class="step" id="step-dot-2">2</div>
-                <div class="step-line"></div>
-                <div class="step" id="step-dot-3">3</div>
-            </div>
-        </div>
+  <div class="setup-container">
 
-        <!-- ÉCRAN 1 — ÉQUIPE -->
-        <div class="setup-screen active" id="screen-1">
-            <h2>👥 Qui gère votre serveur ?</h2>
-            <p class="setup-subtitle">WARSTACK a détecté les membres avec des accès élevés. Cochez ceux qui font partie
-                de votre staff.</p>
-
-            <div id="members-loading" class="loading-state">
-                <div class="spinner"></div>
-                <span>Scan du serveur en cours...</span>
-            </div>
-
-            <div id="members-list" class="members-grid" style="display:none"></div>
-
-            <div class="setup-nav">
-                <div></div>
-                <button class="btn-primary" id="btn-next-1" onclick="goToStep2()">Suivant →</button>
-            </div>
-        </div>
-
-        <!-- ÉCRAN 2 — MODULES -->
-        <div class="setup-screen" id="screen-2">
-            <h2>⚙️ Quels modules activer ?</h2>
-            <p class="setup-subtitle">Tout est pré-coché. Décochez ce dont vous n'avez pas besoin.</p>
-
-            <div class="modules-grid">
-                <label class="module-card checked" data-module="welcome">
-                    <input type="checkbox" checked>
-                    <div class="module-icon">👋</div>
-                    <div class="module-name">Welcome</div>
-                    <div class="module-desc">Message de bienvenue automatique</div>
-                </label>
-                <label class="module-card checked" data-module="tickets">
-                    <input type="checkbox" checked>
-                    <div class="module-icon">🎫</div>
-                    <div class="module-name">Tickets</div>
-                    <div class="module-desc">Système de support membres</div>
-                </label>
-                <label class="module-card checked" data-module="events">
-                    <input type="checkbox" checked>
-                    <div class="module-icon">🎯</div>
-                    <div class="module-name">Événements</div>
-                    <div class="module-desc">Gestion et annonce d'events</div>
-                </label>
-                <label class="module-card checked" data-module="suggestions">
-                    <input type="checkbox" checked>
-                    <div class="module-icon">💡</div>
-                    <div class="module-name">Suggestions</div>
-                    <div class="module-desc">Suggestions des membres</div>
-                </label>
-                <label class="module-card checked" data-module="logs">
-                    <input type="checkbox" checked>
-                    <div class="module-icon">📋</div>
-                    <div class="module-name">Logs</div>
-                    <div class="module-desc">Historique des actions</div>
-                </label>
-                <label class="module-card checked" data-module="automod">
-                    <input type="checkbox" checked>
-                    <div class="module-icon">🛡</div>
-                    <div class="module-name">AutoMod</div>
-                    <div class="module-desc">Modération automatique</div>
-                </label>
-            </div>
-
-            <div class="setup-nav">
-                <button class="btn-secondary" onclick="goToStep1()">← Retour</button>
-                <button class="btn-primary" onclick="goToStep3()">Suivant →</button>
-            </div>
-        </div>
-
-        <!-- ÉCRAN 3 — RÉSUMÉ -->
-        <div class="setup-screen" id="screen-3">
-            <h2>✅ Résumé de l'installation</h2>
-            <p class="setup-subtitle">Vérifiez avant de lancer. WARSTACK ne supprime rien, il crée uniquement ce qui
-                manque.</p>
-
-            <div class="summary-block">
-                <div class="summary-title">👥 Équipe détectée</div>
-                <div id="summary-team"></div>
-            </div>
-
-            <div class="summary-block">
-                <div class="summary-title">⚙️ Modules activés</div>
-                <div id="summary-modules"></div>
-            </div>
-
-            <div class="summary-block">
-                <div class="summary-title">📁 Salons qui seront créés</div>
-                <div id="summary-channels"></div>
-            </div>
-
-            <div class="setup-nav">
-                <button class="btn-secondary" onclick="goToStep2()">← Retour</button>
-                <button class="btn-primary" id="btn-install" onclick="install()">🚀 Installer WARSTACK</button>
-            </div>
-        </div>
-
-        <!-- ÉCRAN SUCCÈS -->
-        <div class="setup-screen" id="screen-success">
-            <div class="success-icon">🎉</div>
-            <h2>WARSTACK est installé !</h2>
-            <p class="setup-subtitle">Votre serveur est configuré. Vous pouvez maintenant accéder au dashboard complet.
-            </p>
-            <div id="install-summary" class="install-result"></div>
-            <a href="/" class="btn-primary" style="display:inline-block;margin-top:2rem">
-                Accéder au Dashboard →
-            </a>
-        </div>
-
+    <!-- HEADER -->
+    <div class="setup-header">
+      <div class="setup-logo">⚔️ WARSTACK</div>
+      <div class="setup-steps">
+        <div class="step active" id="step-dot-1">1</div>
+        <div class="step-line"></div>
+        <div class="step" id="step-dot-2">2</div>
+        <div class="step-line"></div>
+        <div class="step" id="step-dot-3">3</div>
+      </div>
     </div>
 
-    <script type="module" src="js/setup.js"></script>
-</body>
+    <!-- ÉCRAN 1 — ÉQUIPE -->
+    <div class="setup-screen active" id="screen-1">
+      <h2>👥 Qui gère votre serveur ?</h2>
+      <p class="setup-subtitle">WARSTACK a détecté les membres avec des accès élevés. Assignez-les à un rôle.</p>
 
+      <div id="members-loading" class="loading-state">
+        <div class="spinner"></div>
+        <span>Scan du serveur en cours...</span>
+      </div>
+
+      <div id="members-list" style="display:none"></div>
+
+      <div class="setup-nav">
+        <div></div>
+        <button class="btn-primary" id="btn-next-1" onclick="goToStep2()" disabled>Suivant →</button>
+      </div>
+    </div>
+
+    <!-- ÉCRAN 2 — MODULES -->
+    <div class="setup-screen" id="screen-2">
+      <h2>⚙️ Quels modules activer ?</h2>
+      <p class="setup-subtitle">Tout est pré-coché. Décochez ce dont vous n'avez pas besoin.</p>
+
+      <div class="modules-grid">
+        <label class="module-card checked" data-module="welcome" onclick="toggleModule(this)">
+          <input type="checkbox" checked>
+          <div class="module-icon">👋</div>
+          <div class="module-name">Welcome</div>
+          <div class="module-desc">Message de bienvenue automatique</div>
+        </label>
+        <label class="module-card checked" data-module="tickets" onclick="toggleModule(this)">
+          <input type="checkbox" checked>
+          <div class="module-icon">🎫</div>
+          <div class="module-name">Tickets</div>
+          <div class="module-desc">Système de support membres</div>
+        </label>
+        <label class="module-card checked" data-module="events" onclick="toggleModule(this)">
+          <input type="checkbox" checked>
+          <div class="module-icon">🎯</div>
+          <div class="module-name">Événements</div>
+          <div class="module-desc">Gestion et annonce d'events</div>
+        </label>
+        <label class="module-card checked" data-module="suggestions" onclick="toggleModule(this)">
+          <input type="checkbox" checked>
+          <div class="module-icon">💡</div>
+          <div class="module-name">Suggestions</div>
+          <div class="module-desc">Suggestions des membres</div>
+        </label>
+        <label class="module-card checked" data-module="logs" onclick="toggleModule(this)">
+          <input type="checkbox" checked>
+          <div class="module-icon">📋</div>
+          <div class="module-name">Logs</div>
+          <div class="module-desc">Historique des actions</div>
+        </label>
+        <label class="module-card checked" data-module="automod" onclick="toggleModule(this)">
+          <input type="checkbox" checked>
+          <div class="module-icon">🛡</div>
+          <div class="module-name">AutoMod</div>
+          <div class="module-desc">Modération automatique</div>
+        </label>
+      </div>
+
+      <div class="setup-nav">
+        <button class="btn-secondary" onclick="goToStep1()">← Retour</button>
+        <button class="btn-primary" onclick="goToStep3()">Suivant →</button>
+      </div>
+    </div>
+
+    <!-- ÉCRAN 3 — RÉSUMÉ -->
+    <div class="setup-screen" id="screen-3">
+      <h2>✅ Résumé de l'installation</h2>
+      <p class="setup-subtitle">Vérifiez avant de lancer. WARSTACK ne supprime rien, il crée uniquement ce qui manque.</p>
+
+      <div class="summary-block">
+        <div class="summary-title">👥 Équipe détectée</div>
+        <div id="summary-team"></div>
+      </div>
+
+      <div class="summary-block">
+        <div class="summary-title">⚙️ Modules activés</div>
+        <div id="summary-modules"></div>
+      </div>
+
+      <div class="summary-block">
+        <div class="summary-title">📁 Salons qui seront créés</div>
+        <div id="summary-channels"></div>
+      </div>
+
+      <div class="setup-nav">
+        <button class="btn-secondary" onclick="goToStep2()">← Retour</button>
+        <button class="btn-primary" id="btn-install" onclick="install()">🚀 Installer WARSTACK</button>
+      </div>
+    </div>
+
+    <!-- SUCCÈS -->
+    <div class="setup-screen" id="screen-success">
+      <div class="success-icon">🎉</div>
+      <h2>WARSTACK est installé !</h2>
+      <p class="setup-subtitle">Votre serveur est configuré. Vous pouvez maintenant accéder au dashboard complet.</p>
+      <div id="install-summary" class="install-result"></div>
+      <a href="/" class="btn-primary" style="display:inline-block;margin-top:2rem">
+        Accéder au Dashboard →
+      </a>
+    </div>
+
+  </div>
+
+  <script type="module" src="js/setup.js"></script>
+</body>
 </html>

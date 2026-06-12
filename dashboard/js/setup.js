@@ -5,7 +5,6 @@ let guildId         = null;
 let scannedMembers  = [];
 let selectedModules = [];
 
-// Rôles par défaut — nom modifiable, membres assignables
 let roles = [
   { id: 'fondateur',    label: 'Fondateur',    emoji: '👑', members: [] },
   { id: 'teamleader',   label: 'Team Leader',  emoji: '⭐', members: [] },
@@ -51,7 +50,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   await scanServer();
-  initModuleCards();
 });
 
 // ── SCAN ─────────────────────────────────────────────────────
@@ -72,31 +70,24 @@ async function scanServer() {
 
 // ── SCREEN 1 — ÉQUIPE ─────────────────────────────────────────
 function renderScreen1() {
-  const loading = document.getElementById('members-loading');
-  const list    = document.getElementById('members-list');
-
-  loading.style.display = 'none';
-  list.style.display    = 'block';
-  document.getElementById('btn-next-1').disabled = false;
-
+  document.getElementById('members-loading').style.display = 'none';
+  document.getElementById('members-list').style.display    = 'block';
+  document.getElementById('btn-next-1').disabled           = false;
   renderRoles();
 }
 
 function renderRoles() {
-  const list = document.getElementById('members-list');
-
-  list.innerHTML = `
+  document.getElementById('members-list').innerHTML = `
     <div class="roles-grid">
       ${roles.map((role, ri) => `
-        <div class="role-block" data-role-id="${role.id}">
+        <div class="role-block">
           <div class="role-header">
             <span class="role-emoji">${role.emoji}</span>
-            <input class="role-label-input" value="${role.label}" 
+            <input class="role-label-input" value="${role.label}"
                    onchange="updateRoleLabel(${ri}, this.value)"
                    placeholder="Nom du rôle">
-            <button class="btn-remove-role" onclick="removeRole(${ri})" title="Supprimer ce rôle">✕</button>
+            <button class="btn-remove-role" onclick="removeRole(${ri})">✕</button>
           </div>
-
           <div class="role-members">
             ${role.members.map((m, mi) => `
               <div class="role-member-card">
@@ -106,7 +97,6 @@ function renderRoles() {
               </div>
             `).join('')}
           </div>
-
           <div class="role-add-member">
             <select onchange="addMemberToRole(${ri}, this)">
               <option value="">+ Ajouter un membre</option>
@@ -119,7 +109,6 @@ function renderRoles() {
         </div>
       `).join('')}
     </div>
-
     <button class="btn-add-role" onclick="addRole()">+ Ajouter un rôle</button>
   `;
 }
@@ -154,22 +143,15 @@ window.addRole = function() {
   renderRoles();
 };
 
-// ── MODULES ───────────────────────────────────────────────────
-function initModuleCards() {
-  document.querySelectorAll('.module-card').forEach(card => {
-    card.addEventListener('click', () => {
-      card.classList.toggle('checked');
-      card.querySelector('input').checked = card.classList.contains('checked');
-    });
-  });
-}
+// ── TOGGLE MODULE ─────────────────────────────────────────────
+window.toggleModule = function(card) {
+  card.classList.toggle('checked');
+  card.querySelector('input').checked = card.classList.contains('checked');
+};
 
 // ── NAVIGATION ────────────────────────────────────────────────
 window.goToStep1 = function() { showScreen(1); };
-
-window.goToStep2 = function() {
-  showScreen(2);
-};
+window.goToStep2 = function() { showScreen(2); };
 
 window.goToStep3 = function() {
   selectedModules = [];
@@ -183,8 +165,7 @@ window.goToStep3 = function() {
 function showScreen(n) {
   document.querySelectorAll('.setup-screen').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.step').forEach(s => s.classList.remove('active', 'done'));
-  const target = document.getElementById(`screen-${n}`);
-  if (target) target.classList.add('active');
+  document.getElementById(`screen-${n}`)?.classList.add('active');
   for (let i = 1; i <= 3; i++) {
     const dot = document.getElementById(`step-dot-${i}`);
     if (!dot) continue;

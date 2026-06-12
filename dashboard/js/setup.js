@@ -13,15 +13,36 @@ let selectedModules = [];
 // ── Init ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
 
-  // Récupérer guild_id depuis la session OAuth automatique
+  // 1. Session OAuth Discord via Supabase
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session) { window.location.href = '/login.html'; return; }
+  if (!session) {
+    window.location.href = '/login.html';
+    return;
+  }
 
-  guildId = sessionStorage.getItem('warstack_guild_id') || window.WARSTACK_GUILD_ID;
+  const discordId = session.user?.user_metadata?.provider_id
+                 || session.user?.user_metadata?.sub;
 
-  if (!guildId) {
+  // 2. Récupérer automatiquement le guild_id
+  try {
+    const res  = await fetch(`${BOT_URL}/api/guilds/${discordId}`, {
+      headers: { 'x-api-key': API_KEY }
+    });
+    const data = await res.json();
+    const guilds = data.guilds || [];
+
+    if (guilds.length === 0) {
+      document.getElementById('members-loading').innerHTML =
+        '<span style="color:var(--danger)">❌ Aucun serveur trouvé. Le bot est-il bien invité sur votre serveur ?</span>';
+      return;
+    }
+
+    // Prend le premier serveur trouvé
+    guildId = guilds[0].guild_id;
+
+  } catch (err) {
     document.getElementById('members-loading').innerHTML =
-      '<span style="color:var(--danger)">❌ Serveur introuvable. <a href="/">Retour au dashboard</a>.</span>';
+      `<span style="color:var(--danger)">❌ Erreur connexion bot : ${err.message}</span>`;
     return;
   }
 
@@ -55,6 +76,9 @@ function renderMembers() {
 
   loading.style.display = 'none';
   list.style.display    = 'grid';
+
+  // Bouton suivant activé une fois le scan terminé
+  document.getElementById('btn-next-1').disabled = false;
 
   if (!scannedMembers.length) {
     list.innerHTML = '<p style="color:var(--text-muted)">Aucun membre avec des accès élevés détecté.</p>';
@@ -100,7 +124,6 @@ function initModuleCards() {
 window.goToStep1 = function() { showScreen(1); };
 
 window.goToStep2 = function() {
-  // Récupérer l'équipe sélectionnée
   selectedTeam = [];
   document.querySelectorAll('.member-card.checked').forEach(card => {
     const id     = card.dataset.id;
@@ -112,12 +135,10 @@ window.goToStep2 = function() {
 };
 
 window.goToStep3 = function() {
-  // Récupérer les modules cochés
   selectedModules = [];
   document.querySelectorAll('.module-card.checked').forEach(card => {
     selectedModules.push(card.dataset.module);
   });
-
   buildSummary();
   showScreen(3);
 };
@@ -157,21 +178,18 @@ const moduleLabels = {
 };
 
 function buildSummary() {
-  // Équipe
   document.getElementById('summary-team').innerHTML = selectedTeam.length
     ? selectedTeam.map(m =>
         `<div class="summary-item">${m.role} — <strong>${m.display || m.username}</strong></div>`
       ).join('')
     : '<div class="summary-item" style="color:var(--text-muted)">Aucun membre sélectionné</div>';
 
-  // Modules
   document.getElementById('summary-modules').innerHTML = selectedModules.length
     ? selectedModules.map(m =>
         `<div class="summary-item">✅ ${moduleLabels[m] || m}</div>`
       ).join('')
     : '<div class="summary-item" style="color:var(--text-muted)">Aucun module sélectionné</div>';
 
-  // Salons qui seront créés
   const chans = selectedModules.flatMap(m => moduleChannelMap[m] || []);
   document.getElementById('summary-channels').innerHTML = chans.length
     ? chans.map(c => `<div class="summary-item"># ${c}</div>`).join('')
@@ -201,7 +219,6 @@ window.install = async function() {
     const data = await res.json();
     if (!data.success) throw new Error(data.error || 'Erreur installation');
 
-    // Afficher l'écran succès
     document.getElementById('install-summary').innerHTML = `
       <div class="result-item">✅ ${data.created.roles?.length || 0} rôles créés</div>
       <div class="result-item">✅ ${data.created.channels?.length || 0} salons créés</div>

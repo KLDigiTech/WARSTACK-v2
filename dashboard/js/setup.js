@@ -2,22 +2,26 @@
 //  WARSTACK — Setup Wizard
 // ═══════════════════════════════════════════════════
 
-const API      = 'https://warstack-bot.onrender.com/api';
-const API_KEY  = 'warstack-secret-2026';
+import { supabase } from './supabaseClient.js';
+import { BOT_URL, API_KEY } from './config.js';
 
-let guildId    = null;
-let scannedMembers = [];
-let selectedTeam   = [];
+let guildId         = null;
+let scannedMembers  = [];
+let selectedTeam    = [];
 let selectedModules = [];
 
-// ── Init ─────────────────────────────────────────────
+// ── Init ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
-  // Récupérer guild_id depuis OAuth session
-  const session = JSON.parse(localStorage.getItem('warstack_session') || '{}');
-  guildId = session.guild_id;
+
+  // Récupérer guild_id depuis la session OAuth automatique
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/login.html'; return; }
+
+  guildId = sessionStorage.getItem('warstack_guild_id') || window.WARSTACK_GUILD_ID;
 
   if (!guildId) {
-    window.location.href = '/login.html';
+    document.getElementById('members-loading').innerHTML =
+      '<span style="color:var(--danger)">❌ Serveur introuvable. <a href="/">Retour au dashboard</a>.</span>';
     return;
   }
 
@@ -25,23 +29,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   initModuleCards();
 });
 
-// ── SCAN ─────────────────────────────────────────────
+// ── SCAN SERVEUR ──────────────────────────────────────────────
 async function scanServer() {
   try {
-    const res  = await fetch(`${API}/setup/scan/${guildId}`, {
+    const res  = await fetch(`${BOT_URL}/api/setup/scan/${guildId}`, {
       headers: { 'x-api-key': API_KEY }
     });
     const data = await res.json();
 
+    if (!data.success) throw new Error(data.error || 'Scan échoué');
+
     scannedMembers = data.privileged || [];
     renderMembers();
+
   } catch (err) {
     document.getElementById('members-loading').innerHTML =
-      '<span style="color:var(--danger)">❌ Impossible de scanner le serveur. Le bot est-il bien présent ?</span>';
+      `<span style="color:var(--danger)">❌ Impossible de scanner le serveur. Le bot est-il bien présent ?<br><small>${err.message}</small></span>`;
   }
 }
 
-// ── RENDER MEMBRES ────────────────────────────────────
+// ── RENDER MEMBRES ────────────────────────────────────────────
 function renderMembers() {
   const loading = document.getElementById('members-loading');
   const list    = document.getElementById('members-list');
@@ -57,27 +64,29 @@ function renderMembers() {
   list.innerHTML = scannedMembers.map((m, i) => `
     <div class="member-card ${i < 4 ? 'checked' : ''}" data-id="${m.discord_id}" onclick="toggleMember(this)">
       <div class="member-check">${i < 4 ? '✅' : '☐'}</div>
-      <img src="${m.avatar}" alt="${m.username}" class="member-avatar">
+      <img src="${m.avatar}" alt="${m.username}" class="member-avatar"
+           onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
       <div class="member-info">
         <div class="member-name">${m.display || m.username}</div>
         <select class="member-role" onclick="event.stopPropagation()">
-          <option value="👑 Fondateur">👑 Fondateur</option>
-          <option value="⭐ Team Leader">⭐ Team Leader</option>
-          <option value="🎮 Organisateur">🎮 Organisateur</option>
-          <option value="🛡 Modérateur" ${i > 0 ? 'selected' : ''}>🛡 Modérateur</option>
+          <option value="👑 Fondateur"    ${i === 0 ? 'selected' : ''}>👑 Fondateur</option>
+          <option value="⭐ Team Leader"  ${i === 1 ? 'selected' : ''}>⭐ Team Leader</option>
+          <option value="🎮 Organisateur" ${i === 2 ? 'selected' : ''}>🎮 Organisateur</option>
+          <option value="🛡 Modérateur"   ${i >= 3  ? 'selected' : ''}>🛡 Modérateur</option>
         </select>
       </div>
     </div>
   `).join('');
 }
 
-function toggleMember(card) {
+// ── TOGGLE MEMBRE ─────────────────────────────────────────────
+window.toggleMember = function(card) {
   card.classList.toggle('checked');
   const check = card.querySelector('.member-check');
   check.textContent = card.classList.contains('checked') ? '✅' : '☐';
-}
+};
 
-// ── MODULES ───────────────────────────────────────────
+// ── MODULES ───────────────────────────────────────────────────
 function initModuleCards() {
   document.querySelectorAll('.module-card').forEach(card => {
     card.addEventListener('click', () => {
@@ -87,10 +96,10 @@ function initModuleCards() {
   });
 }
 
-// ── NAVIGATION ────────────────────────────────────────
-function goToStep1() { showScreen(1); }
+// ── NAVIGATION ────────────────────────────────────────────────
+window.goToStep1 = function() { showScreen(1); };
 
-function goToStep2() {
+window.goToStep2 = function() {
   // Récupérer l'équipe sélectionnée
   selectedTeam = [];
   document.querySelectorAll('.member-card.checked').forEach(card => {
@@ -100,9 +109,9 @@ function goToStep2() {
     if (member) selectedTeam.push({ ...member, role });
   });
   showScreen(2);
-}
+};
 
-function goToStep3() {
+window.goToStep3 = function() {
   // Récupérer les modules cochés
   selectedModules = [];
   document.querySelectorAll('.module-card.checked').forEach(card => {
@@ -111,22 +120,24 @@ function goToStep3() {
 
   buildSummary();
   showScreen(3);
-}
+};
 
 function showScreen(n) {
   document.querySelectorAll('.setup-screen').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.step').forEach(s => s.classList.remove('active', 'done'));
 
-  document.getElementById(`screen-${n}`).classList.add('active');
+  const target = document.getElementById(`screen-${n}`);
+  if (target) target.classList.add('active');
 
   for (let i = 1; i <= 3; i++) {
     const dot = document.getElementById(`step-dot-${i}`);
+    if (!dot) continue;
     if (i < n)  dot.classList.add('done');
     if (i === n) dot.classList.add('active');
   }
 }
 
-// ── RÉSUMÉ ────────────────────────────────────────────
+// ── RÉSUMÉ ────────────────────────────────────────────────────
 const moduleChannelMap = {
   welcome    : ['bienvenue'],
   tickets    : ['tickets', 'logs-tickets'],
@@ -136,49 +147,64 @@ const moduleChannelMap = {
   automod    : ['logs-automod'],
 };
 
+const moduleLabels = {
+  welcome    : 'Welcome',
+  tickets    : 'Tickets',
+  events     : 'Événements',
+  suggestions: 'Suggestions',
+  logs       : 'Logs',
+  automod    : 'AutoMod',
+};
+
 function buildSummary() {
   // Équipe
   document.getElementById('summary-team').innerHTML = selectedTeam.length
-    ? selectedTeam.map(m => `<div class="summary-item">${m.role} — <strong>${m.display || m.username}</strong></div>`).join('')
-    : '<div class="summary-item text-muted">Aucun membre sélectionné</div>';
+    ? selectedTeam.map(m =>
+        `<div class="summary-item">${m.role} — <strong>${m.display || m.username}</strong></div>`
+      ).join('')
+    : '<div class="summary-item" style="color:var(--text-muted)">Aucun membre sélectionné</div>';
 
   // Modules
-  const moduleLabels = { welcome:'Welcome', tickets:'Tickets', events:'Événements', suggestions:'Suggestions', logs:'Logs', automod:'AutoMod' };
   document.getElementById('summary-modules').innerHTML = selectedModules.length
-    ? selectedModules.map(m => `<div class="summary-item">✅ ${moduleLabels[m]}</div>`).join('')
-    : '<div class="summary-item text-muted">Aucun module sélectionné</div>';
+    ? selectedModules.map(m =>
+        `<div class="summary-item">✅ ${moduleLabels[m] || m}</div>`
+      ).join('')
+    : '<div class="summary-item" style="color:var(--text-muted)">Aucun module sélectionné</div>';
 
-  // Salons
+  // Salons qui seront créés
   const chans = selectedModules.flatMap(m => moduleChannelMap[m] || []);
   document.getElementById('summary-channels').innerHTML = chans.length
     ? chans.map(c => `<div class="summary-item"># ${c}</div>`).join('')
-    : '<div class="summary-item text-muted">Aucun salon à créer</div>';
+    : '<div class="summary-item" style="color:var(--text-muted)">Aucun salon à créer</div>';
 }
 
-// ── INSTALL ───────────────────────────────────────────
-async function install() {
+// ── INSTALL ───────────────────────────────────────────────────
+window.install = async function() {
   const btn = document.getElementById('btn-install');
   btn.disabled    = true;
   btn.textContent = '⏳ Installation en cours...';
 
   try {
-    const res  = await fetch(`${API}/setup/install`, {
+    const res = await fetch(`${BOT_URL}/api/setup/install`, {
       method : 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY },
-      body   : JSON.stringify({
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key'   : API_KEY,
+      },
+      body: JSON.stringify({
         guild_id: guildId,
         team    : selectedTeam,
         modules : selectedModules,
-      })
+      }),
     });
+
     const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Erreur installation');
 
-    if (!data.success) throw new Error(data.error);
-
-    // Afficher le résultat
+    // Afficher l'écran succès
     document.getElementById('install-summary').innerHTML = `
-      <div class="result-item">✅ ${data.created.roles.length} rôles créés</div>
-      <div class="result-item">✅ ${data.created.channels.length} salons créés</div>
+      <div class="result-item">✅ ${data.created.roles?.length || 0} rôles créés</div>
+      <div class="result-item">✅ ${data.created.channels?.length || 0} salons créés</div>
       <div class="result-item">✅ ${selectedTeam.length} membres configurés</div>
     `;
 
@@ -188,6 +214,6 @@ async function install() {
   } catch (err) {
     btn.disabled    = false;
     btn.textContent = '🚀 Installer WARSTACK';
-    alert('❌ Erreur installation : ' + err.message);
+    alert('❌ Erreur : ' + err.message);
   }
-}
+};

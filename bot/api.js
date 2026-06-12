@@ -1211,4 +1211,36 @@ router.post('/setup/install', auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// SERVEURS OÙ UN MEMBRE EST ADMIN
+router.get('/guilds/:discord_id', auth, async (req, res) => {
+  try {
+    const discordId = req.params.discord_id;
+    const guilds    = [];
+
+    for (const [, guild] of global.botClient.guilds.cache) {
+      try {
+        await guild.members.fetch();
+        const member = guild.members.cache.get(discordId);
+        if (!member) continue;
+
+        // Admin si plus de permissions que @everyone
+        const everyonePerms = guild.roles.everyone.permissions.bitfield;
+        const memberPerms   = member.permissions.bitfield;
+        if (memberPerms > everyonePerms) {
+          guilds.push({
+            guild_id    : guild.id,
+            name        : guild.name,
+            icon        : guild.iconURL({ size: 128 }),
+            member_count: guild.memberCount,
+          });
+        }
+      } catch { continue; }
+    }
+
+    res.json({ guilds });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 module.exports = router;

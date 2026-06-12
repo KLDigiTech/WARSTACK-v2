@@ -1112,46 +1112,15 @@ router.get('/setup/scan/:guild_id', auth, async (req, res) => {
 router.post('/setup/install', auth, async (req, res) => {
   try {
     const { guild_id, team, modules } = req.body;
-    // team = [{ discord_id, username, avatar, role: 'Fondateur'|'Team Leader'|'Organisateur'|'Modérateur' }]
-    // modules = ['welcome', 'tickets', 'events', 'suggestions', 'logs', 'automod']
 
     const guild = global.botClient.guilds.cache.get(guild_id);
     if (!guild) return res.status(404).json({ error: 'Serveur introuvable' });
 
     const { PermissionFlagsBits } = require('discord.js');
-    const created = { roles: [], channels: [] };
+    const created = { channels: [] };
 
-    // ── 1. Créer les rôles WARSTACK ──────────────────────────────────
-    const rolesDef = [
-      { name: '👑 Fondateur',    color: 0xFFD700, perms: PermissionFlagsBits.Administrator },
-      { name: '⭐ Team Leader',  color: 0x00BFFF, perms: PermissionFlagsBits.ManageGuild },
-      { name: '🎮 Organisateur', color: 0xFF6B35, perms: PermissionFlagsBits.ManageEvents },
-      { name: '🛡 Modérateur',   color: 0x95A5A6, perms: PermissionFlagsBits.ModerateMembers },
-    ];
-
-    const discordRoles = {};
-    for (const def of rolesDef) {
-      let role = guild.roles.cache.find(r => r.name === def.name);
-      if (!role) {
-        role = await guild.roles.create({
-          name       : def.name,
-          color      : def.color,
-          permissions: def.perms,
-          reason     : 'WARSTACK — Setup initial'
-        });
-      }
-      discordRoles[def.name] = role;
-      created.roles.push(def.name);
-    }
-
-    // ── 2. Attribuer les rôles aux membres sélectionnés ──────────────
+    // ── 1. Enregistrer l'équipe en Supabase uniquement ───────────
     for (const member of team || []) {
-      const discordMember = await guild.members.fetch(member.discord_id).catch(() => null);
-      if (!discordMember) continue;
-      const role = discordRoles[member.role];
-      if (role) await discordMember.roles.add(role).catch(() => {});
-
-      // Sauvegarder en Supabase
       await supabase.from('team_members').upsert({
         guild_id  : guild_id,
         discord_id: member.discord_id,
@@ -1162,7 +1131,7 @@ router.post('/setup/install', auth, async (req, res) => {
       }, { onConflict: 'guild_id,discord_id' });
     }
 
-    // ── 3. Créer les salons selon modules activés ────────────────────
+    // ── 2. Créer les salons selon modules activés ────────────────
     const moduleChannels = {
       welcome    : [{ name: 'bienvenue',    locked: true  }],
       tickets    : [{ name: 'tickets',      locked: false }, { name: 'logs-tickets', locked: true }],
@@ -1187,7 +1156,6 @@ router.post('/setup/install', auth, async (req, res) => {
         });
         created.channels.push(newCh.name);
 
-        // Sauvegarder config du module
         await supabase.from('config').upsert({
           guild_id: guild_id,
           key     : `${mod}_channel`,
@@ -1196,7 +1164,7 @@ router.post('/setup/install', auth, async (req, res) => {
       }
     }
 
-    // ── 4. Marquer le setup comme terminé ────────────────────────────
+    // ── 3. Marquer setup terminé ─────────────────────────────────
     await supabase.from('guilds').update({
       setup_complete: true,
       modules       : modules,

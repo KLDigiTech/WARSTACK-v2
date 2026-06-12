@@ -39,7 +39,11 @@
     import { supabase } from './js/supabaseClient.js';
 
     const { data: { session } } = await supabase.auth.getSession();
-    if (session) { window.location.href = '/'; }
+    if (session) {
+      const redirect = localStorage.getItem('warstack_redirect') || '/';
+      localStorage.removeItem('warstack_redirect');
+      window.location.href = redirect;
+    }
 
     try {
       const guild = await fetch('https://warstack-bot.onrender.com/api/guild').then(r => r.json());

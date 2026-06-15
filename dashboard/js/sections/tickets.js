@@ -57,7 +57,7 @@ export async function initTickets() {
       saveConfig('ticket_create_channel',   document.getElementById('ticket-create-channel').value),
       saveConfig('ticket_logs_channel',     document.getElementById('ticket-logs-channel').value),
       saveConfig('ticket_staff_role',       document.getElementById('ticket-staff-role').value),
-      saveConfig('ticket_leader-role',      document.getElementById('ticket-leader-role').value),
+      saveConfig('ticket_leader_role',      document.getElementById('ticket-leader-role').value),
       saveConfig('ticket_category_waiting', document.getElementById('ticket-category-waiting').value),
       saveConfig('ticket_category_active',  document.getElementById('ticket-category-active').value),
       saveConfig('ticket_category_closed',  document.getElementById('ticket-category-closed').value),

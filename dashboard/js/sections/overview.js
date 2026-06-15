@@ -44,8 +44,8 @@ async function loadServerStats() {
   const [guildData, tickets, suggestions, events, sanctions, automodLogs] = await Promise.all([
     callBotAPI('guild').catch(() => null),
     fetchSupabase(`tickets?guild_id=eq.${guildId}&status=eq.open&select=id`).catch(() => []),
-    fetchSupabase(`suggestions?select=id`).catch(() => []),
-    fetchSupabase(`events?select=id`).catch(() => []),
+    fetchSupabase(`suggestions?guild_id=eq.${guildId}&select=id`).catch(() => []),
+    fetchSupabase(`events?guild_id=eq.${guildId}&select=id`).catch(() => []),
     fetchSupabase(`sanctions?guild_id=eq.${guildId}&created_at=gte.${weekAgo()}&select=id`).catch(() => []),
     fetchSupabase(`audit_logs?guild_id=eq.${guildId}&type=eq.moderation&created_at=gte.${weekAgo()}&select=id`).catch(() => []),
   ]);
@@ -175,7 +175,8 @@ async function loadTickets() {
 }
 
 async function loadSuggestions() {
-  const suggestions = await fetchSupabase(`suggestions?order=created_at.desc&limit=4`).catch(() => []) || [];
+  const guildId = await getActiveGuildId();
+  const suggestions = await fetchSupabase(`suggestions?guild_id=eq.${guildId}&order=created_at.desc&limit=4`).catch(() => []) || [];
   const el = document.getElementById('ov-suggestions-list');
   if (!el) return;
   if (!suggestions.length) {
@@ -204,7 +205,8 @@ async function loadSuggestions() {
 }
 
 async function loadEvents() {
-  const events = await fetchSupabase(`events?order=date.asc&limit=3`).catch(() => []) || [];
+  const guildId = await getActiveGuildId();
+  const events = await fetchSupabase(`events?guild_id=eq.${guildId}&order=date.asc&limit=3`).catch(() => []) || [];
   const el = document.getElementById('ov-events-list');
   if (!el) return;
   if (!events.length) {

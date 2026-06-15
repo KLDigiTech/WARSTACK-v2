@@ -15,6 +15,22 @@ function auth(req, res, next) {
   next();
 }
 
+// Résout le serveur Discord ciblé par la requête (multi-guild).
+// Ordre de priorité : params (route /:guild_id) > query (?guild_id=) > body (POST { guild_id })
+// Fallback : premier serveur du cache (compat. installations mono-serveur / anciens appels sans guild_id).
+function resolveGuild(req) {
+  const guildId = req.params?.guild_id
+                || req.query?.guild_id
+                || req.body?.guild_id;
+
+  if (guildId) {
+    const guild = global.botClient.guilds.cache.get(guildId);
+    if (guild) return guild;
+  }
+
+  return global.botClient.guilds.cache.first();
+}
+
 // STATUS
 router.get('/status', (req, res) => {
   res.json({ status: 'online', bot: global.botClient?.user?.tag || 'inconnu', uptime: process.uptime(), timestamp: new Date().toISOString() });
@@ -60,7 +76,7 @@ router.get('/tracker/:pseudo', async (req, res) => {
 
 // GUILD
 router.get('/guild', async (req, res) => {
-  const guild = global.botClient.guilds.cache.first();
+  const guild = resolveGuild(req);
   if (!guild) return res.status(404).json({ error: 'Serveur introuvable' });
   res.json({
     name        : guild.name,
@@ -73,7 +89,7 @@ router.get('/guild', async (req, res) => {
 // VÉRIF MEMBRE DU SERVEUR
 router.get('/member/:discordId', async (req, res) => {
   try {
-    const guild  = global.botClient.guilds.cache.first();
+    const guild  = resolveGuild(req);
     if (!guild) return res.status(404).json({ isMember: false });
     const member = await guild.members.fetch(req.params.discordId).catch(() => null);
     res.json({ isMember: !!member, username: member?.user?.username || null });
@@ -96,7 +112,7 @@ router.post('/tournament/results', auth, async (req, res) => {
 // SALONS — LISTE
 router.get('/channels', auth, async (req, res) => {
   try {
-    const guild = global.botClient.guilds.cache.first();
+    const guild = resolveGuild(req);
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
     const channels = guild.channels.cache
@@ -127,7 +143,7 @@ router.post('/channel/create', auth, async (req, res) => {
     const { name, type = 0, category } = req.body;
     if (!name) return res.status(400).json({ error: 'name manquant' });
 
-    const guild = global.botClient.guilds.cache.first();
+    const guild = resolveGuild(req);
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
     const typeMap = {
@@ -154,7 +170,7 @@ router.post('/channel/delete', auth, async (req, res) => {
     const { channel_id } = req.body;
     if (!channel_id) return res.status(400).json({ error: 'channel_id manquant' });
 
-    const guild   = global.botClient.guilds.cache.first();
+    const guild   = resolveGuild(req);
     const channel = guild.channels.cache.get(channel_id);
     if (!channel) return res.status(404).json({ error: 'Salon introuvable' });
 
@@ -250,7 +266,7 @@ router.get('/member/search', auth, async (req, res) => {
     const query = (req.query.q || '').toLowerCase();
     if (!query || query.length < 2) return res.json({ members: [] });
 
-    const guild = global.botClient.guilds.cache.first();
+    const guild = resolveGuild(req);
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
     await guild.members.fetch();
@@ -280,7 +296,7 @@ router.post('/role/apply-channels', auth, async (req, res) => {
     const { role_name, color, channel_ids_allow = [], channel_ids_deny = [] } = req.body;
     if (!role_name) return res.status(400).json({ error: 'role_name manquant' });
 
-    const guild = global.botClient.guilds.cache.first();
+    const guild = resolveGuild(req);
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
     const { PermissionFlagsBits } = require('discord.js');
@@ -318,7 +334,7 @@ router.post('/role/assign', auth, async (req, res) => {
     const { discord_id, role_name } = req.body;
     if (!discord_id || !role_name) return res.status(400).json({ error: 'Paramètres manquants' });
 
-    const guild = global.botClient.guilds.cache.first();
+    const guild = resolveGuild(req);
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
     const member = await guild.members.fetch(discord_id).catch(() => null);
@@ -347,7 +363,7 @@ router.post('/role/remove', auth, async (req, res) => {
     const { discord_id, role_name } = req.body;
     if (!discord_id || !role_name) return res.status(400).json({ error: 'Paramètres manquants' });
 
-    const guild = global.botClient.guilds.cache.first();
+    const guild = resolveGuild(req);
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
     const member = await guild.members.fetch(discord_id).catch(() => null);
@@ -365,7 +381,7 @@ router.post('/role/remove', auth, async (req, res) => {
 // LISTE DES RÔLES
 router.get('/roles', auth, async (req, res) => {
   try {
-    const guild = global.botClient.guilds.cache.first();
+    const guild = resolveGuild(req);
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
     const roles = guild.roles.cache
       .filter(r => r.name !== '@everyone')
@@ -381,7 +397,7 @@ router.get('/roles', auth, async (req, res) => {
 router.post('/welcome/test', auth, async (req, res) => {
   try {
     const { channel_id, message, dm_message } = req.body;
-    const guild = global.botClient.guilds.cache.first();
+    const guild = resolveGuild(req);
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
     const member = await guild.members.fetch(guild.ownerId).catch(() => null);
@@ -412,7 +428,7 @@ router.post('/welcome/test', auth, async (req, res) => {
 router.post('/autorole/test', auth, async (req, res) => {
   try {
     const { role_ids, dm_enabled, dm_message } = req.body;
-    const guild = global.botClient.guilds.cache.first();
+    const guild = resolveGuild(req);
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
     const member = await guild.members.fetch(guild.ownerId).catch(() => null);
@@ -444,7 +460,7 @@ router.post('/autorole/test', auth, async (req, res) => {
 // COMPTEUR MEMBRES
 router.post('/counter/update', auth, async (req, res) => {
   try {
-    const guild = global.botClient.guilds.cache.first();
+    const guild = resolveGuild(req);
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
     const { channel_id, format } = req.body;
@@ -473,7 +489,7 @@ router.post('/counter/update', auth, async (req, res) => {
 router.post('/birthday/test', auth, async (req, res) => {
   try {
     const { channel_id, message } = req.body;
-    const guild = global.botClient.guilds.cache.first();
+    const guild = resolveGuild(req);
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
     const member = await guild.members.fetch(guild.ownerId).catch(() => null);
@@ -498,7 +514,7 @@ router.post('/birthday/test', auth, async (req, res) => {
 router.post('/suggestion/status', auth, async (req, res) => {
   try {
     const { suggestion_id, status } = req.body;
-    const guild = global.botClient.guilds.cache.first();
+    const guild = resolveGuild(req);
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
     const { data: suggestions } = await supabase
@@ -541,7 +557,7 @@ router.post('/suggestion/status', auth, async (req, res) => {
 router.post('/suggestion/test', auth, async (req, res) => {
   try {
     const { channel_id } = req.body;
-    const guild = global.botClient.guilds.cache.first();
+    const guild = resolveGuild(req);
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
     const channel = guild.channels.cache.get(channel_id);
@@ -585,7 +601,7 @@ router.post('/suggestion/test', auth, async (req, res) => {
 router.post('/event/announce', auth, async (req, res) => {
   try {
     const { event_id, channel_id, title, description, date, time, max } = req.body;
-    const guild = global.botClient.guilds.cache.first();
+    const guild = resolveGuild(req);
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
     const channel = guild.channels.cache.get(channel_id);
@@ -622,7 +638,7 @@ router.post('/event/announce', auth, async (req, res) => {
 router.post('/event/cancel', auth, async (req, res) => {
   try {
     const { event_id } = req.body;
-    const guild = global.botClient.guilds.cache.first();
+    const guild = resolveGuild(req);
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
     const { data: event } = await supabase
@@ -654,7 +670,7 @@ router.post('/event/cancel', auth, async (req, res) => {
 router.post('/event/contact', auth, async (req, res) => {
   try {
     const { discord_ids, message, event_title } = req.body;
-    const guild = global.botClient.guilds.cache.first();
+    const guild = resolveGuild(req);
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
     let sent = 0;
@@ -676,7 +692,7 @@ router.post('/event/contact', auth, async (req, res) => {
 router.post('/moderation/sanction', auth, async (req, res) => {
   try {
     const { discord_id, username, type, reason, duration } = req.body;
-    const guild = global.botClient.guilds.cache.first();
+    const guild = resolveGuild(req);
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
     const member = await guild.members.fetch(discord_id).catch(() => null);
@@ -744,7 +760,7 @@ router.post('/moderation/sanction', auth, async (req, res) => {
 router.post('/moderation/lift', auth, async (req, res) => {
   try {
     const { discord_id } = req.body;
-    const guild = global.botClient.guilds.cache.first();
+    const guild = resolveGuild(req);
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
     const member = await guild.members.fetch(discord_id).catch(() => null);
@@ -760,7 +776,7 @@ router.post('/moderation/lift', auth, async (req, res) => {
 router.post('/ticket/panel', auth, async (req, res) => {
   try {
     const { channel_id } = req.body;
-    const guild = global.botClient.guilds.cache.first();
+    const guild = resolveGuild(req);
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
     const channel = guild.channels.cache.get(channel_id);
@@ -814,7 +830,7 @@ router.post('/ticket/panel', auth, async (req, res) => {
 router.post('/ticket/close', auth, async (req, res) => {
   try {
     const { ticket_id, channel_id, transcript } = req.body;
-    const guild = global.botClient.guilds.cache.first();
+    const guild = resolveGuild(req);
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
     const channel = guild.channels.cache.get(channel_id);
@@ -867,7 +883,7 @@ router.post('/ticket/close', auth, async (req, res) => {
 router.post('/ticket/transcript', auth, async (req, res) => {
   try {
     const { ticket_id, channel_id } = req.body;
-    const guild = global.botClient.guilds.cache.first();
+    const guild = resolveGuild(req);
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
     const channel = guild.channels.cache.get(channel_id);
@@ -899,7 +915,7 @@ router.post('/ticket/transcript', auth, async (req, res) => {
 // EMOJIS CUSTOM DU SERVEUR
 router.get('/emojis', auth, async (req, res) => {
   try {
-    const guild = global.botClient.guilds.cache.first();
+    const guild = resolveGuild(req);
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
     const emojis = guild.emojis.cache.map(e => ({
@@ -919,7 +935,7 @@ router.get('/emojis', auth, async (req, res) => {
 router.post('/reaction-roles/send', auth, async (req, res) => {
   try {
     const { menu_id, channel_id, message, type, component, roles } = req.body;
-    const guild = global.botClient.guilds.cache.first();
+    const guild = resolveGuild(req);
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
     const channel = guild.channels.cache.get(channel_id);
@@ -988,7 +1004,7 @@ router.post('/onboarding/post', auth, async (req, res) => {
     const { channel_id, ...payload } = req.body;
     if (!channel_id) return res.status(400).json({ error: 'channel_id manquant' });
 
-    const guild   = global.botClient.guilds.cache.first();
+    const guild   = resolveGuild(req);
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
     const channel = guild.channels.cache.get(channel_id);
@@ -1005,7 +1021,7 @@ router.post('/onboarding/post', auth, async (req, res) => {
 router.post('/event/test', auth, async (req, res) => {
   try {
     const { channel_id } = req.body;
-    const guild = global.botClient.guilds.cache.first();
+    const guild = resolveGuild(req);
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
     const channel = guild.channels.cache.get(channel_id);
@@ -1049,7 +1065,7 @@ router.post('/message/send-now', auth, async (req, res) => {
     const { channel_id, content } = req.body;
     if (!channel_id || !content) return res.status(400).json({ error: 'channel_id et content requis' });
 
-    const guild = global.botClient.guilds.cache.first();
+    const guild = resolveGuild(req);
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
 
     const channel = guild.channels.cache.get(channel_id);

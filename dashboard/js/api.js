@@ -1,4 +1,5 @@
 import { SUPABASE_URL, SUPABASE_KEY, BOT_URL, API_KEY } from './config.js';
+import { getActiveGuildId } from './services/guildService.js';
 
 // SUPABASE
 
@@ -50,6 +51,9 @@ export async function deleteSupabase(endpoint) {
 
 export async function callBotAPI(endpoint, method = 'GET', body = null) {
   try {
+    const guildId = await getActiveGuildId();
+
+    let url = `${BOT_URL}/api/${endpoint}`;
     const options = {
       method,
       headers: {
@@ -57,8 +61,19 @@ export async function callBotAPI(endpoint, method = 'GET', body = null) {
         'Content-Type': 'application/json',
       }
     };
-    if (body) options.body = JSON.stringify(body);
-    const res = await fetch(`${BOT_URL}/api/${endpoint}`, options);
+
+    if (method === 'GET') {
+      if (guildId) {
+        const sep = url.includes('?') ? '&' : '?';
+        url += `${sep}guild_id=${encodeURIComponent(guildId)}`;
+      }
+    } else {
+      const payload = { ...(body || {}) };
+      if (guildId && !payload.guild_id) payload.guild_id = guildId;
+      options.body = JSON.stringify(payload);
+    }
+
+    const res = await fetch(url, options);
     return res.json();
   } catch (error) {
     console.error('❌ Bot API error:', error);

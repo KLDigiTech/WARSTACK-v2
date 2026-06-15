@@ -1,5 +1,5 @@
 const express                   = require('express');
-const { ChannelType }           = require('discord.js');
+const { ChannelType, PermissionFlagsBits } = require('discord.js');
 const { EmbedBuilder }          = require('discord.js');
 const { updateLeaderboard }     = require('./jobs/leaderboard');
 const { postMVP }               = require('./jobs/mvp');

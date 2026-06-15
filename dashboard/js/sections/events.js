@@ -1,5 +1,6 @@
 import { callBotAPI, fetchSupabase } from '../api.js';
 import { showToast }                 from '../ui/toast.js';
+import { getActiveGuildId }          from '../services/guildService.js';
 
 let currentEvent  = null;
 let currentFilter = 'all';
@@ -159,7 +160,10 @@ async function createEvent() {
   if (!date)  return showToast('❌ Date obligatoire', 'error');
   if (!time)  return showToast('❌ Heure obligatoire', 'error');
 
+  const guildId = await getActiveGuildId();
+
   const { data: event, error } = await fetchSupabase('events', 'POST', {
+    guild_id       : guildId,
     title,
     description,
     date,
@@ -200,7 +204,8 @@ async function loadEvents() {
   const container = document.getElementById('events-list');
   container.innerHTML = `<div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>`;
 
-  let url = `events?select=*&order=date.desc,time.desc`;
+  const guildId = await getActiveGuildId();
+  let url = `events?guild_id=eq.${guildId}&select=*&order=date.desc,time.desc`;
   if (currentFilter !== 'all') url += `&status=eq.${currentFilter}`;
 
   const list = await fetchSupabase(url) || [];
@@ -324,8 +329,13 @@ function filterParticipants(query) {
 // ── Stats globales ───────────────────────────────────────────────────────────
 
 async function loadStats() {
-  const events = await fetchSupabase('events?select=status') || [];
-  const parts  = await fetchSupabase('event_participants?select=status') || [];
+  const guildId = await getActiveGuildId();
+  const events = await fetchSupabase(`events?guild_id=eq.${guildId}&select=id,status`) || [];
+
+  const eventIds = events.map(e => e.id);
+  const parts = eventIds.length
+    ? await fetchSupabase(`event_participants?event_id=in.(${eventIds.join(',')})&select=status`) || []
+    : [];
 
   const present = parts.filter(p => p.status === 'present').length;
   const total   = parts.length;

@@ -1,4 +1,5 @@
 import { fetchSupabase } from '../api.js';
+import { getActiveGuildId } from '../services/guildService.js';
 
 let chartMembers   = null;
 let chartActivity  = null;
@@ -36,22 +37,23 @@ function initRangeButtons() {
 // ─── STAT CARDS ──────────────────────────────────────────────────────────────
 
 async function loadStatCards() {
+  const guildId = await getActiveGuildId();
   const now   = new Date();
   const d7ago = new Date(now - 7 * 86400000).toISOString();
 
-  const [players, tickets, suggestions, sanctions,
+  const [members, tickets, suggestions, sanctions,
          recentJoins, recentTickets, recentSuggestions, recentSanctions] = await Promise.all([
-    fetchSupabase('players?select=discord_id'),
-    fetchSupabase('tickets?select=id&status=eq.open'),
-    fetchSupabase('suggestions?select=id'),
-    fetchSupabase('sanctions?select=id&active=eq.true'),
-    fetchSupabase(`audit_logs?action=eq.member_join&created_at=gte.${d7ago}&select=id`),
-    fetchSupabase(`tickets?select=id&created_at=gte.${d7ago}`),
-    fetchSupabase(`suggestions?select=id&created_at=gte.${d7ago}`),
-    fetchSupabase(`sanctions?select=id&created_at=gte.${d7ago}`),
+    fetchSupabase(`warstack_xp?guild_id=eq.${guildId}&select=discord_id`),
+    fetchSupabase(`tickets?guild_id=eq.${guildId}&select=id&status=eq.open`),
+    fetchSupabase(`suggestions?guild_id=eq.${guildId}&select=id`),
+    fetchSupabase(`sanctions?guild_id=eq.${guildId}&select=id&active=eq.true`),
+    fetchSupabase(`audit_logs?guild_id=eq.${guildId}&action=eq.member_join&created_at=gte.${d7ago}&select=id`),
+    fetchSupabase(`tickets?guild_id=eq.${guildId}&select=id&created_at=gte.${d7ago}`),
+    fetchSupabase(`suggestions?guild_id=eq.${guildId}&select=id&created_at=gte.${d7ago}`),
+    fetchSupabase(`sanctions?guild_id=eq.${guildId}&select=id&created_at=gte.${d7ago}`),
   ]);
 
-  setCard('an-total-members',     players?.length       ?? 0, recentJoins?.length       ?? 0, 'an-delta-members',     '+{n} cette semaine');
+  setCard('an-total-members',     members?.length       ?? 0, recentJoins?.length       ?? 0, 'an-delta-members',     '+{n} cette semaine');
   setCard('an-total-tickets',     tickets?.length       ?? 0, recentTickets?.length     ?? 0, 'an-delta-tickets',     '+{n} cette semaine');
   setCard('an-total-suggestions', suggestions?.length   ?? 0, recentSuggestions?.length ?? 0, 'an-delta-suggestions', '+{n} cette semaine');
   setCard('an-total-sanctions',   sanctions?.length     ?? 0, recentSanctions?.length   ?? 0, 'an-delta-sanctions',   '+{n} cette semaine');
@@ -75,11 +77,12 @@ function setCard(valueId, total, delta, deltaId, tpl) {
 // ─── MEMBRES CHART ───────────────────────────────────────────────────────────
 
 async function loadMembersChart(days) {
+  const guildId = await getActiveGuildId();
   const since = new Date(Date.now() - days * 86400000).toISOString();
 
   const [joins, leaves] = await Promise.all([
-    fetchSupabase(`audit_logs?action=eq.member_join&created_at=gte.${since}&select=created_at&order=created_at.asc`),
-    fetchSupabase(`audit_logs?action=eq.member_leave&created_at=gte.${since}&select=created_at&order=created_at.asc`),
+    fetchSupabase(`audit_logs?guild_id=eq.${guildId}&action=eq.member_join&created_at=gte.${since}&select=created_at&order=created_at.asc`),
+    fetchSupabase(`audit_logs?guild_id=eq.${guildId}&action=eq.member_leave&created_at=gte.${since}&select=created_at&order=created_at.asc`),
   ]);
 
   const labels    = buildDateLabels(days);
@@ -114,8 +117,9 @@ async function loadMembersChart(days) {
 // ─── ACTIVITÉ CHART ───────────────────────────────────────────────────────────
 
 async function loadActivityChart() {
+  const guildId = await getActiveGuildId();
   const since = new Date(Date.now() - 30 * 86400000).toISOString();
-  const logs  = await fetchSupabase(`audit_logs?created_at=gte.${since}&select=created_at,type&order=created_at.asc`);
+  const logs  = await fetchSupabase(`audit_logs?guild_id=eq.${guildId}&created_at=gte.${since}&select=created_at,type&order=created_at.asc`);
 
   const labels     = buildDateLabels(30);
   const msgMap     = groupByDay((logs || []).filter(l => l.type === 'message'));
@@ -150,8 +154,9 @@ async function loadActivityChart() {
 // ─── HEATMAP ─────────────────────────────────────────────────────────────────
 
 async function loadHeatmap() {
+  const guildId = await getActiveGuildId();
   const since = new Date(Date.now() - 7 * 86400000).toISOString();
-  const logs  = await fetchSupabase(`audit_logs?created_at=gte.${since}&select=created_at`);
+  const logs  = await fetchSupabase(`audit_logs?guild_id=eq.${guildId}&created_at=gte.${since}&select=created_at`);
 
   // Compter par jour × heure
   const days  = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
@@ -195,7 +200,8 @@ async function loadHeatmap() {
 // ─── EVENTS CHART ─────────────────────────────────────────────────────────────
 
 async function loadEventsChart() {
-  const events = await fetchSupabase('events?select=id,title,status&order=date.desc&limit=10');
+  const guildId = await getActiveGuildId();
+  const events = await fetchSupabase(`events?guild_id=eq.${guildId}&select=id,title,status&order=date.desc&limit=10`);
   if (!events?.length) return;
 
   const parts = await Promise.all(
@@ -235,14 +241,15 @@ async function loadEventsChart() {
 // ─── WEEKLY RECAP ─────────────────────────────────────────────────────────────
 
 async function loadWeeklyRecap() {
+  const guildId = await getActiveGuildId();
   const since = new Date(Date.now() - 7 * 86400000).toISOString();
 
   const [joins, tickets, suggestions, sanctions, events] = await Promise.all([
-    fetchSupabase(`audit_logs?action=eq.member_join&created_at=gte.${since}&select=id`),
-    fetchSupabase(`tickets?select=id&created_at=gte.${since}`),
-    fetchSupabase(`suggestions?select=id&created_at=gte.${since}`),
-    fetchSupabase(`sanctions?select=id&created_at=gte.${since}`),
-    fetchSupabase(`events?select=id&created_at=gte.${since}`),
+    fetchSupabase(`audit_logs?guild_id=eq.${guildId}&action=eq.member_join&created_at=gte.${since}&select=id`),
+    fetchSupabase(`tickets?guild_id=eq.${guildId}&select=id&created_at=gte.${since}`),
+    fetchSupabase(`suggestions?guild_id=eq.${guildId}&select=id&created_at=gte.${since}`),
+    fetchSupabase(`sanctions?guild_id=eq.${guildId}&select=id&created_at=gte.${since}`),
+    fetchSupabase(`events?guild_id=eq.${guildId}&select=id&created_at=gte.${since}`),
   ]);
 
   // Date affichée
@@ -277,18 +284,27 @@ async function loadWeeklyRecap() {
 // ─── TOP JOUEURS ─────────────────────────────────────────────────────────────
 
 async function loadTopPlayers() {
-  const players = await fetchSupabase('players?select=*&order=created_at.desc');
+  const guildId = await getActiveGuildId();
+
+  const [players, xpRows] = await Promise.all([
+    fetchSupabase('players?select=*&order=created_at.desc'),
+    fetchSupabase(`warstack_xp?guild_id=eq.${guildId}&select=discord_id`),
+  ]);
+
+  const memberIds = new Set((xpRows || []).map(x => x.discord_id));
+  const guildPlayers = (players || []).filter(p => memberIds.has(p.discord_id));
+
   const container = document.getElementById('an-top-players');
   if (!container) return;
 
-  if (!players?.length) {
+  if (!guildPlayers.length) {
     container.innerHTML =
       '<div class="an-empty"><i class="fas fa-users"></i>Aucun joueur enregistré</div>';
     return;
   }
 
   const withScores = [];
-  for (const p of players) {
+  for (const p of guildPlayers) {
     let snap = null;
     if (p.tracker_id) {
       const snaps = await fetchSupabase(`player_snapshots?tracker_id=eq.${p.tracker_id}&order=snapshot_at.desc&limit=1`);
@@ -323,7 +339,8 @@ async function loadTopPlayers() {
 // ─── SANCTIONS CHART ─────────────────────────────────────────────────────────
 
 async function loadSanctionsChart() {
-  const sanctions = await fetchSupabase('sanctions?select=type');
+  const guildId = await getActiveGuildId();
+  const sanctions = await fetchSupabase(`sanctions?guild_id=eq.${guildId}&select=type`);
   const counts    = { warn: 0, mute: 0, kick: 0, ban: 0 };
   for (const s of sanctions || []) {
     if (counts[s.type] !== undefined) counts[s.type]++;

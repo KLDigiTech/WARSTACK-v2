@@ -358,7 +358,13 @@ function initExport() {
   });
 
   document.getElementById('btn-export-members').addEventListener('click', async () => {
-    const data = await fetchSupabase('players?select=*&order=created_at.desc');
+    const guildId = await getActiveGuildId();
+    const [players, xpRows] = await Promise.all([
+      fetchSupabase('players?select=*&order=created_at.desc'),
+      fetchSupabase(`warstack_xp?guild_id=eq.${guildId}&select=discord_id`),
+    ]);
+    const memberIds = new Set((xpRows || []).map(x => x.discord_id));
+    const data = (players || []).filter(p => memberIds.has(p.discord_id));
     if (!data?.length) return showToast('❌ Aucun membre', 'error');
     const rows = [
       ['Discord ID', 'Username', 'Pseudo BF6', 'Plateforme', 'Tracker ID', 'K/D', 'Kills', 'Wins', 'Win Rate', 'Date inscription'],
@@ -373,7 +379,8 @@ function initExport() {
   });
 
   document.getElementById('btn-export-sanctions').addEventListener('click', async () => {
-    const data = await fetchSupabase('sanctions?select=*&order=created_at.desc');
+    const guildId = await getActiveGuildId();
+    const data = await fetchSupabase(`sanctions?guild_id=eq.${guildId}&select=*&order=created_at.desc`);
     if (!data?.length) return showToast('❌ Aucune sanction', 'error');
     const rows = [
       ['Discord ID', 'Username', 'Type', 'Raison', 'Modérateur', 'Durée (min)', 'Active', 'Date'],
@@ -387,7 +394,8 @@ function initExport() {
   });
 
   document.getElementById('btn-export-suggestions').addEventListener('click', async () => {
-    const data = await fetchSupabase('suggestions?select=*&order=created_at.desc');
+    const guildId = await getActiveGuildId();
+    const data = await fetchSupabase(`suggestions?guild_id=eq.${guildId}&select=*&order=created_at.desc`);
     if (!data?.length) return showToast('❌ Aucune suggestion', 'error');
     const rows = [
       ['ID', 'Username', 'Contenu', 'Statut', 'Votes +', 'Votes -', 'Note staff', 'Date'],
@@ -402,7 +410,8 @@ function initExport() {
   });
 
   document.getElementById('btn-export-events').addEventListener('click', async () => {
-    const data = await fetchSupabase('events?select=*&order=date.desc');
+    const guildId = await getActiveGuildId();
+    const data = await fetchSupabase(`events?guild_id=eq.${guildId}&select=*&order=date.desc`);
     if (!data?.length) return showToast('❌ Aucun événement', 'error');
     const rows = [
       ['Titre', 'Description', 'Date', 'Heure', 'Places max', 'Statut', 'Check-in', 'Date création'],
@@ -418,7 +427,8 @@ function initExport() {
   });
 
   document.getElementById('btn-export-tickets').addEventListener('click', async () => {
-    const data = await fetchSupabase('tickets?select=*&order=created_at.desc');
+    const guildId = await getActiveGuildId();
+    const data = await fetchSupabase(`tickets?guild_id=eq.${guildId}&select=*&order=created_at.desc`);
     if (!data?.length) return showToast('❌ Aucun ticket', 'error');
     const rows = [
       ['ID', 'Username', 'Type', 'Statut', 'Assigné à', 'Date ouverture', 'Date fermeture'],

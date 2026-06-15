@@ -732,7 +732,7 @@ router.post('/moderation/sanction', auth, async (req, res) => {
         break;
       case 'unban':
         await guild.members.unban(discord_id, reason).catch(() => {});
-        await supabase.from('sanctions').update({ active: false }).eq('discord_id', discord_id).eq('type', 'ban');
+        await supabase.from('sanctions').update({ active: false }).eq('guild_id', guild.id).eq('discord_id', discord_id).eq('type', 'ban');
         break;
     }
 

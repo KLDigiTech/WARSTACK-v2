@@ -2,6 +2,7 @@ import { loadConfigs, saveConfig, getConfig } from '../services/configService.js
 import { callBotAPI }                          from '../api.js';
 import { fetchSupabase, deleteSupabase }       from '../api.js';
 import { showToast }                           from '../ui/toast.js';
+import { getActiveGuildId }                    from '../services/guildService.js';
 
 export async function initBirthdays() {
 
@@ -107,8 +108,16 @@ function updateClock() {
 // ── Liste anniversaires ──────────────────────────────────────────────────────
 
 async function loadBirthdays() {
-  const data = await fetchSupabase('birthdays?select=*&order=month.asc,day.asc');
-  const list = data || [];
+  const guildId = await getActiveGuildId();
+  const [data, xpRows] = await Promise.all([
+    fetchSupabase('birthdays?select=*&order=month.asc,day.asc'),
+    fetchSupabase(`warstack_xp?guild_id=eq.${guildId}&select=discord_id`),
+  ]);
+
+  // 'birthdays' est une table globale (identité Discord) — on ne garde que
+  // les membres rattachés à CE serveur (présents dans warstack_xp).
+  const memberIds = new Set((xpRows || []).map(x => x.discord_id));
+  const list = (data || []).filter(b => memberIds.has(b.discord_id));
 
   document.getElementById('birthday-count').textContent = `${list.length} membre${list.length > 1 ? 's' : ''}`;
 

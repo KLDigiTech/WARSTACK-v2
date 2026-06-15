@@ -208,7 +208,8 @@ async function addTicketCategory() {
 async function loadTickets() {
   const el = document.getElementById('tickets-list');
   el.innerHTML = `<div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>`;
-  let url = `tickets?select=*&order=created_at.desc`;
+  const guildId = await getActiveGuildId();
+  let url = `tickets?guild_id=eq.${guildId}&select=*&order=created_at.desc`;
   if (currentFilter !== 'all') url += `&status=eq.${currentFilter}`;
   const data = await fetchSupabase(url) || [];
   if (!data.length) {
@@ -311,7 +312,8 @@ async function addTicketNote() {
 }
 
 async function loadStats() {
-  const data = await fetchSupabase('tickets?select=status,created_at,closed_at') || [];
+  const guildId = await getActiveGuildId();
+  const data = await fetchSupabase(`tickets?guild_id=eq.${guildId}&select=status,created_at,closed_at`) || [];
   const open       = data.filter(t => t.status === 'open').length;
   const inProgress = data.filter(t => t.status === 'in_progress').length;
   const closed     = data.filter(t => t.status === 'closed');

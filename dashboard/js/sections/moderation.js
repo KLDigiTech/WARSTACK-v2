@@ -1,6 +1,7 @@
 import { loadConfigs, saveConfig, getConfig } from '../services/configService.js';
 import { callBotAPI, fetchSupabase }           from '../api.js';
 import { showToast }                           from '../ui/toast.js';
+import { getActiveGuildId }                    from '../services/guildService.js';
 
 let selectedMember  = null;
 let currentFilter   = 'all';
@@ -175,8 +176,9 @@ async function confirmSanction() {
 // ── Sanctions membre ─────────────────────────────────────────────────────────
 
 async function loadMemberSanctions(discord_id) {
+  const guildId = await getActiveGuildId();
   const data = await fetchSupabase(
-    `sanctions?discord_id=eq.${discord_id}&order=created_at.desc`
+    `sanctions?guild_id=eq.${guildId}&discord_id=eq.${discord_id}&order=created_at.desc`
   ) || [];
 
   document.getElementById('mc-warns').textContent  = data.filter(s => s.type === 'warn').length;
@@ -258,7 +260,8 @@ async function loadSanctions() {
   const el = document.getElementById('sanctions-list');
   el.innerHTML = `<div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>`;
 
-  let url = `sanctions?select=*&order=created_at.desc`;
+  const guildId = await getActiveGuildId();
+  let url = `sanctions?guild_id=eq.${guildId}&select=*&order=created_at.desc`;
   if (currentFilter !== 'all') url += `&type=eq.${currentFilter}`;
 
   const data = await fetchSupabase(url) || [];
@@ -293,7 +296,8 @@ async function loadSanctions() {
 // ── Stats ────────────────────────────────────────────────────────────────────
 
 async function loadStats() {
-  const data = await fetchSupabase('sanctions?select=type,active') || [];
+  const guildId = await getActiveGuildId();
+  const data = await fetchSupabase(`sanctions?guild_id=eq.${guildId}&select=type,active`) || [];
   document.getElementById('stat-warns').textContent = data.filter(s => s.type === 'warn').length;
   document.getElementById('stat-mutes').textContent = data.filter(s => s.type === 'mute' && s.active).length;
   document.getElementById('stat-kicks').textContent = data.filter(s => s.type === 'kick').length;

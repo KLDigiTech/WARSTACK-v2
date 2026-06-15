@@ -1,7 +1,7 @@
 import { loadConfigs, saveConfig, getConfig } from '../services/configService.js';
 import { callBotAPI, fetchSupabase }           from '../api.js';
 import { showToast }                           from '../ui/toast.js';
-import { GUILD_ID, SUPABASE_KEY, SUPABASE_URL } from '../config.js';
+import { getActiveGuildId }                    from '../services/guildService.js';
 
 let currentFilter    = 'all';
 let currentSuggestion = null;
@@ -68,7 +68,8 @@ async function loadSuggestions() {
   const container = document.getElementById('suggestions-list');
   container.innerHTML = `<div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>`;
 
-  let url = `suggestions?select=*&order=created_at.desc`;
+  const guildId = await getActiveGuildId();
+  let url = `suggestions?guild_id=eq.${guildId}&select=*&order=created_at.desc`;
   if (currentFilter !== 'all') url += `&status=eq.${currentFilter}`;
 
   const data = await fetchSupabase(url);
@@ -162,7 +163,8 @@ async function saveStaffNote() {
 // ── Stats ────────────────────────────────────────────────────────────────────
 
 async function loadStats() {
-  const data = await fetchSupabase('suggestions?select=status');
+  const guildId = await getActiveGuildId();
+  const data = await fetchSupabase(`suggestions?guild_id=eq.${guildId}&select=status`);
   const list = data || [];
   document.getElementById('stat-total').textContent       = list.length;
   document.getElementById('stat-accepted').textContent    = list.filter(s => s.status === 'accepted').length;
@@ -173,7 +175,8 @@ async function loadStats() {
 // ── Leaderboard ──────────────────────────────────────────────────────────────
 
 async function loadLeaderboard() {
-  const data = await fetchSupabase('suggestions?select=discord_id,username');
+  const guildId = await getActiveGuildId();
+  const data = await fetchSupabase(`suggestions?guild_id=eq.${guildId}&select=discord_id,username`);
   const list = data || [];
 
   const counts = {};

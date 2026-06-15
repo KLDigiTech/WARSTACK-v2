@@ -1,6 +1,7 @@
 import { loadConfigs, saveConfig, getConfig } from '../services/configService.js';
 import { callBotAPI, fetchSupabase }           from '../api.js';
 import { showToast }                           from '../ui/toast.js';
+import { getActiveGuildId }                    from '../services/guildService.js';
 
 export async function initAutomod() {
 
@@ -154,8 +155,9 @@ function updateScore() {
 // ── Journal violations ────────────────────────────────────────────────────────
 
 async function loadViolations() {
+  const guildId = await getActiveGuildId();
   const data = await fetchSupabase(
-    'sanctions?select=*&order=created_at.desc&limit=10&moderator_id=eq.automod'
+    `sanctions?guild_id=eq.${guildId}&select=*&order=created_at.desc&limit=10&moderator_id=eq.automod`
   ) || [];
 
   const el = document.getElementById('violations-list');

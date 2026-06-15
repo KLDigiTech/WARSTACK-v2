@@ -2,8 +2,7 @@ import { supabase }              from '../supabaseClient.js';
 import { BOT_URL, API_KEY }      from '../config.js';
 import { showToast }             from '../ui/toast.js';
 import { showModal, closeModal } from '../ui/modal.js';
-
-const GUILD_ID = sessionStorage.getItem('warstack_guild_id') || window.WARSTACK_GUILD_ID;
+import { getActiveGuildId }      from '../services/guildService.js';
 
 const ROLE_PERMS = {
   '👑 Fondateur'   : ['overview','players','tournament','events','suggestions','tickets','logs','moderation','analytics','settings','channels','reactions','messages','onboarding','access'],
@@ -34,10 +33,12 @@ async function loadTeam() {
   document.getElementById('team-loading').style.display = 'flex';
   document.getElementById('team-content').style.display = 'none';
 
+  const guildId = await getActiveGuildId();
+
   const { data, error } = await supabase
     .from('team_members')
     .select('*')
-    .eq('guild_id', GUILD_ID)
+    .eq('guild_id', guildId)
     .order('created_at', { ascending: true });
 
   if (error) { showToast('Erreur chargement équipe', 'error'); return; }
@@ -246,10 +247,11 @@ window.selectRole = function(card) {
 
 window.confirmDelete = async function() {
   if (!_deleteId) return;
+  const guildId = await getActiveGuildId();
   const { error } = await supabase
     .from('team_members')
     .delete()
-    .eq('guild_id', GUILD_ID)
+    .eq('guild_id', guildId)
     .eq('discord_id', _deleteId);
 
   if (error) { showToast('Erreur suppression', 'error'); return; }
@@ -308,9 +310,10 @@ window.saveMember = async function() {
   if (!_selectedRole) { showToast('Sélectionnez un rôle', 'error'); return; }
 
   const extraPerms = [...document.querySelectorAll('#modal-extra-perms input:checked')].map(cb => cb.value);
+  const guildId    = await getActiveGuildId();
 
   const { error } = await supabase.from('team_members').upsert({
-    guild_id   : GUILD_ID,
+    guild_id   : guildId,
     discord_id : _selectedUser.discord_id,
     username   : _selectedUser.username,
     avatar     : _selectedUser.avatar,

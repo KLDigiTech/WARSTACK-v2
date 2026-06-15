@@ -1,5 +1,6 @@
 import { fetchSupabase } from '../api.js';
 import { showToast }     from '../ui/toast.js';
+import { getActiveGuildId } from '../services/guildService.js';
 
 let map         = null;
 let markers     = [];
@@ -220,13 +221,22 @@ function getCurrentFiltered() {
 // ── DONNÉES ───────────────────────────────────────────────────────────────────
 
 async function loadData() {
-  const data = await fetchSupabase('member_locations?select=*&order=username.asc');
-  allMembers = data || [];
+  const guildId = await getActiveGuildId();
+
+  const [data, xpRows, players] = await Promise.all([
+    fetchSupabase('member_locations?select=*&order=username.asc'),
+    fetchSupabase(`warstack_xp?guild_id=eq.${guildId}&select=discord_id`),
+    fetchSupabase('players?select=discord_id,avatar_url'),
+  ]);
+
+  // 'member_locations' est une table globale — on ne garde que les membres
+  // rattachés à CE serveur (présents dans warstack_xp).
+  const memberIds = new Set((xpRows || []).map(x => x.discord_id));
+  allMembers = (data || []).filter(m => memberIds.has(m.discord_id));
 
   // Récupérer les avatars depuis la table players
-  const players = await fetchSupabase('players?select=discord_id,avatar_url') || [];
   const avatarMap = {};
-  players.forEach(p => { avatarMap[p.discord_id] = p.avatar_url; });
+  (players || []).forEach(p => { avatarMap[p.discord_id] = p.avatar_url; });
   allMembers.forEach(m => { if (!m.avatar_url && avatarMap[m.discord_id]) m.avatar_url = avatarMap[m.discord_id]; });
 
   initMap(allMembers);

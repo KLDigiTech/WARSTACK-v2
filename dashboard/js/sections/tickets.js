@@ -218,6 +218,7 @@ async function loadTickets() {
   }
   const catMap = {};
   ticketCategories.forEach(t => { catMap[t.id] = t; });
+  catMap['staff_summon'] = { emoji: '🗣️', label: 'Convocation staff' };
   const priorityColors = { low: '#00ff66', normal: '#ffbd2e', high: '#ff6b35', critical: '#ff4444' };
   el.innerHTML = data.map(t => {
     const cat = catMap[t.type] || { emoji: '🎫', label: t.type };
@@ -255,6 +256,7 @@ async function openTicket(id, list) {
   if (!currentTicket) return;
   const catMap = {};
   ticketCategories.forEach(t => { catMap[t.id] = t; });
+  catMap['staff_summon'] = { emoji: '🗣️', label: 'Convocation staff' };
   const cat = catMap[currentTicket.type] || { emoji: '🎫', label: currentTicket.type };
   document.getElementById('modal-ticket-title').textContent = `${cat.emoji} Ticket — ${currentTicket.username}`;
   document.getElementById('modal-ticket').style.display = 'flex';

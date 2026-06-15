@@ -798,7 +798,7 @@ router.post('/ticket/panel', auth, async (req, res) => {
 
     const embed = new EmbedBuilder()
       .setTitle('🎫 Support WARSTACK')
-      .setDescription('Clique sur le bouton correspondant à ta demande pour ouvrir un ticket.')
+      .setDescription('Clique sur le bouton correspondant à ta demande pour ouvrir un ticket.\n\n*Le bouton "Convoquer un membre" est réservé au staff.*')
       .setColor(0x00ff66)
       .addFields(cats.map(c => ({ name: `${c.emoji} ${c.label}`, value: '\u200b', inline: true })));
 
@@ -816,8 +816,17 @@ router.post('/ticket/panel', auth, async (req, res) => {
         )
       );
       rows.push(row);
-      if (rows.length >= 4) break;
+      if (rows.length >= 3) break;
     }
+
+    // Bouton staff : permet à un modo/leader de convoquer un membre
+    rows.push(new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId('ticket_staff_summon')
+        .setLabel('Convoquer un membre (staff)')
+        .setEmoji('🗣️')
+        .setStyle(ButtonStyle.Secondary)
+    ));
 
     await channel.send({ embeds: [embed], components: rows });
     res.json({ success: true });

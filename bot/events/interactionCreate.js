@@ -1,6 +1,17 @@
 const supabase = require('../services/supabase');
 const { handleOnboardingInteraction } = require('../services/onboarding');
 
+// Vérifie si un membre a le rôle Staff, le rôle Leader, ou est admin du serveur.
+function isStaffOrLeader(member, configs) {
+  if (member.permissions?.has?.('Administrator')) return true;
+  const getConfig   = (key) => configs?.find(c => c.key === key)?.value;
+  const staffRoleId  = getConfig('ticket_staff_role');
+  const leaderRoleId = getConfig('ticket_leader_role');
+  if (staffRoleId  && member.roles.cache.has(staffRoleId))  return true;
+  if (leaderRoleId && member.roles.cache.has(leaderRoleId)) return true;
+  return false;
+}
+
 module.exports = {
   name: 'interactionCreate',
   once: false,
@@ -390,6 +401,203 @@ module.exports = {
       } catch (err) {
         console.error('❌ Close ticket error:', err.message);
         await interaction.editReply({ content: '❌ Erreur.' });
+      }
+      return;
+    }
+
+    // ── BOUTON STAFF : CONVOQUER UN MEMBRE ────────────────
+    // Réservé aux rôles Staff / Leader (ou admin). Permet d'ouvrir
+    // un ticket avec un membre ciblé pour lui parler d'un sujet.
+    if (interaction.isButton() && interaction.customId === 'ticket_staff_summon') {
+      const { data: configs } = await supabase
+        .from('config').select('*').eq('guild_id', interaction.guild.id);
+
+      if (!isStaffOrLeader(interaction.member, configs)) {
+        return interaction.reply({ content: '❌ Réservé au staff.', ephemeral: true });
+      }
+
+      const { UserSelectMenuBuilder, ActionRowBuilder } = require('discord.js');
+
+      const select = new UserSelectMenuBuilder()
+        .setCustomId('ticket_staff_select_user')
+        .setPlaceholder('Choisis le membre à convoquer')
+        .setMinValues(1)
+        .setMaxValues(1);
+
+      await interaction.reply({
+        content: '👤 Sélectionne le membre que tu veux convoquer :',
+        components: [new ActionRowBuilder().addComponents(select)],
+        ephemeral: true,
+      });
+      return;
+    }
+
+    // ── SELECT MENU : MEMBRE CIBLÉ POUR CONVOCATION ───────
+    if (interaction.isUserSelectMenu() && interaction.customId === 'ticket_staff_select_user') {
+      const { data: configs } = await supabase
+        .from('config').select('*').eq('guild_id', interaction.guild.id);
+
+      if (!isStaffOrLeader(interaction.member, configs)) {
+        return interaction.update({ content: '❌ Réservé au staff.', components: [] });
+      }
+
+      const targetId = interaction.values[0];
+
+      if (targetId === interaction.user.id) {
+        return interaction.update({ content: '❌ Tu ne peux pas te convoquer toi-même.', components: [] });
+      }
+
+      const { data: existing } = await supabase
+        .from('tickets')
+        .select('id')
+        .eq('discord_id', targetId)
+        .eq('guild_id', interaction.guild.id)
+        .in('status', ['open', 'in_progress'])
+        .maybeSingle();
+
+      if (existing) {
+        return interaction.update({ content: '❌ Ce membre a déjà un ticket ouvert.', components: [] });
+      }
+
+      const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
+
+      const modal = new ModalBuilder()
+        .setCustomId(`ticket_staff_modal_${targetId}`)
+        .setTitle('🗣️ Convoquer un membre');
+
+      const reasonInput = new TextInputBuilder()
+        .setCustomId('ticket_staff_reason')
+        .setLabel('Sujet de la convocation')
+        .setPlaceholder('De quoi veux-tu parler avec ce membre ?')
+        .setStyle(TextInputStyle.Paragraph)
+        .setMinLength(5)
+        .setMaxLength(1000)
+        .setRequired(true);
+
+      modal.addComponents(new ActionRowBuilder().addComponents(reasonInput));
+
+      await interaction.showModal(modal);
+      return;
+    }
+
+    // ── MODAL SUBMIT : CRÉATION TICKET DE CONVOCATION ─────
+    if (interaction.isModalSubmit() && interaction.customId.startsWith('ticket_staff_modal_')) {
+      const targetId = interaction.customId.replace('ticket_staff_modal_', '');
+      const guild    = interaction.guild;
+      const reason   = interaction.fields.getTextInputValue('ticket_staff_reason');
+
+      await interaction.deferReply({ ephemeral: true });
+
+      try {
+        const targetMember = await guild.members.fetch(targetId).catch(() => null);
+        if (!targetMember) {
+          return interaction.editReply({ content: '❌ Membre introuvable sur ce serveur.' });
+        }
+
+        const { data: configs } = await supabase
+          .from('config').select('*').eq('guild_id', guild.id);
+
+        const getConfig         = (key) => configs?.find(c => c.key === key)?.value;
+        const categoryActiveId  = getConfig('ticket_category_active') || getConfig('ticket_category_waiting');
+        const staffRoleId       = getConfig('ticket_staff_role');
+        const leaderRoleId      = getConfig('ticket_leader_role');
+        const logChId           = getConfig('ticket_logs_channel');
+
+        const channelName = `ticket-${targetMember.user.username.toLowerCase().replace(/[^a-z0-9]/g, '')}-${Date.now().toString().slice(-4)}`;
+
+        const permissionOverwrites = [
+          { id: guild.roles.everyone, deny: ['ViewChannel'] },
+          { id: targetMember.user.id, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'] },
+        ];
+
+        if (staffRoleId) {
+          permissionOverwrites.push({
+            id   : staffRoleId,
+            allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'ManageMessages'],
+          });
+        }
+        if (leaderRoleId && leaderRoleId !== staffRoleId) {
+          permissionOverwrites.push({
+            id   : leaderRoleId,
+            allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'ManageMessages'],
+          });
+        }
+
+        const ticketChannel = await guild.channels.create({
+          name    : channelName,
+          type    : 0,
+          parent  : categoryActiveId || null,
+          permissionOverwrites,
+        });
+
+        const staffName = interaction.member.displayName || interaction.user.username;
+
+        await supabase.from('tickets').insert({
+          guild_id        : guild.id,
+          discord_id      : targetMember.user.id,
+          username        : targetMember.user.username,
+          type            : 'staff_summon',
+          subject         : reason,
+          channel_id      : ticketChannel.id,
+          status          : 'in_progress',
+          assigned_to     : staffName,
+          taken_by_id      : interaction.user.id,
+          taken_at        : new Date().toISOString(),
+          last_activity_at: new Date().toISOString(),
+        });
+
+        const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
+
+        const embed = new EmbedBuilder()
+          .setColor(0xff9900)
+          .setTitle('🗣️ Convocation — Staff')
+          .setDescription(`**${staffName}** souhaite te parler, ${targetMember} :`)
+          .addFields({ name: '📌 Sujet', value: reason, inline: false })
+          .setTimestamp()
+          .setFooter({ text: `Convoqué par ${staffName}` });
+
+        const row = new ActionRowBuilder().addComponents(
+          new ButtonBuilder()
+            .setCustomId('ticket_take_staff')
+            .setLabel('Pris en charge')
+            .setEmoji('✅')
+            .setStyle(ButtonStyle.Success)
+            .setDisabled(true),
+          new ButtonBuilder()
+            .setCustomId('ticket_take_leader')
+            .setLabel('Contacter un Leader')
+            .setEmoji('👑')
+            .setStyle(ButtonStyle.Secondary),
+          new ButtonBuilder()
+            .setCustomId('ticket_close')
+            .setLabel('Fermer')
+            .setEmoji('🔒')
+            .setStyle(ButtonStyle.Danger),
+        );
+
+        await ticketChannel.send({ content: `${targetMember}`, embeds: [embed], components: [row] });
+
+        if (logChId) {
+          const logCh = guild.channels.cache.get(logChId);
+          if (logCh) {
+            const logEmbed = new EmbedBuilder()
+              .setColor(0xff9900)
+              .setTitle('🗣️ Convocation — Staff')
+              .addFields(
+                { name: 'Membre',    value: `${targetMember}`, inline: true },
+                { name: 'Convoqué par', value: staffName,       inline: true },
+                { name: 'Salon',     value: `${ticketChannel}`, inline: true },
+              )
+              .setTimestamp();
+            await logCh.send({ embeds: [logEmbed] });
+          }
+        }
+
+        await interaction.editReply({ content: `✅ Ticket de convocation créé : ${ticketChannel}` });
+
+      } catch (err) {
+        console.error('❌ Ticket staff summon error:', err.message);
+        await interaction.editReply({ content: '❌ Erreur lors de la création du ticket.' });
       }
       return;
     }

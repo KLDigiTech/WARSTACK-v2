@@ -2,9 +2,16 @@ const supabase = require('../services/supabase');
 
 async function sendRecurringMessages(client) {
   try {
-    const guild = client.guilds.cache.first();
-    if (!guild) return;
+    for (const guild of client.guilds.cache.values()) {
+      await sendForGuild(guild);
+    }
+  } catch (err) {
+    console.error('❌ recurring-messages:', err.message);
+  }
+}
 
+async function sendForGuild(guild) {
+  try {
     const { data: messages } = await supabase
       .from('recurring_messages')
       .select('*')
@@ -37,10 +44,10 @@ async function sendRecurringMessages(client) {
         })
         .eq('id', msg.id);
 
-      console.log(`✅ Message récurrent envoyé : ${msg.name}`);
+      console.log(`✅ Message récurrent envoyé : ${msg.name} (${guild.name})`);
     }
   } catch (err) {
-    console.error('❌ recurring-messages:', err.message);
+    console.error(`❌ recurring-messages (${guild.id}):`, err.message);
   }
 }
 

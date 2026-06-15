@@ -1,6 +1,7 @@
 import { fetchSupabase, updateSupabase, insertSupabase, deleteSupabase, callBotAPI } from '../api.js';
 import { supabase } from '../supabaseClient.js';
 import { showConfirm } from '../ui/confirm.js';
+import { getActiveGuildId } from '../services/guildService.js';
 
 const OCR_URL = 'https://kldigitech-warstack-ocr.hf.space/ocr';
 
@@ -39,7 +40,8 @@ async function loadTournoi() {
   const container = document.getElementById('tab-tournoi');
   container.innerHTML = '<p>Chargement...</p>';
 
-  const tournois = await fetchSupabase('tournaments?order=created_at.desc&limit=20');
+  const guildId = await getActiveGuildId();
+  const tournois = await fetchSupabase(`tournaments?guild_id=eq.${guildId}&order=created_at.desc&limit=20`);
   const actifs   = tournois?.filter(t => t.status === 'active') || [];
   const archives = tournois?.filter(t => t.status !== 'active') || [];
 
@@ -773,7 +775,10 @@ async function creerTournoi() {
   if (!nom || !start || !end) return setFeedback('❌ Remplis tous les champs obligatoires.');
   setFeedback('Création en cours...');
 
+  const guildId = await getActiveGuildId();
+
   await insertSupabase('tournaments', {
+    guild_id: guildId,
     name: nom, start_date: start, end_date: end,
     max_players: max || null, phase: phase || null, description: desc || null,
     status: 'active', points_per_kill: ppk,
@@ -824,7 +829,8 @@ window.supprimerTournoi = async function(id, nom) {
 };
 
 async function getTournoiActif() {
-  const tournois = await fetchSupabase('tournaments?status=eq.active&limit=1');
+  const guildId = await getActiveGuildId();
+  const tournois = await fetchSupabase(`tournaments?guild_id=eq.${guildId}&status=eq.active&limit=1`);
   return tournois?.[0] || null;
 }
 

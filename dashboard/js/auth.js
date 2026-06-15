@@ -78,6 +78,13 @@ if (guildId) {
 window.WARSTACK_GUILD_ID    = guildId;
 window.WARSTACK_DISCORD_ID  = discordId;
 
+// Le lien "Lien inscription" doit transporter le serveur ciblé
+if (guildId) {
+  document.querySelectorAll('a[href^="/inscription.html"]').forEach(a => {
+    a.href = `/inscription.html?guild=${guildId}`;
+  });
+}
+
 // Nettoyer l'URL (le guild_id est désormais stocké)
 if (guildParam) {
   urlParams.delete('guild');

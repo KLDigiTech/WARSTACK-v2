@@ -40,14 +40,31 @@ function getDivision(score) {
   return             { name: 'Recruit',       emoji: '🪖' };
 }
 
+// Met à jour le classement #classement sur CHAQUE serveur où le bot est installé,
+// avec uniquement les joueurs rattachés à ce serveur (warstack_xp).
 async function updateLeaderboard(client) {
+  for (const guild of client.guilds.cache.values()) {
+    await updateLeaderboardForGuild(guild);
+  }
+}
+
+async function updateLeaderboardForGuild(guild) {
   try {
-    const channel = client.channels.cache.find(c => c.name === 'classement');
-    if (!channel) return console.log('❌ Salon #classement introuvable');
+    const channel = guild.channels.cache.find(c => c.name === 'classement');
+    if (!channel) return console.log(`❌ Salon #classement introuvable sur ${guild.name}`);
+
+    const { data: members } = await supabase
+      .from('warstack_xp')
+      .select('discord_id')
+      .eq('guild_id', guild.id);
+
+    const memberIds = (members || []).map(m => m.discord_id);
+    if (!memberIds.length) return;
 
     const { data: players, error } = await supabase
       .from('players')
       .select('discord_id, username, tracker_id')
+      .in('discord_id', memberIds)
       .not('tracker_id', 'is', null);
 
     if (error || !players?.length) return;
@@ -79,6 +96,8 @@ async function updateLeaderboard(client) {
         br_rank  : snapshot.br_rank || '—',
       });
     }
+
+    if (!playerStats.length) return;
 
     playerStats.sort((a, b) => parseFloat(b.score) - parseFloat(a.score));
 
@@ -115,10 +134,10 @@ async function updateLeaderboard(client) {
     await Promise.all(botMessages.map(m => m.delete()));
 
     await channel.send({ embeds: [embed] });
-    console.log('✅ Leaderboard mis à jour dans #classement');
+    console.log(`✅ Leaderboard mis à jour dans #classement (${guild.name})`);
 
   } catch (error) {
-    console.error('❌ Erreur leaderboard job:', error.message);
+    console.error(`❌ Erreur leaderboard job (${guild.name}):`, error.message);
   }
 }
 

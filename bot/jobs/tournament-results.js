@@ -4,12 +4,7 @@ const { award, addXP, addCoins } = require('../services/points');
 
 async function postTournamentResults(client, tournamentId) {
   try {
-    const channel = client.channels.cache.find(c =>
-      c.name === 'tournoi-live' || c.name === 'classement'
-    );
-    if (!channel) return console.log('❌ Salon résultats introuvable');
-
-    // Infos tournoi
+    // Infos tournoi (récupéré en premier pour connaître le guild ciblé)
     const { data: tournoi } = await supabase
       .from('tournaments')
       .select('*')
@@ -17,6 +12,17 @@ async function postTournamentResults(client, tournamentId) {
       .single();
 
     if (!tournoi) return;
+
+    const guild = tournoi.guild_id
+      ? client.guilds.cache.get(tournoi.guild_id)
+      : client.guilds.cache.first();
+
+    if (!guild) return console.log('❌ Serveur introuvable pour ce tournoi');
+
+    const channel = guild.channels.cache.find(c =>
+      c.name === 'tournoi-live' || c.name === 'classement'
+    );
+    if (!channel) return console.log(`❌ Salon résultats introuvable sur ${guild.name}`);
 
     // Soumissions validées triées par KD
     const { data: subs } = await supabase

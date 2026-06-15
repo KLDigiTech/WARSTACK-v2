@@ -1,14 +1,31 @@
 const { EmbedBuilder } = require('discord.js');
 const supabase         = require('../services/supabase');
 
+// Poste le MVP de la semaine sur CHAQUE serveur où le bot est installé,
+// en se limitant aux joueurs rattachés à ce serveur (warstack_xp).
 async function postMVP(client) {
+  for (const guild of client.guilds.cache.values()) {
+    await postMVPForGuild(guild);
+  }
+}
+
+async function postMVPForGuild(guild) {
   try {
-    const channel = client.channels.cache.find(c => c.name === 'annonces-mvp');
-    if (!channel) { console.log('❌ Salon #annonces-mvp introuvable'); return; }
+    const channel = guild.channels.cache.find(c => c.name === 'annonces-mvp');
+    if (!channel) { console.log(`❌ Salon #annonces-mvp introuvable sur ${guild.name}`); return; }
+
+    const { data: members } = await supabase
+      .from('warstack_xp')
+      .select('discord_id')
+      .eq('guild_id', guild.id);
+
+    const memberIds = (members || []).map(m => m.discord_id);
+    if (!memberIds.length) return;
 
     const { data: players } = await supabase
       .from('players')
       .select('*')
+      .in('discord_id', memberIds)
       .order('kd', { ascending: false })
       .limit(1);
 
@@ -28,10 +45,10 @@ async function postMVP(client) {
       .setTimestamp();
 
     await channel.send({ embeds: [embed] });
-    console.log('✅ MVP posté dans #annonces-mvp');
+    console.log(`✅ MVP posté dans #annonces-mvp (${guild.name})`);
 
   } catch (error) {
-    console.error('❌ Erreur MVP job:', error.message);
+    console.error(`❌ Erreur MVP job (${guild.name}):`, error.message);
   }
 }
 

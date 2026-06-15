@@ -21,7 +21,7 @@ module.exports = {
     const { data: player } = await supabase.from('players').select('*').eq('discord_id', discordId).single();
     if (!player) return interaction.editReply({ content: '❌ Tu n\'es pas inscrit. Utilise **/register** d\'abord.' });
 
-    const { data: tournoi } = await supabase.from('tournaments').select('*').eq('status', 'active').single();
+    const { data: tournoi } = await supabase.from('tournaments').select('*').eq('status', 'active').eq('guild_id', interaction.guild.id).single();
     if (!tournoi) return interaction.editReply({ content: '❌ Aucun tournoi en cours.' });
 
     const { data: entry } = await supabase.from('tournament_entries').select('*').eq('tournament_id', tournoi.id).eq('discord_id', discordId).single();

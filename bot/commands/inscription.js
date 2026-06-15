@@ -14,7 +14,7 @@ module.exports = {
     const { data: player } = await supabase.from('players').select('*').eq('discord_id', discordId).single();
     if (!player) return interaction.editReply({ content: '❌ Tu n\'es pas inscrit sur WARSTACK. Utilise **/register** d\'abord.' });
 
-    const { data: tournois } = await supabase.from('tournaments').select('*').eq('status', 'active').limit(1);
+    const { data: tournois } = await supabase.from('tournaments').select('*').eq('status', 'active').eq('guild_id', interaction.guild.id).limit(1);
     const tournoi = tournois?.[0];
     if (!tournoi) return interaction.editReply({ content: '❌ Aucun tournoi en cours.' });
 

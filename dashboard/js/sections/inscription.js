@@ -12,8 +12,14 @@ let _teamMode         = 'join';
 async function init() {
   showState('loading');
 
-  const { data: tournois } = await supabase
+  const urlParams = new URLSearchParams(window.location.search);
+  const guildId   = urlParams.get('guild');
+
+  let query = supabase
     .from('tournaments').select('*').eq('status', 'active').order('created_at', { ascending: false });
+  if (guildId) query = query.eq('guild_id', guildId);
+
+  const { data: tournois } = await query;
 
   if (!tournois?.length) { showState('no-tournoi'); return; }
 

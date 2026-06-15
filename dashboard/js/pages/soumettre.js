@@ -48,7 +48,13 @@ async function init() {
   _player = player;
 
   // Vérif tournoi
-  const { data: tournois } = await supabase.from('tournaments').select('*').eq('status', 'active').limit(1);
+  const urlParams = new URLSearchParams(window.location.search);
+  const guildId   = urlParams.get('guild');
+
+  let tournoiQuery = supabase.from('tournaments').select('*').eq('status', 'active').limit(1);
+  if (guildId) tournoiQuery = tournoiQuery.eq('guild_id', guildId);
+
+  const { data: tournois } = await tournoiQuery;
   if (!tournois?.length) { showState('no-tournoi'); return; }
   _tournoi = tournois[0];
 

@@ -1,5 +1,9 @@
 import { supabase } from './supabaseClient.js';
 import { BOT_URL, API_KEY } from './config.js';
+import { switchActiveGuild } from './services/guildService.js';
+
+const STORAGE_KEY = 'warstack_guild_id';
+const PREF_KEY    = 'warstack_active_guild';
 
 const { data: { session } } = await supabase.auth.getSession();
 if (!session) { window.location.href = '/login.html'; }
@@ -22,61 +26,59 @@ if (userAvatar) {
   await supabase.from('players').update({ avatar_url: userAvatar }).eq('discord_id', discordId);
 }
 
-// ── Récupérer guild_id via Supabase ───────────────────────────
+// ── Récupérer guild_id via Supabase (multi-serveur) ───────────
 const urlParams  = new URLSearchParams(window.location.search);
 const guildParam = urlParams.get('guild');
+const preferred  = localStorage.getItem(PREF_KEY);
 
-let guildId = null;
+let guildId    = null;
+let guildData  = null;
+let myGuilds   = [];
 
 try {
-  let query = supabase
+  const { data, error } = await supabase
     .from('guilds')
     .select('guild_id, name, icon')
     .eq('owner_id', discordId)
-    .eq('setup_complete', true);
+    .eq('setup_complete', true)
+    .order('joined_at', { ascending: true });
 
-  if (guildParam) query = query.eq('guild_id', guildParam);
+  if (error || !data || !data.length) {
+    window.location.href = '/setup.html';
+  } else {
+    myGuilds = data;
 
-  let { data: guildData } = await query
-    .order('updated_at', { ascending: false })
-    .limit(1)
-    .single();
+    // Priorité : ?guild= dans l'URL > préférence sauvegardée > 1er serveur configuré
+    const wanted = [guildParam, preferred].find(
+      id => id && myGuilds.some(g => g.guild_id === id)
+    );
 
-  // Si un serveur précis était demandé mais introuvable pour cet owner → fallback
-  if (!guildData && guildParam) {
-    const fallback = await supabase
-      .from('guilds')
-      .select('guild_id, name, icon')
-      .eq('owner_id', discordId)
-      .eq('setup_complete', true)
-      .order('updated_at', { ascending: false })
-      .limit(1)
-      .single();
-    guildData = fallback.data;
-  }
+    guildData = wanted
+      ? myGuilds.find(g => g.guild_id === wanted)
+      : myGuilds[0];
 
-  if (guildData) {
     guildId = guildData.guild_id;
+
     document.getElementById('server-title').textContent = guildData.name;
     document.getElementById('server-logo').src          = guildData.icon || userAvatar;
     if (document.getElementById('server-name'))
       document.getElementById('server-name').textContent = guildData.name;
-  } else {
-    // Aucun serveur configuré → setup
-    window.location.href = '/setup.html';
   }
 } catch (err) {
   console.error('Guild fetch error:', err);
   window.location.href = '/setup.html';
 }
 
-// Stocker guild_id dans sessionStorage pour toute l'app
-if (guildId) sessionStorage.setItem('warstack_guild_id', guildId);
+// Stocker guild_id (session = page courante, local = préférence persistante)
+if (guildId) {
+  sessionStorage.setItem(STORAGE_KEY, guildId);
+  localStorage.setItem(PREF_KEY, guildId);
+}
 
 window.WARSTACK_GUILD_ID    = guildId;
 window.WARSTACK_DISCORD_ID  = discordId;
 
-// Nettoyer l'URL (le guild_id est désormais en sessionStorage)
+// Nettoyer l'URL (le guild_id est désormais stocké)
 if (guildParam) {
   urlParams.delete('guild');
   const newUrl = window.location.pathname
@@ -85,7 +87,45 @@ if (guildParam) {
   window.history.replaceState({}, '', newUrl);
 }
 
-// ── DROPDOWN ─────────────────────────────────────────────────
+// ── SÉLECTEUR DE SERVEUR (si l'owner gère plusieurs serveurs) ─
+const guildSwitcher  = document.getElementById('guild-switcher');
+const switcherChevron = document.getElementById('guild-switcher-chevron');
+const switcherDropdown = document.getElementById('guild-switcher-dropdown');
+
+if (guildSwitcher && switcherDropdown && myGuilds.length > 1) {
+  guildSwitcher.classList.add('has-switcher');
+  if (switcherChevron) switcherChevron.style.display = 'inline-block';
+
+  switcherDropdown.innerHTML = myGuilds.map(g => `
+    <button class="guild-switcher-item ${g.guild_id === guildId ? 'active' : ''}" data-guild="${g.guild_id}">
+      <img src="${g.icon || ''}" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'" alt="">
+      <span>${g.name}</span>
+      ${g.guild_id === guildId ? '<i class="fas fa-check"></i>' : ''}
+    </button>
+  `).join('');
+
+  guildSwitcher.addEventListener('click', (e) => {
+    e.stopPropagation();
+    switcherDropdown.classList.toggle('open');
+    guildSwitcher.classList.toggle('switcher-open');
+  });
+
+  document.addEventListener('click', () => {
+    switcherDropdown.classList.remove('open');
+    guildSwitcher.classList.remove('switcher-open');
+  });
+
+  switcherDropdown.addEventListener('click', (e) => e.stopPropagation());
+
+  switcherDropdown.querySelectorAll('.guild-switcher-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.guild;
+      if (target !== guildId) switchActiveGuild(target);
+    });
+  });
+}
+
+// ── DROPDOWN UTILISATEUR ───────────────────────────────────────
 const userMenu     = document.getElementById('user-menu');
 const userDropdown = document.getElementById('user-dropdown');
 
@@ -115,7 +155,7 @@ document.querySelector('[data-action="parametres"]')?.addEventListener('click', 
 
 document.getElementById('logout-btn')?.addEventListener('click', async (e) => {
   e.stopPropagation();
-  sessionStorage.removeItem('warstack_guild_id');
+  sessionStorage.removeItem(STORAGE_KEY);
   await supabase.auth.signOut();
   window.location.href = '/login.html';
 });

@@ -166,6 +166,91 @@
   text-transform: uppercase;
 }
 
+.sidebar-server#guild-switcher span {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-server.has-switcher {
+  cursor: pointer;
+  transition: background .16s ease, color .16s ease;
+}
+
+.sidebar-server.has-switcher:hover {
+  background: rgba(0,255,120,.05);
+  color: #ffffff;
+}
+
+.guild-switcher-chevron {
+  font-size: 10px;
+  transition: transform .18s ease;
+}
+
+.sidebar-server.switcher-open .guild-switcher-chevron {
+  transform: rotate(180deg);
+}
+
+.guild-switcher-dropdown {
+  display: none;
+  flex-direction: column;
+  max-height: 260px;
+  overflow-y: auto;
+  border-bottom: 1px solid rgba(255,255,255,.03);
+  background: rgba(0,0,0,.25);
+  animation: sidebarDropdown .18s ease;
+}
+
+.guild-switcher-dropdown.open { display: flex; }
+
+.guild-switcher-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 46px;
+  padding: 0 18px;
+  border: none;
+  background: transparent;
+  color: #d9ffe8;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .5px;
+  text-transform: none;
+  cursor: pointer;
+  transition: background .16s ease, color .16s ease;
+}
+
+.guild-switcher-item img {
+  width: 22px; height: 22px;
+  border-radius: 7px;
+  object-fit: cover;
+  border: 1px solid rgba(0,255,120,.14);
+}
+
+.guild-switcher-item span {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}
+
+.guild-switcher-item i.fa-check {
+  color: #00ff88;
+  font-size: 11px;
+}
+
+.guild-switcher-item:hover {
+  background: rgba(0,255,120,.06);
+  color: #00ff88;
+}
+
+.guild-switcher-item.active {
+  color: #00ff88;
+}
+
 .sidebar-nav {
   flex: 1;
   overflow-y: auto;

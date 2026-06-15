@@ -45,7 +45,7 @@ module.exports = {
         new ButtonBuilder()
           .setLabel('⚙️ Terminer l\'installation')
           .setStyle(ButtonStyle.Link)
-          .setURL(`${process.env.DASHBOARD_URL || 'https://warstack-v2.vercel.app'}/setup.html`)
+          .setURL(`${process.env.DASHBOARD_URL || 'https://warstack-v2.vercel.app'}/setup.html?guild=${guild.id}`)
       );
 
       await channel.send({ embeds: [embed], components: [row] });

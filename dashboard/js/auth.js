@@ -23,18 +23,37 @@ if (userAvatar) {
 }
 
 // ── Récupérer guild_id via Supabase ───────────────────────────
+const urlParams  = new URLSearchParams(window.location.search);
+const guildParam = urlParams.get('guild');
+
 let guildId = null;
 
 try {
-  // Cherche le serveur configuré de cet admin
-  const { data: guildData } = await supabase
+  let query = supabase
     .from('guilds')
     .select('guild_id, name, icon')
     .eq('owner_id', discordId)
-    .eq('setup_complete', true)
+    .eq('setup_complete', true);
+
+  if (guildParam) query = query.eq('guild_id', guildParam);
+
+  let { data: guildData } = await query
     .order('updated_at', { ascending: false })
     .limit(1)
     .single();
+
+  // Si un serveur précis était demandé mais introuvable pour cet owner → fallback
+  if (!guildData && guildParam) {
+    const fallback = await supabase
+      .from('guilds')
+      .select('guild_id, name, icon')
+      .eq('owner_id', discordId)
+      .eq('setup_complete', true)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .single();
+    guildData = fallback.data;
+  }
 
   if (guildData) {
     guildId = guildData.guild_id;
@@ -56,6 +75,15 @@ if (guildId) sessionStorage.setItem('warstack_guild_id', guildId);
 
 window.WARSTACK_GUILD_ID    = guildId;
 window.WARSTACK_DISCORD_ID  = discordId;
+
+// Nettoyer l'URL (le guild_id est désormais en sessionStorage)
+if (guildParam) {
+  urlParams.delete('guild');
+  const newUrl = window.location.pathname
+    + (urlParams.toString() ? `?${urlParams.toString()}` : '')
+    + window.location.hash;
+  window.history.replaceState({}, '', newUrl);
+}
 
 // ── DROPDOWN ─────────────────────────────────────────────────
 const userMenu     = document.getElementById('user-menu');

@@ -25,15 +25,36 @@ document.addEventListener('DOMContentLoaded', async () => {
   const discordId = session.user?.user_metadata?.provider_id
                  || session.user?.user_metadata?.sub;
 
+  const urlParams  = new URLSearchParams(window.location.search);
+  const guildParam = urlParams.get('guild');
+
   try {
-    const { data: guildData, error } = await supabase
+    let query = supabase
       .from('guilds')
       .select('guild_id, name')
       .eq('owner_id', discordId)
-      .eq('setup_complete', false)
+      .eq('setup_complete', false);
+
+    if (guildParam) query = query.eq('guild_id', guildParam);
+
+    let { data: guildData, error } = await query
       .order('joined_at', { ascending: false })
       .limit(1)
       .single();
+
+    // Si un serveur précis était demandé mais introuvable pour cet owner → fallback
+    if ((error || !guildData) && guildParam) {
+      const fallback = await supabase
+        .from('guilds')
+        .select('guild_id, name')
+        .eq('owner_id', discordId)
+        .eq('setup_complete', false)
+        .order('joined_at', { ascending: false })
+        .limit(1)
+        .single();
+      guildData = fallback.data;
+      error     = fallback.error;
+    }
 
     if (error || !guildData) {
       document.getElementById('members-loading').innerHTML =
@@ -239,6 +260,10 @@ window.install = async function() {
 
     document.querySelectorAll('.setup-screen').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-success').classList.add('active');
+
+    // Transmet le guild_id ciblé au dashboard
+    const dashLink = document.getElementById('dashboard-link');
+    if (dashLink) dashLink.href = `/?guild=${guildId}`;
 
   } catch (err) {
     btn.disabled    = false;

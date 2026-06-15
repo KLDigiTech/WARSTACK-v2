@@ -163,7 +163,7 @@
   border-left: 3px solid #ffbd2e;
   font-size: 0.8rem;
   color: var(--text-dim);
-  border-radius: 0 var(--radius) var(--radius) 0;
+  border-radius: var(--radius);
 }
 
 @media (max-width: 960px) {

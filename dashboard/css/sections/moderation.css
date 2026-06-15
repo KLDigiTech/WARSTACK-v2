@@ -171,7 +171,7 @@
   background: rgba(255,189,46,.06);
   border-left: 3px solid #ffbd2e;
   padding: 0.4rem 0.6rem;
-  border-radius: 0 var(--radius) var(--radius) 0;
+  border-radius: var(--radius);
   margin-bottom: 0.35rem;
 }
 

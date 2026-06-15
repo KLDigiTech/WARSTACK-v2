@@ -6,7 +6,7 @@
   gap: 14px;
   min-height: 92px;
   padding: 18px 20px;
-  border-radius: 22px;
+  border-radius: var(--radius-card);
   background: linear-gradient(180deg, rgba(10,16,13,.94), rgba(7,10,9,.98));
   border: 1px solid rgba(0,255,120,.07);
   box-shadow: 0 8px 25px rgba(0,0,0,.30), 0 0 18px rgba(0,255,120,.03);

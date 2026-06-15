@@ -1,7 +1,7 @@
 .tournament-active-card {
   background: linear-gradient(180deg, rgba(0,255,120,.05), rgba(0,255,120,.02));
   border: 1px solid rgba(0,255,120,.16);
-  border-radius: 20px;
+  border-radius: var(--radius-card);
   padding: 28px;
   margin-bottom: 24px;
 }
@@ -76,7 +76,7 @@
 .tournament-create-card {
   background: linear-gradient(180deg, rgba(10,16,13,.94), rgba(7,10,9,.98));
   border: 1px solid rgba(0,255,120,.08);
-  border-radius: 20px;
+  border-radius: var(--radius-card);
   padding: 28px;
   margin-bottom: 24px;
 }
@@ -109,7 +109,7 @@
 .tournament-history-card {
   background: linear-gradient(180deg, rgba(10,16,13,.94), rgba(7,10,9,.98));
   border: 1px solid rgba(0,255,120,.06);
-  border-radius: 20px;
+  border-radius: var(--radius-card);
   padding: 24px;
   margin-bottom: 24px;
 }

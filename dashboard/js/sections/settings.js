@@ -164,7 +164,7 @@ function initThemeEditor(configs) {
     const radiusVal   = document.getElementById('val-radius');
     if (radiusInput) radiusInput.value = parseInt(savedRadius);
     if (radiusVal)   radiusVal.textContent = savedRadius;
-    document.documentElement.style.setProperty('--radius', savedRadius);
+    document.documentElement.style.setProperty('--radius-card', savedRadius);
   }
 
   THEME_TOKENS.forEach(token => {
@@ -193,8 +193,7 @@ function initThemeEditor(configs) {
   radiusInput?.addEventListener('input', () => {
     const val = `${radiusInput.value}px`;
     radiusVal.textContent = val;
-    document.documentElement.style.setProperty('--radius',    val);
-    document.documentElement.style.setProperty('--radius-xs', val);
+    document.documentElement.style.setProperty('--radius-card', val);
   });
 
   document.getElementById('btn-reset-theme')?.addEventListener('click', () => {
@@ -208,14 +207,13 @@ function initThemeEditor(configs) {
       if (hexEl) hexEl.textContent = token.hex;
     });
     document.documentElement.style.setProperty('--font-base', "'Rajdhani', sans-serif");
-    document.documentElement.style.setProperty('--radius', '2px');
-    document.documentElement.style.setProperty('--radius-xs', '2px');
+    document.documentElement.style.setProperty('--radius-card', '20px');
     const fontSel     = document.getElementById('theme-font');
     const radiusInput = document.getElementById('theme-radius');
     const radiusVal   = document.getElementById('val-radius');
     if (fontSel)     fontSel.value     = "'Rajdhani', sans-serif";
-    if (radiusInput) radiusInput.value = 2;
-    if (radiusVal)   radiusVal.textContent = '2px';
+    if (radiusInput) radiusInput.value = 20;
+    if (radiusVal)   radiusVal.textContent = '20px';
     showToast('🎨 Thème réinitialisé');
   });
 
@@ -226,7 +224,7 @@ function initThemeEditor(configs) {
       if (input) tokens[token.var] = input.value;
     });
     const font   = document.getElementById('theme-font')?.value || "'Rajdhani', sans-serif";
-    const radius = `${document.getElementById('theme-radius')?.value || 2}px`;
+    const radius = `${document.getElementById('theme-radius')?.value || 20}px`;
     await Promise.all([
       saveConfig('theme_tokens', JSON.stringify(tokens)),
       saveConfig('theme_font',   font),

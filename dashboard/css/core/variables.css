@@ -74,6 +74,7 @@
   --radius-xl:  22px;
   --radius-2xl: 32px;
   --radius:     var(--radius-sm); /* legacy alias — 6px */
+  --radius-card: 20px; /* pilotee par le slider "Radius Cards" des reglages */
 
   /* ── SHADOWS ── */
   --shadow-1: 0 1px 4px rgba(0,0,0,.4);

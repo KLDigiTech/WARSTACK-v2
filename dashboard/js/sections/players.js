@@ -1,5 +1,6 @@
 import { fetchSupabase, deleteSupabase, insertSupabase, callBotAPI } from '../api.js';
 import { showToast } from '../ui/toast.js';
+import { getActiveGuildId } from '../services/guildService.js';
 
 let allPlayers = [];
 let allXP = [];
@@ -74,15 +75,20 @@ function getDivision(score) {
 }
 
 export async function initPlayers() {
+  const guildId = await getActiveGuildId();
+
   const [players, xpRows, walletRows] = await Promise.all([
     fetchSupabase('players?select=*&order=created_at.desc'),
-    fetchSupabase('warstack_xp?select=*&order=xp.desc'),
-    fetchSupabase('warstack_wallets?select=*&order=total_earned.desc'),
+    fetchSupabase(`warstack_xp?guild_id=eq.${guildId}&select=*&order=xp.desc`),
+    fetchSupabase(`warstack_wallets?guild_id=eq.${guildId}&select=*&order=total_earned.desc`),
   ]);
 
-  allPlayers = players || [];
   allXP = xpRows || [];
   allWallets = walletRows || [];
+
+  // Ne garder que les joueurs membres de CE serveur (présents dans warstack_xp pour ce guild_id)
+  const memberIds = new Set(allXP.map(x => x.discord_id));
+  allPlayers = (players || []).filter(p => memberIds.has(p.discord_id));
 
   for (const player of allPlayers) {
     if (player.tracker_id) {
@@ -424,6 +430,7 @@ function initTimelineFilters() {
 }
 
 async function loadTimeline(discordId) {
+  const guildId = await getActiveGuildId();
   const loading = document.getElementById('tl-loading');
   const list = document.getElementById('tl-list');
   loading.style.display = 'block';
@@ -431,8 +438,8 @@ async function loadTimeline(discordId) {
 
   try {
     const [auditLogs, sanctions, tournamentEntries, ranks] = await Promise.all([
-      fetchSupabase(`audit_logs?author_id=eq.${discordId}&order=created_at.desc&limit=100`),
-      fetchSupabase(`sanctions?discord_id=eq.${discordId}&order=created_at.desc`),
+      fetchSupabase(`audit_logs?guild_id=eq.${guildId}&author_id=eq.${discordId}&order=created_at.desc&limit=100`),
+      fetchSupabase(`sanctions?guild_id=eq.${guildId}&discord_id=eq.${discordId}&order=created_at.desc`),
       fetchSupabase(`tournament_entries?discord_id=eq.${discordId}&order=created_at.desc`),
       fetchSupabase(`warstack_ranks?discord_id=eq.${discordId}&order=updated_at.desc`),
     ]);
@@ -625,6 +632,7 @@ function initAddPlayerModal() {
   }
 
   btnConfirm.addEventListener('click', async () => {
+    const guildId = await getActiveGuildId();
     const username = document.getElementById('add-username').value.trim();
     const pseudoBf6 = document.getElementById('add-pseudo-bf6').value.trim();
     const trackerUrl = trackerInput.value.trim();
@@ -650,6 +658,23 @@ function initAddPlayerModal() {
         tracker_url: trackerUrl || null,
         avatar_url: fetchedAvatar || null,
         created_at: new Date().toISOString(),
+      });
+
+      // Rattache le joueur au serveur actif (sinon il n'apparaît dans aucune liste)
+      const now = new Date().toISOString();
+      await insertSupabase('warstack_xp', {
+        discord_id: finalDiscordId,
+        guild_id  : guildId,
+        xp        : 0,
+        level     : 1,
+        updated_at: now,
+      });
+      await insertSupabase('warstack_wallets', {
+        discord_id  : finalDiscordId,
+        guild_id    : guildId,
+        coins       : 0,
+        total_earned: 0,
+        updated_at  : now,
       });
 
       modal.style.display = 'none';

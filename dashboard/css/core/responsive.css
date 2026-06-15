@@ -12,6 +12,7 @@
 @media (max-width: 1024px) {
   :root { --sidebar-width: 200px; }
   .main-content { padding: 20px 22px; }
+  .dash-header  { margin: -20px -22px 32px -22px; }
 }
 
 /* ─── MOBILE < 768px ─── */

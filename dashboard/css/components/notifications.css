@@ -16,7 +16,7 @@
   position        : sticky;
   top             : 0;
   z-index         : var(--z-dropdown);
-  margin          : -26px -34px 26px -34px;
+  margin          : -26px -34px 40px -34px;
 }
 
 .dash-title {
@@ -373,7 +373,7 @@
 /* ── MOBILE ── */
 @media (max-width: 768px) {
   .dash-header {
-    margin   : 0 -14px 16px -14px;
+    margin   : 0 -14px 24px -14px;
     padding  : 0 14px;
     position : relative;
     top      : auto;

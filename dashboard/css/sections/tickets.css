@@ -78,6 +78,7 @@
 .status-open        { background: rgba(0,255,102,.1);   color: var(--green); }
 .status-in_progress { background: rgba(88,101,242,.15); color: #5865f2; }
 .status-closed      { background: rgba(200,200,200,.1); color: #ccc; }
+.status-archived    { background: rgba(255,189,46,.12); color: #ffbd2e; }
 
 .ticket-priority {
   font-size: 0.68rem;

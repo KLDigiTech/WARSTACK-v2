@@ -175,7 +175,8 @@
           <button class="filter-btn active" data-filter="all">Tous</button>
           <button class="filter-btn" data-filter="open">🟢 Ouverts</button>
           <button class="filter-btn" data-filter="in_progress">🔵 En cours</button>
-          <button class="filter-btn" data-filter="closed">✅ Fermés</button>
+          <button class="filter-btn" data-filter="closed">✅ Résolus</button>
+          <button class="filter-btn" data-filter="archived">📦 Archivés</button>
         </div>
       </div>
       <div class="panel-body">
@@ -200,13 +201,19 @@
 
       <div class="ticket-detail-meta" id="ticket-detail-meta"></div>
 
-      <div class="welcome-section-title" style="margin-top:0.75rem">Assignation</div>
-      <div style="display:flex;gap:0.5rem;margin-bottom:1rem">
+      <div class="welcome-section-title" style="margin-top:0.75rem">Assignation <span class="tooltip-icon"
+          data-tooltip="Indique quel membre du staff s'occupe de ce ticket. Affiché aussi bien sur Discord que sur le dashboard.">ⓘ</span>
+      </div>
+      <div id="ticket-assigned-banner" style="display:none;margin-bottom:0.5rem"></div>
+      <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem">
         <select id="ticket-assign-select" class="form-select">
           <option value="">Non assigné</option>
         </select>
         <button class="btn btn-secondary btn-sm" id="btn-assign-ticket">Assigner</button>
       </div>
+      <button class="btn btn-primary btn-sm" id="btn-take-ticket" style="width:100%;margin-bottom:1rem">
+        🙋 Je prends en charge
+      </button>
 
       <div class="welcome-section-title">Priorité</div>
       <div class="ticket-priorities" style="margin-bottom:1rem">
@@ -226,9 +233,12 @@
       </div>
 
     </div>
-    <div class="modal-footer" style="justify-content:space-between">
+    <div class="modal-footer" style="justify-content:space-between;flex-wrap:wrap;gap:0.5rem">
       <button class="btn btn-danger" id="btn-close-ticket">
-        <i class="fas fa-times"></i> Fermer le ticket
+        <i class="fas fa-times"></i> Marquer résolu
+      </button>
+      <button class="btn btn-secondary" id="btn-archive-ticket">
+        <i class="fas fa-box-archive"></i> Archiver
       </button>
       <button class="btn btn-secondary" id="btn-transcript">
         <i class="fas fa-download"></i> Transcription

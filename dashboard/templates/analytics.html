@@ -39,7 +39,8 @@
   <!-- ── CROISSANCE MEMBRES ── -->
   <div class="an-panel an-panel--wide">
     <div class="an-panel-header">
-      <h3><i class="fas fa-chart-line"></i> Croissance des membres</h3>
+      <h3><i class="fas fa-chart-line"></i> Croissance des membres <span class="tooltip-icon"
+          data-tooltip="Évolution du nombre de membres sur le serveur au fil du temps.">ⓘ</span></h3>
       <div class="an-range-btns">
         <button class="an-range active" data-range="7">7j</button>
         <button class="an-range" data-range="30">30j</button>
@@ -54,7 +55,8 @@
   <!-- ── ACTIVITÉ SERVEUR ── -->
   <div class="an-panel an-panel--wide">
     <div class="an-panel-header">
-      <h3><i class="fas fa-chart-bar"></i> Activité serveur (30 derniers jours)</h3>
+      <h3><i class="fas fa-chart-bar"></i> Activité serveur (30 derniers jours) <span class="tooltip-icon"
+          data-tooltip="Nombre de messages envoyés chaque jour sur le serveur.">ⓘ</span></h3>
     </div>
     <div class="an-chart-wrap">
       <canvas id="chart-activity"></canvas>
@@ -64,7 +66,9 @@
   <!-- ── HEATMAP ACTIVITÉ ── -->
   <div class="an-panel an-panel--wide">
     <div class="an-panel-header">
-      <h3><i class="fas fa-th"></i> Heatmap d'activité (7 derniers jours)</h3>
+      <h3><i class="fas fa-th"></i> Heatmap d'activité (7 derniers jours) <span class="tooltip-icon"
+          data-tooltip="Montre les heures où ton serveur est le plus actif — plus une case est foncée, plus il y a eu de messages à ce moment-là.">ⓘ</span>
+      </h3>
     </div>
     <div id="an-heatmap" class="an-heatmap-wrap"></div>
   </div>
@@ -72,7 +76,8 @@
   <!-- ── EVENTS PARTICIPATIONS ── -->
   <div class="an-panel">
     <div class="an-panel-header">
-      <h3><i class="fas fa-calendar-check"></i> Participations événements</h3>
+      <h3><i class="fas fa-calendar-check"></i> Participations événements <span class="tooltip-icon"
+          data-tooltip="Nombre de membres inscrits aux événements organisés sur le serveur.">ⓘ</span></h3>
     </div>
     <div class="an-chart-wrap">
       <canvas id="chart-events"></canvas>
@@ -82,7 +87,8 @@
   <!-- ── WEEKLY RECAP ── -->
   <div class="an-panel">
     <div class="an-panel-header">
-      <h3><i class="fas fa-newspaper"></i> Weekly Recap</h3>
+      <h3><i class="fas fa-newspaper"></i> Weekly Recap <span class="tooltip-icon"
+          data-tooltip="Résumé automatique de ce qui s'est passé sur le serveur cette semaine.">ⓘ</span></h3>
       <span class="an-recap-date" id="an-recap-date"></span>
     </div>
     <div id="an-weekly-recap"></div>
@@ -91,7 +97,9 @@
   <!-- ── TOP JOUEURS ── -->
   <div class="an-panel">
     <div class="an-panel-header">
-      <h3><i class="fas fa-trophy"></i> Top joueurs WARSTACK</h3>
+      <h3><i class="fas fa-trophy"></i> Top joueurs WARSTACK <span class="tooltip-icon"
+          data-tooltip="Les joueurs les mieux classés sur le serveur (XP, coins et stats Battlefield 6 combinés).">ⓘ</span>
+      </h3>
     </div>
     <div id="an-top-players"></div>
   </div>
@@ -99,7 +107,8 @@
   <!-- ── RÉPARTITION SANCTIONS ── -->
   <div class="an-panel">
     <div class="an-panel-header">
-      <h3><i class="fas fa-shield-alt"></i> Répartition sanctions</h3>
+      <h3><i class="fas fa-shield-alt"></i> Répartition sanctions <span class="tooltip-icon"
+          data-tooltip="Nombre d'avertissements, mutes, kicks et bans appliqués, par type.">ⓘ</span></h3>
     </div>
     <div class="an-chart-wrap an-chart-wrap--small">
       <canvas id="chart-sanctions"></canvas>

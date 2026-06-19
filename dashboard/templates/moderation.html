@@ -38,7 +38,9 @@
     <!-- CONFIG -->
     <div class="panel">
       <div class="panel-header">
-        <h2>⚙️ Configuration</h2>
+        <h2>⚙️ Configuration <span class="tooltip-icon"
+            data-tooltip="Définit les durées par défaut des sanctions (mute, etc.) et les salons de logs de modération.">ⓘ</span>
+        </h2>
       </div>
       <div class="panel-body">
         <div class="form-group">
@@ -70,12 +72,13 @@
     <!-- CENTRE MODÉRATION -->
     <div class="panel">
       <div class="panel-header">
-        <h2>🔍 Centre de modération</h2>
+        <h2>🔍 Centre de modération <span class="tooltip-icon"
+            data-tooltip="Vue d'ensemble des sanctions (warn, mute, kick, ban) appliquées sur le serveur, avec qui les a prises et pourquoi.">ⓘ</span>
+        </h2>
       </div>
       <div class="panel-body">
         <div class="form-group">
-          <input type="text" id="mod-search" class="form-input"
-            placeholder="Rechercher un membre Discord...">
+          <input type="text" id="mod-search" class="form-input" placeholder="Rechercher un membre Discord...">
         </div>
         <div id="mod-search-results" style="display:none;margin-bottom:0.75rem"></div>
         <div id="mod-member-card" style="display:none">
@@ -110,12 +113,12 @@
           <!-- Actions rapides -->
           <div class="welcome-section-title">Actions rapides</div>
           <div class="mod-actions">
-            <button class="mod-action-btn warn"    data-type="warn">⚠️ Warn</button>
-            <button class="mod-action-btn mute"    data-type="mute">🔇 Mute</button>
+            <button class="mod-action-btn warn" data-type="warn">⚠️ Warn</button>
+            <button class="mod-action-btn mute" data-type="mute">🔇 Mute</button>
             <button class="mod-action-btn timeout" data-type="timeout">⏰ Timeout</button>
-            <button class="mod-action-btn kick"    data-type="kick">👢 Kick</button>
-            <button class="mod-action-btn ban"     data-type="ban">🔨 Ban</button>
-            <button class="mod-action-btn unban"   data-type="unban">✅ Unban</button>
+            <button class="mod-action-btn kick" data-type="kick">👢 Kick</button>
+            <button class="mod-action-btn ban" data-type="ban">🔨 Ban</button>
+            <button class="mod-action-btn unban" data-type="unban">✅ Unban</button>
           </div>
 
           <!-- Formulaire sanction -->
@@ -166,7 +169,9 @@
 
     <div class="panel">
       <div class="panel-header">
-        <h2>📋 Sanctions</h2>
+        <h2>📋 Sanctions <span class="tooltip-icon"
+            data-tooltip="Historique de tous les avertissements, mutes, kicks et bans appliqués sur le serveur.">ⓘ</span>
+        </h2>
         <div class="suggestions-filters">
           <button class="filter-btn active" data-filter="all">Toutes</button>
           <button class="filter-btn" data-filter="warn">⚠️ Warns</button>

@@ -38,7 +38,9 @@
     <!-- CRÉER ÉVÉNEMENT -->
     <div class="panel">
       <div class="panel-header">
-        <h2>➕ Créer un événement</h2>
+        <h2>➕ Créer un événement <span class="tooltip-icon"
+            data-tooltip="Planifie une session de jeu ou une activité à laquelle tes membres pourront s'inscrire.">ⓘ</span>
+        </h2>
         <button class="btn btn-sm btn-secondary" id="btn-toggle-form">
           <i class="fas fa-chevron-down"></i>
         </button>
@@ -134,7 +136,8 @@
     <!-- PREVIEW DISCORD -->
     <div class="panel" id="event-preview-panel" style="display:none">
       <div class="panel-header">
-        <h2>👁️ Aperçu Discord</h2>
+        <h2>👁️ Aperçu Discord <span class="tooltip-icon"
+            data-tooltip="Montre à quoi ressemblera l'annonce postée sur Discord, avant de la publier.">ⓘ</span></h2>
         <button class="btn btn-sm btn-secondary" id="btn-close-preview">✕</button>
       </div>
       <div class="panel-body">
@@ -188,7 +191,9 @@
     <!-- LISTE ÉVÉNEMENTS -->
     <div class="panel">
       <div class="panel-header">
-        <h2>📅 Événements</h2>
+        <h2>📅 Événements <span class="tooltip-icon"
+            data-tooltip="Organise des sessions de jeu ou activités où tes membres peuvent s'inscrire directement depuis Discord.">ⓘ</span>
+        </h2>
         <div class="suggestions-filters">
           <button class="filter-btn active" data-filter="all">Tous</button>
           <button class="filter-btn" data-filter="open">🔓 Ouverts</button>
@@ -263,8 +268,8 @@
         </div>
 
         <div class="welcome-section-title">Participants</div>
-        <input type="text" id="participant-search" class="form-input"
-          placeholder="Rechercher un participant..." style="margin-bottom:0.75rem">
+        <input type="text" id="participant-search" class="form-input" placeholder="Rechercher un participant..."
+          style="margin-bottom:0.75rem">
         <div id="participants-list">
           <div style="color:var(--text-muted);font-size:0.85rem">Sélectionne un événement.</div>
         </div>
@@ -291,8 +296,7 @@
       <button class="btn btn-secondary btn-sm" id="modal-contact-close">✕</button>
     </div>
     <div class="modal-body">
-      <textarea id="contact-message" class="form-textarea" rows="5"
-        placeholder="Votre message..."></textarea>
+      <textarea id="contact-message" class="form-textarea" rows="5" placeholder="Votre message..."></textarea>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" id="modal-contact-cancel">Annuler</button>

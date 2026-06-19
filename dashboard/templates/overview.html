@@ -14,7 +14,9 @@
     </div>
     <div class="ov-kpi-value" id="ov-members">—</div>
     <div class="ov-kpi-label">Membres</div>
-    <div class="ov-kpi-bar"><div class="ov-kpi-bar-fill" id="ov-members-bar" style="--kpi-color: var(--primary); width:0%"></div></div>
+    <div class="ov-kpi-bar">
+      <div class="ov-kpi-bar-fill" id="ov-members-bar" style="--kpi-color: var(--primary); width:0%"></div>
+    </div>
   </div>
 
   <div class="ov-kpi-card" data-section="tickets">
@@ -26,7 +28,9 @@
     </div>
     <div class="ov-kpi-value" id="ov-tickets">—</div>
     <div class="ov-kpi-label">Tickets ouverts</div>
-    <div class="ov-kpi-bar"><div class="ov-kpi-bar-fill" id="ov-tickets-bar" style="--kpi-color: var(--warning); width:0%"></div></div>
+    <div class="ov-kpi-bar">
+      <div class="ov-kpi-bar-fill" id="ov-tickets-bar" style="--kpi-color: var(--warning); width:0%"></div>
+    </div>
   </div>
 
   <div class="ov-kpi-card" data-section="suggestions">
@@ -38,7 +42,9 @@
     </div>
     <div class="ov-kpi-value" id="ov-suggestions">—</div>
     <div class="ov-kpi-label">Suggestions</div>
-    <div class="ov-kpi-bar"><div class="ov-kpi-bar-fill" id="ov-suggestions-bar" style="--kpi-color: var(--info); width:0%"></div></div>
+    <div class="ov-kpi-bar">
+      <div class="ov-kpi-bar-fill" id="ov-suggestions-bar" style="--kpi-color: var(--info); width:0%"></div>
+    </div>
   </div>
 
   <div class="ov-kpi-card" data-section="events">
@@ -50,7 +56,9 @@
     </div>
     <div class="ov-kpi-value" id="ov-events">—</div>
     <div class="ov-kpi-label">Events actifs</div>
-    <div class="ov-kpi-bar"><div class="ov-kpi-bar-fill" id="ov-events-bar" style="--kpi-color: var(--orange); width:0%"></div></div>
+    <div class="ov-kpi-bar">
+      <div class="ov-kpi-bar-fill" id="ov-events-bar" style="--kpi-color: var(--orange); width:0%"></div>
+    </div>
   </div>
 
   <div class="ov-kpi-card" data-section="automod">
@@ -62,7 +70,9 @@
     </div>
     <div class="ov-kpi-value" id="ov-automod">—</div>
     <div class="ov-kpi-label">AutoMod 7j</div>
-    <div class="ov-kpi-bar"><div class="ov-kpi-bar-fill" id="ov-automod-bar" style="--kpi-color: var(--success); width:0%"></div></div>
+    <div class="ov-kpi-bar">
+      <div class="ov-kpi-bar-fill" id="ov-automod-bar" style="--kpi-color: var(--success); width:0%"></div>
+    </div>
   </div>
 
   <div class="ov-kpi-card" data-section="warns">
@@ -74,7 +84,9 @@
     </div>
     <div class="ov-kpi-value" id="ov-warns">—</div>
     <div class="ov-kpi-label">Sanctions 7j</div>
-    <div class="ov-kpi-bar"><div class="ov-kpi-bar-fill" id="ov-warns-bar" style="--kpi-color: var(--danger); width:0%"></div></div>
+    <div class="ov-kpi-bar">
+      <div class="ov-kpi-bar-fill" id="ov-warns-bar" style="--kpi-color: var(--danger); width:0%"></div>
+    </div>
   </div>
 
 </div>
@@ -88,7 +100,10 @@
     <!-- ACTIVITY FEED -->
     <div class="panel">
       <div class="panel-header">
-        <h2><i class="fas fa-bolt" style="color:var(--warning);margin-right:6px"></i>Activité récente</h2>
+        <h2><i class="fas fa-bolt" style="color:var(--warning);margin-right:6px"></i>Activité récente <span
+            class="tooltip-icon"
+            data-tooltip="Derniers événements importants survenus sur ton serveur (arrivées, sanctions, tickets...).">ⓘ</span>
+        </h2>
         <div class="ov-live-badge"><span class="ov-live-dot"></span>Live</div>
       </div>
       <div class="panel-body" id="ov-activity-list"></div>
@@ -97,7 +112,10 @@
     <!-- SANTÉ SYSTÈME -->
     <div class="panel" style="margin-top:1rem">
       <div class="panel-header">
-        <h2><i class="fas fa-heartbeat" style="color:var(--success);margin-right:6px"></i>Santé système</h2>
+        <h2><i class="fas fa-heartbeat" style="color:var(--success);margin-right:6px"></i>Santé système <span
+            class="tooltip-icon"
+            data-tooltip="Indique si le bot Discord et le dashboard sont actuellement en ligne et fonctionnels.">ⓘ</span>
+        </h2>
       </div>
       <div class="panel-body">
         <div class="ov-health-row">
@@ -136,7 +154,9 @@
     <!-- SUGGESTIONS -->
     <div class="panel" style="margin-top:1rem">
       <div class="panel-header">
-        <h2><i class="fas fa-lightbulb" style="color:var(--info);margin-right:6px"></i>Suggestions récentes</h2>
+        <h2><i class="fas fa-lightbulb" style="color:var(--info);margin-right:6px"></i>Suggestions récentes <span
+            class="tooltip-icon"
+            data-tooltip="Dernières idées proposées par tes membres pour améliorer le serveur.">ⓘ</span></h2>
         <a href="#suggestions" class="ov-link">Voir tout →</a>
       </div>
       <div class="panel-body" id="ov-suggestions-list"></div>
@@ -145,7 +165,9 @@
     <!-- EVENTS -->
     <div class="panel" style="margin-top:1rem">
       <div class="panel-header">
-        <h2><i class="fas fa-calendar-alt" style="color:var(--orange);margin-right:6px"></i>Events à venir</h2>
+        <h2><i class="fas fa-calendar-alt" style="color:var(--orange);margin-right:6px"></i>Events à venir <span
+            class="tooltip-icon"
+            data-tooltip="Prochaines sessions de jeu ou activités organisées sur le serveur.">ⓘ</span></h2>
         <a href="#events" class="ov-link">Voir tout →</a>
       </div>
       <div class="panel-body" id="ov-events-list"></div>

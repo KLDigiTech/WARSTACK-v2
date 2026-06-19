@@ -5,7 +5,9 @@
 
     <div class="panel">
       <div class="panel-header">
-        <h2>🎭 Rôles automatiques</h2>
+        <h2>🎭 Rôles automatiques <span class="tooltip-icon"
+            data-tooltip="Attribue automatiquement un rôle Discord aux membres qui réagissent avec un emoji sur un message — pas besoin de le faire à la main.">ⓘ</span>
+        </h2>
       </div>
       <div class="panel-body">
 
@@ -69,7 +71,9 @@
 
     <div class="panel">
       <div class="panel-header">
-        <h2>👥 Compteur de membres</h2>
+        <h2>👥 Compteur de membres <span class="tooltip-icon"
+            data-tooltip="Crée un salon vocal dont le nom affiche automatiquement le nombre de membres du serveur, mis à jour en temps réel.">ⓘ</span>
+        </h2>
       </div>
       <div class="panel-body">
 
@@ -90,8 +94,7 @@
         <div id="counter-group" style="display:none">
           <div class="form-group">
             <label>Format du salon vocal</label>
-            <input type="text" id="counter-format" class="form-input"
-              placeholder="👥 Membres : {count}">
+            <input type="text" id="counter-format" class="form-input" placeholder="👥 Membres : {count}">
             <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.4rem">
               <code>{count}</code> sera remplacé par le nombre de membres.
             </div>
@@ -121,7 +124,8 @@
   <div class="roles-right">
     <div class="panel">
       <div class="panel-header">
-        <h2>👁️ Aperçu en direct</h2>
+        <h2>👁️ Aperçu en direct <span class="tooltip-icon"
+            data-tooltip="Montre à quoi ressemblera le salon compteur, avant de le créer.">ⓘ</span></h2>
       </div>
       <div class="panel-body">
 

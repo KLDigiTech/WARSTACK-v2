@@ -37,7 +37,9 @@
   <div class="carte-map-col">
     <div class="panel carte-map-panel">
       <div class="panel-header">
-        <h2>🌍 Carte interactive</h2>
+        <h2>🌍 Carte interactive <span class="tooltip-icon"
+            data-tooltip="Visualise sur une carte la localisation déclarée de tes membres (renseignée volontairement par chacun).">ⓘ</span>
+        </h2>
         <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
           <select id="map-filter-country" class="form-select" style="width:150px;font-size:0.8rem">
             <option value="all">🌐 Tous les pays</option>
@@ -70,10 +72,12 @@
     <!-- RECHERCHE + LISTE MEMBRES -->
     <div class="panel">
       <div class="panel-header">
-        <h2>👥 Membres</h2>
+        <h2>👥 Membres <span class="tooltip-icon"
+            data-tooltip="Liste des membres ayant renseigné leur localisation.">ⓘ</span></h2>
         <div class="carte-search-wrap">
           <i class="fas fa-search"></i>
-          <input type="text" id="location-search" class="form-input" placeholder="Rechercher..." style="border:none;background:transparent;padding-left:0">
+          <input type="text" id="location-search" class="form-input" placeholder="Rechercher..."
+            style="border:none;background:transparent;padding-left:0">
         </div>
       </div>
       <div class="panel-body" style="padding:0.5rem;max-height:340px;overflow-y:auto">
@@ -85,7 +89,10 @@
 
     <!-- TOP RÉGIONS -->
     <div class="panel">
-      <div class="panel-header"><h2>📊 Top régions</h2></div>
+      <div class="panel-header">
+        <h2>📊 Top régions <span class="tooltip-icon"
+            data-tooltip="Régions les plus représentées parmi tes membres.">ⓘ</span></h2>
+      </div>
       <div class="panel-body">
         <div id="regions-list">
           <div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>
@@ -95,7 +102,10 @@
 
     <!-- TOP PAYS -->
     <div class="panel">
-      <div class="panel-header"><h2>🏳️ Top pays</h2></div>
+      <div class="panel-header">
+        <h2>🏳️ Top pays <span class="tooltip-icon" data-tooltip="Pays les plus représentés parmi tes membres.">ⓘ</span>
+        </h2>
+      </div>
       <div class="panel-body">
         <div id="countries-list">
           <div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>

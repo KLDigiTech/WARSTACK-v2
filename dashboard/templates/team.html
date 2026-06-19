@@ -1,6 +1,8 @@
 <div class="section-header">
   <div>
-    <h1 class="section-title">👥 Équipe</h1>
+    <h1 class="section-title">👥 Équipe <span class="tooltip-icon"
+        data-tooltip="Définit qui fait partie de ton staff et ce que chacun a le droit de voir/faire (Fondateur, Team Leader, Organisateur, Modérateur).">ⓘ</span>
+    </h1>
     <p class="section-subtitle">Gérez les membres de votre staff et leurs rôles WARSTACK.</p>
   </div>
   <button class="btn-primary" id="btn-add-member">+ Ajouter un membre</button>
@@ -94,7 +96,8 @@
 
     </div>
     <div class="modal-footer">
-      <button class="btn-secondary" onclick="document.getElementById('team-modal').style.display='none'">Annuler</button>
+      <button class="btn-secondary"
+        onclick="document.getElementById('team-modal').style.display='none'">Annuler</button>
       <button class="btn-primary" id="btn-save-member" onclick="saveMember()">Enregistrer</button>
     </div>
   </div>
@@ -108,10 +111,12 @@
       <button class="modal-close" onclick="document.getElementById('team-delete-modal').style.display='none'">✕</button>
     </div>
     <div class="modal-body">
-      <p style="color:var(--text-muted)">Cette action retire <strong id="delete-member-name"></strong> de l'équipe WARSTACK. Ses accès au dashboard seront supprimés.</p>
+      <p style="color:var(--text-muted)">Cette action retire <strong id="delete-member-name"></strong> de l'équipe
+        WARSTACK. Ses accès au dashboard seront supprimés.</p>
     </div>
     <div class="modal-footer">
-      <button class="btn-secondary" onclick="document.getElementById('team-delete-modal').style.display='none'">Annuler</button>
+      <button class="btn-secondary"
+        onclick="document.getElementById('team-delete-modal').style.display='none'">Annuler</button>
       <button class="btn-danger" id="btn-confirm-delete" onclick="confirmDelete()">Retirer</button>
     </div>
   </div>

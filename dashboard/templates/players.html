@@ -1,6 +1,8 @@
 <div class="panel">
   <div class="panel-header">
-    <h2>👥 Base de Données</h2>
+    <h2>👥 Base de Données <span class="tooltip-icon"
+        data-tooltip="Liste de tous les joueurs liés au serveur : leurs stats Battlefield 6, leur XP WARSTACK et leurs coins.">ⓘ</span>
+    </h2>
   </div>
   <div class="panel-body">
 
@@ -75,14 +77,16 @@
     <div class="modal-add-body">
 
       <div class="form-group">
-        <label class="form-label">DISCORD ID <span style="color:var(--text-muted);font-size:0.75rem">(colle l'ID → username auto)</span></label>
+        <label class="form-label">DISCORD ID <span style="color:var(--text-muted);font-size:0.75rem">(colle l'ID →
+            username auto)</span></label>
         <div style="display:flex;gap:0.5rem">
           <input type="text" class="form-input" id="add-discord-id" placeholder="ex: 123456789012345678" style="flex:1">
           <button class="btn btn-secondary" id="btn-fetch-discord" style="white-space:nowrap">
             <i class="fas fa-search"></i> Fetch
           </button>
         </div>
-        <div id="add-discord-preview" style="display:none;align-items:center;gap:0.75rem;margin-top:0.6rem;padding:0.6rem;background:var(--bg-dark);border-radius:6px">
+        <div id="add-discord-preview"
+          style="display:none;align-items:center;gap:0.75rem;margin-top:0.6rem;padding:0.6rem;background:var(--bg-dark);border-radius:6px">
           <img id="add-discord-avatar" src="" style="width:36px;height:36px;border-radius:50%">
           <span id="add-discord-username" style="font-weight:700;color:var(--green)"></span>
         </div>
@@ -100,8 +104,10 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label">URL TRACKER.GG <span style="color:var(--text-muted);font-size:0.75rem">(optionnel)</span></label>
-        <input type="text" class="form-input" id="add-tracker-url" placeholder="https://tracker.gg/bf6/profile/psn/PSEUDO/1023163556057">
+        <label class="form-label">URL TRACKER.GG <span
+            style="color:var(--text-muted);font-size:0.75rem">(optionnel)</span></label>
+        <input type="text" class="form-input" id="add-tracker-url"
+          placeholder="https://tracker.gg/bf6/profile/psn/PSEUDO/1023163556057">
         <div class="hint" id="add-tracker-hint" style="display:none"></div>
       </div>
 

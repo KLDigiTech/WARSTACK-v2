@@ -36,7 +36,9 @@
   <div>
     <div class="panel">
       <div class="panel-header" style="justify-content:space-between">
-        <h2>🎭 Menus de rôles</h2>
+        <h2>🎭 Menus de rôles <span class="tooltip-icon"
+            data-tooltip="Le bot poste un message sur lequel les membres cliquent un emoji pour obtenir (ou retirer) un rôle automatiquement.">ⓘ</span>
+        </h2>
         <button class="btn btn-primary btn-sm" id="btn-new-menu">
           <i class="fas fa-plus"></i> Nouveau
         </button>
@@ -91,11 +93,13 @@
 
         <div class="form-group">
           <label>Message du panel</label>
-          <textarea id="rx-message" class="form-textarea" rows="3" placeholder="🎭 Choisis tes rôles en cliquant ci-dessous !"></textarea>
+          <textarea id="rx-message" class="form-textarea" rows="3"
+            placeholder="🎭 Choisis tes rôles en cliquant ci-dessous !"></textarea>
         </div>
 
         <!-- RÔLES -->
-        <div class="welcome-section-title" style="margin:1rem 0 0.5rem;display:flex;justify-content:space-between;align-items:center">
+        <div class="welcome-section-title"
+          style="margin:1rem 0 0.5rem;display:flex;justify-content:space-between;align-items:center">
           <span>Emoji → Rôle</span>
           <button class="btn btn-secondary btn-sm" id="btn-add-role-row">
             <i class="fas fa-plus"></i> Ajouter

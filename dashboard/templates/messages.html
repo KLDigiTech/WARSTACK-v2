@@ -36,7 +36,9 @@
   <div>
     <div class="panel">
       <div class="panel-header" style="justify-content:space-between">
-        <h2>📢 Campagnes</h2>
+        <h2>📢 Campagnes <span class="tooltip-icon"
+            data-tooltip="Programme des messages que le bot enverra automatiquement à intervalles réguliers (rappels, annonces récurrentes...).">ⓘ</span>
+        </h2>
         <button class="btn btn-primary btn-sm" id="btn-new-campaign">
           <i class="fas fa-plus"></i> Nouvelle
         </button>
@@ -99,11 +101,13 @@
           </div>
           <div class="form-group">
             <label>Heure</label>
-            <input type="number" id="campaign-hour" class="form-input" min="0" max="23" value="9" style="text-align:center">
+            <input type="number" id="campaign-hour" class="form-input" min="0" max="23" value="9"
+              style="text-align:center">
           </div>
           <div class="form-group">
             <label>Minute</label>
-            <input type="number" id="campaign-minute" class="form-input" min="0" max="59" value="0" style="text-align:center">
+            <input type="number" id="campaign-minute" class="form-input" min="0" max="59" value="0"
+              style="text-align:center">
           </div>
         </div>
 
@@ -118,7 +122,8 @@
             <button class="var-btn" data-var="{date}">📅 {date}</button>
             <button class="var-btn" data-var="{time}">🕐 {time}</button>
           </div>
-          <textarea id="campaign-message" class="form-textarea" rows="5" placeholder="Votre message...&#10;&#10;Utilisez {server}, {membercount}, {date}, {time}"></textarea>
+          <textarea id="campaign-message" class="form-textarea" rows="5"
+            placeholder="Votre message...&#10;&#10;Utilisez {server}, {membercount}, {date}, {time}"></textarea>
         </div>
 
         <!-- APERÇU DISCORD -->

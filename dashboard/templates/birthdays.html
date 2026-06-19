@@ -5,7 +5,9 @@
 
     <div class="panel">
       <div class="panel-header">
-        <h2>🎂 Configuration</h2>
+        <h2>🎂 Configuration <span class="tooltip-icon"
+            data-tooltip="Le bot envoie automatiquement un message dans le salon choisi le jour de l'anniversaire d'un membre.">ⓘ</span>
+        </h2>
       </div>
       <div class="panel-body">
 
@@ -32,7 +34,8 @@
           <div class="form-group">
             <label>Heure d'envoi</label>
             <select id="birthday-hour" class="form-select">
-              ${Array.from({length:24}, (_,i) => `<option value="${i}">${String(i).padStart(2,'0')}:00</option>`).join('')}
+              ${Array.from({length:24}, (_,i) => `<option value="${i}">${String(i).padStart(2,'0')}:00</option>
+              `).join('')}
             </select>
           </div>
           <div class="form-group">
@@ -61,7 +64,9 @@
 
     <div class="panel">
       <div class="panel-header">
-        <h2>💬 Message</h2>
+        <h2>💬 Message <span class="tooltip-icon"
+            data-tooltip="Texte envoyé le jour J. Utilise {membre} pour mentionner la personne et {age} pour afficher son âge si renseigné.">ⓘ</span>
+        </h2>
       </div>
       <div class="panel-body">
         <div class="form-group">
@@ -93,7 +98,8 @@
 
     <div class="panel">
       <div class="panel-header">
-        <h2>👁️ Aperçu en direct</h2>
+        <h2>👁️ Aperçu en direct <span class="tooltip-icon"
+            data-tooltip="Montre à quoi ressemblera le message envoyé, avant de l'activer pour de vrai.">ⓘ</span></h2>
       </div>
       <div class="panel-body">
         <div class="discord-preview-box">
@@ -116,7 +122,8 @@
 
     <div class="panel">
       <div class="panel-header">
-        <h2>📅 Prochains anniversaires</h2>
+        <h2>📅 Prochains anniversaires <span class="tooltip-icon"
+            data-tooltip="Liste des membres dont l'anniversaire approche.">ⓘ</span></h2>
       </div>
       <div class="panel-body">
         <div id="upcoming-birthdays">
@@ -127,7 +134,8 @@
 
     <div class="panel">
       <div class="panel-header">
-        <h2>👥 Membres enregistrés</h2>
+        <h2>👥 Membres enregistrés <span class="tooltip-icon"
+            data-tooltip="Membres ayant indiqué leur date de naissance au bot.">ⓘ</span></h2>
         <span id="birthday-count" style="font-size:0.8rem;color:var(--text-muted)">0 membres</span>
       </div>
       <div class="panel-body">

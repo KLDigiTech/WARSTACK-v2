@@ -9,7 +9,20 @@ module.exports = {
   async execute(interaction) {
     await interaction.deferReply();
 
-    const { data: players, error } = await supabase.from('players').select('*').order('kd', { ascending: false }).limit(1);
+    const { data: members } = await supabase
+      .from('warstack_xp')
+      .select('discord_id')
+      .eq('guild_id', interaction.guild.id);
+
+    const memberIds = (members || []).map(m => m.discord_id);
+    if (!memberIds.length) return interaction.editReply({ content: '❌ Aucun joueur inscrit pour le moment.' });
+
+    const { data: players, error } = await supabase
+      .from('players')
+      .select('*')
+      .in('discord_id', memberIds)
+      .order('kd', { ascending: false })
+      .limit(1);
     if (error || !players?.length) return interaction.editReply({ content: '❌ Aucun joueur inscrit pour le moment.' });
 
     const mvp   = players[0];

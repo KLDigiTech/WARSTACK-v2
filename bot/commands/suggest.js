@@ -55,6 +55,7 @@ module.exports = {
       const { data: suggestion, error } = await supabase
         .from('suggestions')
         .insert({
+          guild_id  : guild.id,
           discord_id: interaction.user.id,
           username  : anonymous ? 'Anonyme' : interaction.user.username,
           content,

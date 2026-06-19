@@ -111,17 +111,17 @@ module.exports = {
       const action2 = getConfig(configs, 'automod_spam_action2') || 'timeout';
       const action3 = getConfig(configs, 'automod_spam_action3') || 'kick';
 
-      const userId = message.author.id;
-      if (!spamTracker.has(userId)) {
-        spamTracker.set(userId, { count: 0, violations: 0, timer: null });
+      const trackerKey = `${guild.id}:${message.author.id}`;
+      if (!spamTracker.has(trackerKey)) {
+        spamTracker.set(trackerKey, { count: 0, violations: 0, timer: null });
       }
 
-      const tracker = spamTracker.get(userId);
+      const tracker = spamTracker.get(trackerKey);
       tracker.count++;
 
       if (!tracker.timer) {
         tracker.timer = setTimeout(() => {
-          spamTracker.delete(userId);
+          spamTracker.delete(trackerKey);
         }, period);
       }
 

@@ -42,6 +42,7 @@ module.exports = {
       const { data: events } = await supabase
         .from('events')
         .select('*')
+        .eq('guild_id', guild.id)
         .eq('status', 'open')
         .order('date', { ascending: true });
 
@@ -67,6 +68,7 @@ module.exports = {
       const { data: events } = await supabase
         .from('events')
         .select('*')
+        .eq('guild_id', interaction.guild.id)
         .eq('status', 'open')
         .order('date', { ascending: true })
         .limit(1);
@@ -133,6 +135,7 @@ module.exports = {
       const { data: events } = await supabase
         .from('events')
         .select('*')
+        .eq('guild_id', interaction.guild.id)
         .eq('status', 'open')
         .order('date', { ascending: true })
         .limit(1);
@@ -188,6 +191,7 @@ module.exports = {
       const { data: events } = await supabase
         .from('events')
         .select('*')
+        .eq('guild_id', interaction.guild.id)
         .eq('status', 'open')
         .order('date', { ascending: true })
         .limit(1);

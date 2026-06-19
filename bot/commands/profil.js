@@ -43,9 +43,23 @@ module.exports = {
 
     let rangTracker = '—';
     if (snapshot) {
+      const { data: members } = await supabase
+        .from('warstack_xp')
+        .select('discord_id')
+        .eq('guild_id', guildId);
+      const memberIds = (members || []).map(m => m.discord_id);
+
+      const { data: scopedPlayers } = await supabase
+        .from('players')
+        .select('tracker_id')
+        .in('discord_id', memberIds)
+        .not('tracker_id', 'is', null);
+      const scopedTrackerIds = (scopedPlayers || []).map(p => p.tracker_id);
+
       const { data: allPlayers } = await supabase
         .from('player_snapshots')
         .select('tracker_id, kd')
+        .in('tracker_id', scopedTrackerIds)
         .order('kd', { ascending: false });
       const idx = allPlayers?.findIndex(p => p.tracker_id === player?.tracker_id);
       if (idx !== undefined && idx >= 0) rangTracker = `#${idx + 1}`;

@@ -140,9 +140,20 @@ module.exports = {
 
     // ── Classement Tracker BF6 ────────────────────────
     if (type === 'tracker') {
+      const { data: members } = await supabase
+        .from('warstack_xp')
+        .select('discord_id')
+        .eq('guild_id', guildId);
+
+      const memberIds = (members || []).map(m => m.discord_id);
+      if (!memberIds.length) {
+        return interaction.editReply({ content: '❌ Aucun joueur BF6 inscrit.' });
+      }
+
       const { data: players } = await supabase
         .from('players')
         .select('discord_id, username, tracker_id')
+        .in('discord_id', memberIds)
         .not('tracker_id', 'is', null);
 
       if (!players?.length) {

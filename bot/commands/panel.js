@@ -41,7 +41,7 @@ module.exports = {
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder().setLabel('📊 Dashboard').setStyle(ButtonStyle.Link).setURL('https://warstack-v2.vercel.app/#overview'),
-      new ButtonBuilder().setLabel('📝 S\'inscrire').setStyle(ButtonStyle.Link).setURL('https://warstack-v2.vercel.app/inscription.html'),
+      new ButtonBuilder().setLabel('📝 S\'inscrire').setStyle(ButtonStyle.Link).setURL(`https://warstack-v2.vercel.app/inscription.html?guild=${interaction.guild.id}`),
       new ButtonBuilder().setLabel('🏆 Classement').setStyle(ButtonStyle.Link).setURL('https://warstack-v2.vercel.app/')
     );
 

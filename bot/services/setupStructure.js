@@ -149,7 +149,7 @@ async function setupStructure(guild) {
 
       const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder().setLabel('📊 Dashboard').setStyle(ButtonStyle.Link).setURL('https://warstack-v2.vercel.app/#overview'),
-        new ButtonBuilder().setLabel('📝 S\'inscrire').setStyle(ButtonStyle.Link).setURL('https://warstack-v2.vercel.app/inscription.html'),
+        new ButtonBuilder().setLabel('📝 S\'inscrire').setStyle(ButtonStyle.Link).setURL(`https://warstack-v2.vercel.app/inscription.html?guild=${guild.id}`),
         new ButtonBuilder().setLabel('🏆 Classement').setStyle(ButtonStyle.Link).setURL('https://warstack-v2.vercel.app/')
       );
 
@@ -170,7 +170,7 @@ async function setupStructure(guild) {
         .setFooter({ text: 'WARSTACK • Battlefield 6' });
 
       const row = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setLabel('📝 S\'inscrire').setStyle(ButtonStyle.Link).setURL('https://warstack-v2.vercel.app/inscription.html')
+        new ButtonBuilder().setLabel('📝 S\'inscrire').setStyle(ButtonStyle.Link).setURL(`https://warstack-v2.vercel.app/inscription.html?guild=${guild.id}`)
       );
 
       await inscriptChannel.send({ embeds: [embed], components: [row] });

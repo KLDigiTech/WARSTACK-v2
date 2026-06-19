@@ -3,6 +3,10 @@ import { BOT_URL, API_KEY }      from '../config.js';
 import { showToast }             from '../ui/toast.js';
 import { showModal, closeModal } from '../ui/modal.js';
 import { getActiveGuildId }      from '../services/guildService.js';
+import { clearPermissionCache }  from '../services/permissionService.js';
+import { ROLES, ROLE_PERMS, PERMS_LIST, PERMS_LABELS } from '../services/teamRoles.js';
+
+let _members      = [];
 
 const ROLE_PERMS = {
   '👑 Fondateur'   : ['overview','players','tournament','events','suggestions','tickets','logs','moderation','analytics','settings','channels','reactions','messages','onboarding','access'],
@@ -322,9 +326,10 @@ window.saveMember = async function() {
     created_at : new Date().toISOString(),
   }, { onConflict: 'guild_id,discord_id' });
 
-  if (error) { showToast('Erreur enregistrement', 'error'); return; }
+if (error) { showToast('Erreur enregistrement', 'error'); return; }
 
+  clearPermissionCache(); // les accès au dashboard changent immédiatement
   closeModal();
-  showToast(_editingId ? 'Membre modifié' : 'Membre ajouté', 'success');
+  showToast(_editingId ? 'Membre modifié — ses accès sont mis à jour immédiatement' : 'Membre ajouté', 'success');
   await loadTeam();
 };

@@ -19,6 +19,7 @@ module.exports = {
       .from('sanctions')
       .update({ active: false })
       .eq('discord_id', userId)
+      .eq('guild_id', interaction.guild.id)
       .eq('type', 'ban');
 
     await interaction.reply({

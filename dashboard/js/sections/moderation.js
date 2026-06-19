@@ -220,8 +220,9 @@ async function loadMemberSanctions(discord_id) {
 // ── Notes staff ──────────────────────────────────────────────────────────────
 
 async function loadMemberNotes(discord_id) {
+  const guildId = await getActiveGuildId();
   const data = await fetchSupabase(
-    `mod_notes?discord_id=eq.${discord_id}&order=created_at.desc`
+    `mod_notes?discord_id=eq.${discord_id}&guild_id=eq.${guildId}&order=created_at.desc`
   ) || [];
 
   const el = document.getElementById('mod-notes-list');
@@ -243,8 +244,10 @@ async function addNote() {
   const note = document.getElementById('mod-note-input').value.trim();
   if (!note) return;
 
+  const guildId = await getActiveGuildId();
   await fetchSupabase('mod_notes', 'POST', {
     discord_id: selectedMember.id,
+    guild_id  : guildId,
     note,
     author    : 'Admin',
   });

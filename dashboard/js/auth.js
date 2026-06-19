@@ -151,7 +151,7 @@ userDropdown?.addEventListener('click', (e) => e.stopPropagation());
 
 document.querySelector('[data-action="mon-profil"]')?.addEventListener('click', async () => {
   const { data: players } = await supabase.from('players').select('discord_id').eq('discord_id', discordId).single();
-  if (players?.discord_id) window.open(`/profil.html?id=${players.discord_id}`, '_blank');
+  if (players?.discord_id) window.open(`/profil.html?id=${players.discord_id}&guild=${guildId}`, '_blank');
 });
 
 document.querySelector('[data-action="parametres"]')?.addEventListener('click', () => {

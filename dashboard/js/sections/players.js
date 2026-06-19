@@ -8,6 +8,7 @@ let allWallets = [];
 let currentTab = 'tracker';
 let currentFilter = 'all';
 let currentDiscordId = null;
+let activeGuildId = null;
 
 const GRADES = [
   { level: 1, xp: 0, name: 'Recrue', emoji: '🪖' },
@@ -76,15 +77,18 @@ function getDivision(score) {
 
 export async function initPlayers() {
   const guildId = await getActiveGuildId();
+  activeGuildId = guildId;
 
-  const [players, xpRows, walletRows] = await Promise.all([
+  const [players, xpRows, walletRows, guildTournois] = await Promise.all([
     fetchSupabase('players?select=*&order=created_at.desc'),
     fetchSupabase(`warstack_xp?guild_id=eq.${guildId}&select=*&order=xp.desc`),
     fetchSupabase(`warstack_wallets?guild_id=eq.${guildId}&select=*&order=total_earned.desc`),
+    fetchSupabase(`tournaments?guild_id=eq.${guildId}&select=id`),
   ]);
 
   allXP = xpRows || [];
   allWallets = walletRows || [];
+  const guildTournoiIds = new Set((guildTournois || []).map(t => t.id));
 
   // Ne garder que les joueurs membres de CE serveur (présents dans warstack_xp pour ce guild_id)
   const memberIds = new Set(allXP.map(x => x.discord_id));
@@ -95,8 +99,9 @@ export async function initPlayers() {
       const snaps = await fetchSupabase(`player_snapshots?tracker_id=eq.${player.tracker_id}&order=snapshot_at.desc&limit=1`);
       player.snapshot = snaps?.[0] || null;
     }
-    const entries = await fetchSupabase(`tournament_entries?discord_id=eq.${player.discord_id}&order=created_at.desc&limit=1`);
-    player.lastEntry = entries?.[0] || null;
+    // Dernière entrée de tournoi UNIQUEMENT parmi les tournois de ce serveur
+    const entries = await fetchSupabase(`tournament_entries?discord_id=eq.${player.discord_id}&order=created_at.desc`);
+    player.lastEntry = (entries || []).find(e => guildTournoiIds.has(e.tournament_id)) || null;
     if (player.lastEntry) {
       const subs = await fetchSupabase(`tournament_submissions?tournament_id=eq.${player.lastEntry.tournament_id}&discord_id=eq.${player.discord_id}&order=submitted_at.desc&limit=1`);
       player.lastSub = subs?.[0] || null;
@@ -340,7 +345,7 @@ function renderAllPlayers(search = '') {
             ${brRankHtml}
           </div>
           <div class="player-card-actions">
-            <a href="profil.html?id=${p.discord_id}" target="_blank" class="action-btn profile" title="Voir le profil" onclick="event.stopPropagation()">
+            <a href="profil.html?id=${p.discord_id}&guild=${activeGuildId}" target="_blank" class="action-btn profile" title="Voir le profil" onclick="event.stopPropagation()">
               <i class="fas fa-user"></i>
             </a>
             <button class="action-btn delete" onclick="event.stopPropagation();window.deletePlayer('${p.discord_id}', '${p.username}')" title="Supprimer">
@@ -352,6 +357,7 @@ function renderAllPlayers(search = '') {
         <div class="player-stats">
           <div class="player-stat">
             <span>K/D</span>
+            <strong>${s?.kd ?? '—'}</strong>
             <strong>${s?.kd ?? '—'}</strong>
           </div>
           <div class="player-stat">
@@ -437,12 +443,17 @@ async function loadTimeline(discordId) {
   list.innerHTML = '';
 
   try {
-    const [auditLogs, sanctions, tournamentEntries, ranks] = await Promise.all([
+    const guildTournois = await fetchSupabase(`tournaments?guild_id=eq.${guildId}&select=id`);
+    const guildTournoiIds = new Set((guildTournois || []).map(t => t.id));
+
+    const [auditLogs, sanctions, tournamentEntriesRaw, ranks] = await Promise.all([
       fetchSupabase(`audit_logs?guild_id=eq.${guildId}&author_id=eq.${discordId}&order=created_at.desc&limit=100`),
       fetchSupabase(`sanctions?guild_id=eq.${guildId}&discord_id=eq.${discordId}&order=created_at.desc`),
       fetchSupabase(`tournament_entries?discord_id=eq.${discordId}&order=created_at.desc`),
       fetchSupabase(`warstack_ranks?discord_id=eq.${discordId}&order=updated_at.desc`),
     ]);
+
+    const tournamentEntries = (tournamentEntriesRaw || []).filter(e => guildTournoiIds.has(e.tournament_id));
 
     const events = [];
 

@@ -186,12 +186,6 @@ router.post('/channel/delete', auth, async (req, res) => {
 // =====================================================
 
 async function postTournamentLeaderboard(client, tournamentId) {
-  const channel = client.channels.cache.find(c => c.name === 'tournoi-live');
-  if (!channel) {
-    console.log('❌ Salon #tournoi-live introuvable');
-    return;
-  }
-
   const { data: tournoi } = await supabase
     .from('tournaments')
     .select('*')
@@ -199,6 +193,21 @@ async function postTournamentLeaderboard(client, tournamentId) {
     .single();
 
   if (!tournoi) return;
+
+  const guild = tournoi.guild_id
+    ? client.guilds.cache.get(tournoi.guild_id)
+    : null;
+
+  if (!guild) {
+    console.log(`❌ Serveur introuvable pour le tournoi ${tournoi.name}`);
+    return;
+  }
+
+  const channel = guild.channels.cache.find(c => c.name === 'tournoi-live');
+  if (!channel) {
+    console.log(`❌ Salon #tournoi-live introuvable sur ${guild.name}`);
+    return;
+  }
 
   const { data: scores } = await supabase
     .from('tournament_scores')

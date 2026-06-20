@@ -194,3 +194,27 @@
   font-size: .75rem;
   color: var(--text-muted);
 }
+
+/* ── GESTION DES RÔLES (modal Fondateur) ──────────────────── */
+
+.role-manage-row {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: .65rem .85rem;
+  margin-bottom: .5rem;
+  background: var(--surface-3);
+}
+
+.role-manage-row:last-child { margin-bottom: 0; }
+
+.role-manage-head {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+#btn-manage-roles {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+}

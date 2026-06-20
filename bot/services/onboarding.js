@@ -29,7 +29,7 @@ async function postOnboardingPanel(channel, payload) {
       .setTitle('📜  RÈGLEMENT')
       .setDescription('```\n' + rules_text.slice(0, 3800) + '\n```\n\n> Clique sur le bouton ci-dessous pour confirmer que tu as lu et accepté le règlement.')
       .setColor(0x00ff66)
-      .setFooter({ text: 'WARSTACK • Étape 1/5 — Règlement' });
+      .setFooter({ text: 'WARSTACK • Étape 1/6 — Règlement' });
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
@@ -40,11 +40,30 @@ async function postOnboardingPanel(channel, payload) {
 
     await channel.send({ embeds: [embed], components: [row] });
   } else {
-    await postStep2(channel, teams);
+    await postStepPseudo(channel);
   }
 }
 
-// ── Étape 2 : Équipe ─────────────────────────────────────
+// ── Étape 2 : Pseudo en jeu ───────────────────────────────
+
+async function postStepPseudo(channel) {
+  const embed = new EmbedBuilder()
+    .setTitle('🪪  PSEUDO EN JEU')
+    .setDescription('Indique ton pseudo Battlefield 6 (celui affiché en jeu / sur tracker.gg).\n\n> Sert à te reconnaître sur les leaderboards et les tournois.')
+    .setColor(0xFF6B35)
+    .setFooter({ text: 'WARSTACK • Étape 2/6 — Pseudo' });
+
+  const row = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId('ob_pseudo_open')
+      .setLabel('✏️  Renseigner mon pseudo')
+      .setStyle(ButtonStyle.Primary)
+  );
+
+  await channel.send({ embeds: [embed], components: [row] });
+}
+
+// ── Étape 3 : Équipe ─────────────────────────────────────
 
 async function postStep2(channel, teams) {
   if (!teams?.length) { await postStep3(channel); return; }
@@ -53,7 +72,7 @@ async function postStep2(channel, teams) {
     .setTitle('⚔️  CHOIX DE L\'ÉQUIPE')
     .setDescription('Choisis ton équipe / clan.')
     .setColor(0xFF6B35)
-    .setFooter({ text: 'WARSTACK • Étape 2/5 — Équipe' });
+    .setFooter({ text: 'WARSTACK • Étape 3/6 — Équipe' });
 
   const buttons = teams.slice(0, 5).map(t =>
     new ButtonBuilder()
@@ -65,14 +84,14 @@ async function postStep2(channel, teams) {
   await channel.send({ embeds: [embed], components: [new ActionRowBuilder().addComponents(...buttons)] });
 }
 
-// ── Étape 3 : Plateforme ─────────────────────────────────
+// ── Étape 4 : Plateforme ─────────────────────────────────
 
 async function postStep3(channel, pc = true, psn = true, xbox = true) {
   const embed = new EmbedBuilder()
     .setTitle('🎮  PLATEFORME')
     .setDescription('Sur quelle plateforme joues-tu ?')
     .setColor(0xFF6B35)
-    .setFooter({ text: 'WARSTACK • Étape 3/5 — Plateforme' });
+    .setFooter({ text: 'WARSTACK • Étape 4/6 — Plateforme' });
 
   const buttons = [];
   if (pc)   buttons.push(new ButtonBuilder().setCustomId('ob_plat_pc').setLabel('💻  PC').setStyle(ButtonStyle.Secondary));
@@ -84,7 +103,7 @@ async function postStep3(channel, pc = true, psn = true, xbox = true) {
   await channel.send({ embeds: [embed], components: [new ActionRowBuilder().addComponents(...buttons)] });
 }
 
-// ── Étape 4 : Jeux ───────────────────────────────────────
+// ── Étape 5 : Jeux ───────────────────────────────────────
 
 async function postStep4(channel, games = []) {
   if (!games?.length) { await postStep5(channel); return; }
@@ -99,7 +118,7 @@ async function postStep4(channel, games = []) {
     .setTitle('🎯  JEUX')
     .setDescription('Choisis les jeux auxquels tu joues, puis valide.')
     .setColor(0xFF6B35)
-    .setFooter({ text: 'WARSTACK • Étape 4/5 — Jeux' });
+    .setFooter({ text: 'WARSTACK • Étape 5/6 — Jeux' });
 
   const select = new StringSelectMenuBuilder()
     .setCustomId('ob_games_select')
@@ -111,7 +130,7 @@ async function postStep4(channel, games = []) {
   await channel.send({ embeds: [embed], components: [new ActionRowBuilder().addComponents(select)] });
 }
 
-// ── Étape 5 : Tracker.gg ─────────────────────────────────
+// ── Étape 6 : Tracker.gg ─────────────────────────────────
 
 async function postStep5(channel) {
   const embed = new EmbedBuilder()
@@ -126,7 +145,7 @@ async function postStep5(channel) {
       '*Tu peux ignorer cette étape si tu ne joues pas à BF6.*'
     )
     .setColor(0x5865F2)
-    .setFooter({ text: 'WARSTACK • Étape 5/5 — Tracker.gg' });
+    .setFooter({ text: 'WARSTACK • Étape 6/6 — Tracker.gg' });
 
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
@@ -153,9 +172,49 @@ async function handleOnboardingInteraction(interaction) {
   if (customId === 'ob_accept_rules') {
     await interaction.deferReply({ ephemeral: true });
     await upsertSession(guild.id, member.user.id, { step: 'rules_done' });
+    await interaction.editReply({ content: '✅ Règlement accepté !' });
+    await postStepPseudo(interaction.channel);
+    return true;
+  }
+
+  // ── PSEUDO — OUVRIR MODAL ─────────────────────────────
+  if (customId === 'ob_pseudo_open') {
+    const modal = new ModalBuilder()
+      .setCustomId('ob_pseudo_modal')
+      .setTitle('🪪 Ton pseudo en jeu');
+
+    const input = new TextInputBuilder()
+      .setCustomId('pseudo_input')
+      .setLabel('Pseudo Battlefield 6')
+      .setStyle(TextInputStyle.Short)
+      .setPlaceholder('Ex : HolyPriest34')
+      .setMinLength(2)
+      .setMaxLength(32)
+      .setRequired(true);
+
+    modal.addComponents(new ActionRowBuilder().addComponents(input));
+    await interaction.showModal(modal);
+    return true;
+  }
+
+  // ── PSEUDO — VALIDER MODAL ────────────────────────────
+  if (customId === 'ob_pseudo_modal') {
+    await interaction.deferReply({ ephemeral: true });
+    const pseudo = interaction.fields.getTextInputValue('pseudo_input').trim();
+
+    await upsertSession(guild.id, member.user.id, { pseudo, step: 'pseudo_done' });
+
+    const { data: existing } = await supabase.from('players').select('*').eq('discord_id', member.user.id).single().catch(() => ({ data: null }));
+    if (existing) {
+      await supabase.from('players').update({ pseudo, username: member.user.username }).eq('discord_id', member.user.id);
+    } else {
+      await supabase.from('players').insert({ discord_id: member.user.id, username: member.user.username, pseudo }).catch(() => {});
+    }
+
+    await interaction.editReply({ content: `✅ Pseudo **${pseudo}** enregistré !` });
+
     const configs = await loadGuildConfig(guild.id);
     const teams   = parseSafe(getConf(configs, 'ob_teams'));
-    await interaction.editReply({ content: '✅ Règlement accepté !' });
     if (teams.length) {
       await postStep2(interaction.channel, teams);
     } else {
@@ -357,6 +416,7 @@ async function finalizeOnboarding(interaction, configs) {
     const filled = dmMsg
       .replace(/{user}/g,     member.user.username)
       .replace(/{server}/g,   guild.name)
+      .replace(/{pseudo}/g,   session?.pseudo   || member.user.username)
       .replace(/{team}/g,     session?.team     || '—')
       .replace(/{platform}/g, session?.platform || '—')
       .replace(/{games}/g,    session?.games    || '—');
@@ -368,6 +428,7 @@ async function finalizeOnboarding(interaction, configs) {
     discord_id: member.user.id,
     username  : member.user.username,
     avatar_url: member.user.displayAvatarURL({ size: 64 }),
+    pseudo    : session?.pseudo   || null,
     team      : session?.team     || null,
     platform  : session?.platform || null,
     games     : session?.games    || null,

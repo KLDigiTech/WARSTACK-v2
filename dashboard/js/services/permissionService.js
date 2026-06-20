@@ -1,7 +1,7 @@
 import { fetchSupabase } from '../api.js';
 import { supabase }      from '../supabaseClient.js';
-import { getActiveGuildId }            from './guildService.js';
-import { computePermissions }          from './teamRoles.js';
+import { getActiveGuildId }   from './guildService.js';
+import { computePermissions } from './teamRoles.js';
 
 const FOUNDER_DISCORD_ID = '1233271006236377180';
 
@@ -54,19 +54,19 @@ export async function getUserPermissions() {
     const discordId = await getCurrentDiscordId();
     if (!discordId) { _cachedPerms = []; return []; }
 
-    if (isFounder(discordId)) {
-      _cachedPerms = computePermissions('👑 Fondateur');
-      return _cachedPerms;
-    }
-
     const guildId = await getActiveGuildId();
     if (!guildId) { _cachedPerms = []; return []; }
+
+    if (isFounder(discordId)) {
+      _cachedPerms = await computePermissions(guildId, '👑 Fondateur');
+      return _cachedPerms;
+    }
 
     const member = await getTeamMember(discordId, guildId);
     if (!member) { _cachedPerms = []; return []; }
 
     const extra = member.extra_perms ? JSON.parse(member.extra_perms) : [];
-    _cachedPerms = computePermissions(member.role, extra);
+    _cachedPerms = await computePermissions(guildId, member.role, extra);
     return _cachedPerms;
 
   } catch (err) {

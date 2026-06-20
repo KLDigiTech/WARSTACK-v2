@@ -3,20 +3,41 @@ import { BOT_URL, API_KEY }      from '../config.js';
 import { showToast }             from '../ui/toast.js';
 import { showModal, closeModal } from '../ui/modal.js';
 import { getActiveGuildId }      from '../services/guildService.js';
-import { clearPermissionCache }  from '../services/permissionService.js';
-import { ROLES, ROLE_PERMS, PERMS_LIST, PERMS_LABELS } from '../services/teamRoles.js';
+import { clearPermissionCache, getCurrentDiscordId, isFounder } from '../services/permissionService.js';
+import {
+  MODULE_LABELS, ALL_MODULES,
+  loadRoles, createRole, updateRole, deleteRole,
+} from '../services/teamRoles.js';
 
 let _members      = [];
+let _roles        = [];
 let _editingId    = null;
 let _selectedUser = null;
 let _selectedRole = null;
 let _deleteId     = null;
 let _searchTimer  = null;
+let _isFounderUI  = false;
+
+// rôle en cours d'édition dans le modal "Gérer les rôles"
+let _editingRoleId      = null;
+let _editingRoleModules = [];
 
 export async function initTeam() {
+  const guildId   = await getActiveGuildId();
+  const discordId = await getCurrentDiscordId();
+  _isFounderUI    = isFounder(discordId);
+
+  _roles = await loadRoles(guildId);
+
   await loadTeam();
   renderRolePerms();
   document.getElementById('btn-add-member').onclick = () => openAddModal();
+
+  const rolesBtn = document.getElementById('btn-manage-roles');
+  if (rolesBtn) {
+    rolesBtn.style.display = _isFounderUI ? 'inline-flex' : 'none';
+    rolesBtn.onclick = () => openManageRolesModal();
+  }
 }
 
 // ── LOAD ──────────────────────────────────────────────────────
@@ -41,6 +62,10 @@ async function loadTeam() {
   document.getElementById('team-content').style.display = 'block';
 }
 
+function roleModules(roleName) {
+  return _roles.find(r => r.role_name === roleName)?.modules || [];
+}
+
 // ── RENDER TABLE ──────────────────────────────────────────────
 function renderTable() {
   const tbody = document.getElementById('team-tbody');
@@ -51,10 +76,10 @@ function renderTable() {
   }
 
   tbody.innerHTML = _members.map(m => {
-    const perms = ROLE_PERMS[m.role] || [];
+    const perms = roleModules(m.role);
     const extra = m.extra_perms ? JSON.parse(m.extra_perms) : [];
     const total = new Set([...perms, ...extra]).size;
-    const pct   = Math.round((total / 16) * 100);
+    const pct   = Math.round((total / ALL_MODULES.length) * 100);
 
     return `
       <tr>
@@ -87,22 +112,16 @@ function renderTable() {
   }).join('');
 }
 
-// ── RENDER ROLE PERMS ─────────────────────────────────────────
+// ── RENDER ROLE PERMS (aperçu en bas de page) ──────────────────
 function renderRolePerms() {
   const grid = document.getElementById('role-perms-grid');
-  const labels = {
-    overview:'Vue générale', players:'Joueurs', tournament:'Tournois',
-    events:'Événements', suggestions:'Suggestions', tickets:'Tickets',
-    logs:'Logs', moderation:'Modération', analytics:'Analytics',
-    settings:'Paramètres', channels:'Salons', reactions:'Réactions',
-    messages:'Messages', onboarding:'Onboarding', access:'Accès'
-  };
+  if (!grid) return;
 
-  grid.innerHTML = Object.entries(ROLE_PERMS).map(([role, perms]) => `
+  grid.innerHTML = _roles.map(r => `
     <div class="role-perm-card">
-      <div class="role-perm-title">${role}</div>
+      <div class="role-perm-title">${r.emoji || ''} ${r.role_name}</div>
       <div class="role-perm-list">
-        ${perms.map(p => `<span class="perm-tag">${labels[p] || p}</span>`).join('')}
+        ${(r.modules || []).map(p => `<span class="perm-tag">${MODULE_LABELS[p] || p}</span>`).join('')}
       </div>
     </div>
   `).join('');
@@ -112,10 +131,10 @@ function renderRolePerms() {
 function roleChoicesHTML(selected = null) {
   return `
     <div class="role-choices" id="modal-role-choices">
-      ${ROLES.map(r => `
-        <div class="role-choice ${r === selected ? 'active' : ''}" data-role="${r}" onclick="selectRole(this)">
-          <span class="role-choice-emoji">${r.split(' ')[0]}</span>
-          <span class="role-choice-label">${r.split(' ').slice(1).join(' ')}</span>
+      ${_roles.map(r => `
+        <div class="role-choice ${r.role_name === selected ? 'active' : ''}" data-role="${r.role_name}" onclick="selectRole(this)">
+          <span class="role-choice-emoji">${r.emoji || '🔰'}</span>
+          <span class="role-choice-label">${r.role_name.replace(/^\S+\s/, '')}</span>
         </div>
       `).join('')}
     </div>
@@ -125,10 +144,10 @@ function roleChoicesHTML(selected = null) {
 function extraPermsHTML(checked = []) {
   return `
     <div class="perms-list" id="modal-extra-perms">
-      ${PERMS_LIST.map(p => `
+      ${ALL_MODULES.map(p => `
         <label class="perm-item">
           <input type="checkbox" value="${p}" ${checked.includes(p) ? 'checked' : ''}>
-          ${PERMS_LABELS[p]}
+          ${MODULE_LABELS[p]}
         </label>
       `).join('')}
     </div>
@@ -144,7 +163,7 @@ function modalFooter() {
   `;
 }
 
-// ── OPEN EDIT ─────────────────────────────────────────────────
+// ── OPEN EDIT MEMBRE ─────────────────────────────────────────────────
 window.openEditModal = function(discordId) {
   const m = _members.find(x => x.discord_id === discordId);
   if (!m) return;
@@ -211,7 +230,7 @@ window.openAddModal = function() {
   });
 };
 
-// ── OPEN DELETE ───────────────────────────────────────────────
+// ── OPEN DELETE MEMBRE ───────────────────────────────────────────────
 window.openDeleteModal = function(discordId, username) {
   _deleteId = discordId;
   showModal({
@@ -229,7 +248,7 @@ window.openDeleteModal = function(discordId, username) {
   });
 };
 
-// ── ACTIONS ───────────────────────────────────────────────────
+// ── ACTIONS MEMBRE ───────────────────────────────────────────────────
 window.selectRole = function(card) {
   document.querySelectorAll('#modal-role-choices .role-choice').forEach(c => c.classList.remove('active'));
   card.classList.add('active');
@@ -313,10 +332,143 @@ window.saveMember = async function() {
     created_at : new Date().toISOString(),
   }, { onConflict: 'guild_id,discord_id' });
 
-if (error) { showToast('Erreur enregistrement', 'error'); return; }
+  if (error) { showToast('Erreur enregistrement', 'error'); return; }
 
   clearPermissionCache(); // les accès au dashboard changent immédiatement
   closeModal();
   showToast(_editingId ? 'Membre modifié — ses accès sont mis à jour immédiatement' : 'Membre ajouté', 'success');
   await loadTeam();
+};
+
+// ════════════════════════════════════════════════════════
+// GESTION DES RÔLES (Fondateur uniquement)
+// ════════════════════════════════════════════════════════
+
+function rolesListHTML() {
+  return _roles.map(r => `
+    <div class="role-manage-row" data-role-id="${r.id}">
+      <div class="role-manage-head">
+        <span class="role-choice-emoji">${r.emoji || '🔰'}</span>
+        <span style="font-weight:700;color:var(--text)">${r.role_name}</span>
+        ${r.is_protected ? '<span class="perm-tag" style="margin-left:.5rem">protégé</span>' : ''}
+        <div style="margin-left:auto;display:flex;gap:.5rem">
+          <button class="btn-icon" onclick="openEditRole('${r.id}')">✏️</button>
+          ${!r.is_protected ? `<button class="btn-icon btn-icon-danger" onclick="confirmDeleteRole('${r.id}','${r.role_name}')">✕</button>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.openManageRolesModal = function() {
+  showModal({
+    title: '🔐 Gérer les rôles',
+    body: `
+      <p style="color:var(--text-muted);margin-bottom:1rem">
+        Crée tes propres rôles et choisis exactement ce que chacun peut voir dans le dashboard.
+      </p>
+      <div id="roles-manage-list">${rolesListHTML()}</div>
+      <button class="btn-secondary" style="margin-top:1rem;width:100%" onclick="openNewRoleForm()">
+        + Nouveau rôle
+      </button>
+      <div style="display:flex;justify-content:flex-end;margin-top:1.5rem">
+        <button class="btn-secondary" onclick="closeModal()">Fermer</button>
+      </div>
+    `
+  });
+};
+
+function roleFormHTML(role = null) {
+  _editingRoleId      = role?.id || null;
+  _editingRoleModules = role?.modules || [];
+
+  return `
+    <div class="form-group">
+      <label class="form-label">Emoji</label>
+      <input type="text" class="form-input" id="role-form-emoji" maxlength="2" value="${role?.emoji || '🔰'}" style="width:70px">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nom du rôle</label>
+      <input type="text" class="form-input" id="role-form-name" value="${role?.role_name?.replace(/^\S+\s/, '') || ''}" placeholder="Ex : Recruteur">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Modules accessibles</label>
+      <div class="perms-list" id="role-form-modules">
+        ${ALL_MODULES.map(m => `
+          <label class="perm-item">
+            <input type="checkbox" value="${m}" ${_editingRoleModules.includes(m) ? 'checked' : ''}>
+            ${MODULE_LABELS[m]}
+          </label>
+        `).join('')}
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:1.5rem">
+      <button class="btn-secondary" onclick="openManageRolesModal()">Retour</button>
+      <button class="btn-primary" onclick="saveRole()">Enregistrer le rôle</button>
+    </div>
+  `;
+}
+
+window.openNewRoleForm = function() {
+  showModal({ title: '+ Nouveau rôle', body: roleFormHTML(null) });
+};
+
+window.openEditRole = function(roleId) {
+  const role = _roles.find(r => r.id === roleId);
+  if (!role) return;
+  showModal({ title: `Modifier ${role.role_name}`, body: roleFormHTML(role) });
+};
+
+window.saveRole = async function() {
+  const emoji   = document.getElementById('role-form-emoji').value.trim() || '🔰';
+  const name    = document.getElementById('role-form-name').value.trim();
+  const modules = [...document.querySelectorAll('#role-form-modules input:checked')].map(cb => cb.value);
+
+  if (!name) { showToast('Donne un nom au rôle', 'error'); return; }
+  if (!modules.length) { showToast('Sélectionne au moins un module', 'error'); return; }
+
+  const guildId  = await getActiveGuildId();
+  const fullName = `${emoji} ${name}`;
+
+  const { error } = _editingRoleId
+    ? await updateRole(guildId, _editingRoleId, { role_name: fullName, emoji, modules })
+    : await createRole(guildId, { role_name: fullName, emoji, modules });
+
+  if (error) { showToast('Erreur enregistrement du rôle', 'error'); return; }
+
+  _roles = await loadRoles(guildId, true);
+  clearPermissionCache();
+  renderRolePerms();
+  renderTable();
+  showToast(_editingRoleId ? 'Rôle modifié' : 'Rôle créé', 'success');
+  openManageRolesModal();
+};
+
+window.confirmDeleteRole = function(roleId, roleName) {
+  showModal({
+    title: 'Supprimer ce rôle ?',
+    body: `
+      <p style="color:var(--text-muted)">
+        Le rôle <strong style="color:var(--text)">${roleName}</strong> sera supprimé.
+        Les membres qui l'ont actuellement perdront leurs accès tant qu'ils n'auront pas un nouveau rôle.
+      </p>
+      <div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:1.5rem">
+        <button class="btn-secondary" onclick="openManageRolesModal()">Annuler</button>
+        <button class="btn-danger" onclick="doDeleteRole('${roleId}')">Supprimer</button>
+      </div>
+    `
+  });
+};
+
+window.doDeleteRole = async function(roleId) {
+  const guildId = await getActiveGuildId();
+  const { error } = await deleteRole(guildId, roleId);
+  if (error) { showToast('Erreur suppression du rôle', 'error'); return; }
+
+  _roles = await loadRoles(guildId, true);
+  clearPermissionCache();
+  renderRolePerms();
+  renderTable();
+  showToast('Rôle supprimé', 'success');
+  openManageRolesModal();
 };

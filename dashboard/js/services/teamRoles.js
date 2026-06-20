@@ -1,25 +1,13 @@
-// ── RÔLES & PERMISSIONS D'ÉQUIPE — SOURCE UNIQUE ──────────────────────────────
-// Utilisé à la fois par la page Équipe (team.js) et par le système de
-// permissions (permissionService.js) pour que les deux soient TOUJOURS
-// synchronisés : modifier un rôle dans Équipe change immédiatement ce que
-// la personne peut voir dans le dashboard.
+// ── RÔLES & PERMISSIONS D'ÉQUIPE — DYNAMIQUE (par serveur) ──────────────────
+// Les rôles ne sont plus en dur dans le code : ils sont stockés dans la
+// table Supabase `team_roles`, propres à chaque guild. Le Fondateur peut
+// créer / modifier / supprimer des rôles et choisir quels modules chaque
+// rôle peut voir, depuis le dashboard (page Équipe → Gérer les rôles).
 
-export const ROLES = ['👑 Fondateur', '⭐ Team Leader', '🎮 Organisateur', '🛡 Modérateur'];
+import { fetchSupabase, insertSupabase, updateSupabase, deleteSupabase } from '../api.js';
 
-export const ROLE_PERMS = {
-  '👑 Fondateur'   : ['overview','players','tournament','events','suggestions','tickets','logs','moderation','analytics','settings','channels','reactions','messages','onboarding','access','welcome','roles','birthdays','automod','ocr-test','origine','team'],
-  '⭐ Team Leader' : ['overview','players','tournament','events','suggestions','tickets','logs'],
-  '🎮 Organisateur': ['overview','events','tournament','suggestions'],
-  '🛡 Modérateur'  : ['overview','tickets','logs','suggestions','moderation'],
-};
-
-export const PERMS_LIST = ['logs','tickets','suggestions','events','tournament','moderation','analytics','settings'];
-
-export const PERMS_LABELS = {
-  logs: 'Logs', tickets: 'Tickets', suggestions: 'Suggestions', events: 'Événements',
-  tournament: 'Tournois', moderation: 'Modération', analytics: 'Analytics', settings: 'Paramètres',
-};
-
+// Liste de tous les modules existants dans le dashboard (référence fixe,
+// ce n'est pas une permission, juste le catalogue des pages).
 export const MODULE_LABELS = {
   overview: 'Vue générale', players: 'Joueurs', tournament: 'Tournois',
   events: 'Événements', suggestions: 'Suggestions', tickets: 'Tickets',
@@ -30,8 +18,76 @@ export const MODULE_LABELS = {
   automod: 'Auto-Modération', 'ocr-test': 'Test OCR', origine: 'Origine', team: 'Équipe',
 };
 
-/** Calcule la liste des modules accessibles pour un rôle + ses permissions cochées en plus. */
-export function computePermissions(role, extraPerms = []) {
-  const base = ROLE_PERMS[role] || [];
+export const ALL_MODULES = Object.keys(MODULE_LABELS);
+
+// Rôles posés par défaut la toute première fois qu'une guild ouvre la page Équipe.
+const DEFAULT_ROLES = [
+  { role_name: '👑 Fondateur', emoji: '👑', is_protected: true, modules: ALL_MODULES },
+  { role_name: '⭐ Team Leader', emoji: '⭐', is_protected: false,
+    modules: ['overview','players','tournament','events','suggestions','tickets','logs'] },
+  { role_name: '🎮 Organisateur', emoji: '🎮', is_protected: false,
+    modules: ['overview','events','tournament','suggestions'] },
+  { role_name: '🛡 Modérateur', emoji: '🛡', is_protected: false,
+    modules: ['overview','tickets','logs','suggestions','moderation'] },
+];
+
+let _cache = {}; // guildId -> roles[]
+
+/** Charge les rôles d'une guild, les crée par défaut si aucun n'existe encore. */
+export async function loadRoles(guildId, force = false) {
+  if (!guildId) return [];
+  if (!force && _cache[guildId]) return _cache[guildId];
+
+  let rows = await fetchSupabase(`team_roles?guild_id=eq.${guildId}&order=created_at.asc`);
+
+  if (!rows || !rows.length) {
+    for (const r of DEFAULT_ROLES) {
+      await insertSupabase('team_roles', { guild_id: guildId, ...r });
+    }
+    rows = await fetchSupabase(`team_roles?guild_id=eq.${guildId}&order=created_at.asc`);
+  }
+
+  _cache[guildId] = rows || [];
+  return _cache[guildId];
+}
+
+export function clearRolesCache(guildId) {
+  if (guildId) delete _cache[guildId];
+  else _cache = {};
+}
+
+export async function getRoleModules(guildId, roleName) {
+  const roles = await loadRoles(guildId);
+  const role  = roles.find(r => r.role_name === roleName);
+  return role?.modules || [];
+}
+
+/** Calcule la liste des modules accessibles pour un rôle + permissions cochées en plus. */
+export async function computePermissions(guildId, roleName, extraPerms = []) {
+  const base = await getRoleModules(guildId, roleName);
   return [...new Set([...base, ...extraPerms])];
+}
+
+export async function createRole(guildId, { role_name, emoji, modules }) {
+  const result = await insertSupabase('team_roles', {
+    guild_id: guildId, role_name, emoji: emoji || '🔰', modules, is_protected: false,
+  });
+  clearRolesCache(guildId);
+  return result;
+}
+
+export async function updateRole(guildId, roleId, { role_name, emoji, modules }) {
+  const body = {};
+  if (role_name !== undefined) body.role_name = role_name;
+  if (emoji     !== undefined) body.emoji     = emoji;
+  if (modules   !== undefined) body.modules   = modules;
+  const result = await updateSupabase(`team_roles?id=eq.${roleId}`, body);
+  clearRolesCache(guildId);
+  return result;
+}
+
+export async function deleteRole(guildId, roleId) {
+  const result = await deleteSupabase(`team_roles?id=eq.${roleId}`);
+  clearRolesCache(guildId);
+  return result;
 }

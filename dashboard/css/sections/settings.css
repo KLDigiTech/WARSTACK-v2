@@ -233,3 +233,42 @@
   width: fit-content;
   margin-top: 2px;
 }
+/* PORTAIL MEMBRE — grille de toggles */
+.settings-portal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.6rem;
+}
+.settings-portal-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs, 8px);
+  cursor: pointer;
+  font-size: 0.82rem;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.settings-portal-toggle:hover {
+  border-color: var(--border-hover);
+}
+.settings-portal-toggle input[type="checkbox"] {
+  accent-color: var(--primary);
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+.settings-portal-toggle i {
+  color: var(--text-muted);
+  width: 16px;
+  text-align: center;
+}
+.settings-portal-toggle:has(input:checked) {
+  border-color: var(--primary);
+  background: var(--primary-glow);
+}
+.settings-portal-toggle:has(input:checked) i {
+  color: var(--primary);
+}

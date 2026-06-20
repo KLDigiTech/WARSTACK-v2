@@ -3,6 +3,7 @@ import { loadConfigs, saveConfig, getConfig }  from '../services/configService.j
 import { callBotAPI, fetchSupabase }           from '../api.js';
 import { showToast }                           from '../ui/toast.js';
 import { getActiveGuildId }                    from '../services/guildService.js';
+import { PORTAL_ELIGIBLE_SECTIONS, getPortalSections, savePortalSections } from '../services/portalService.js';
 
 const MODULES = [
   { id: 'welcome',     label: 'Welcome',            icon: '👋' },
@@ -38,6 +39,7 @@ export async function initSettings() {
   await loadGuildInfo();
   await loadBotHealth();
   renderModules();
+  await renderPortalSections();
   initThemeEditor(configs);
 
   document.getElementById('btn-save-settings').addEventListener('click', async () => {
@@ -360,4 +362,28 @@ function renderModules() {
       <span class="settings-health-badge green">✓ Actif</span>
     </div>
   `).join('');
+}
+
+// ── PORTAIL MEMBRE ────────────────────────────────────────────────────────────
+
+async function renderPortalSections() {
+  const el = document.getElementById('settings-portal-sections');
+  if (!el) return;
+
+  const enabled = await getPortalSections();
+
+  el.innerHTML = PORTAL_ELIGIBLE_SECTIONS.map(s => `
+    <label class="settings-portal-toggle">
+      <input type="checkbox" data-portal-section="${s.id}" ${enabled.includes(s.id) ? 'checked' : ''}>
+      <i class="fas ${s.icon}"></i>
+      <span>${s.label}</span>
+    </label>
+  `).join('');
+
+  document.getElementById('btn-save-portal')?.addEventListener('click', async () => {
+    const checked = [...el.querySelectorAll('input[data-portal-section]:checked')]
+      .map(input => input.dataset.portalSection);
+    await savePortalSections(checked);
+    showToast('✅ Portail membre sauvegardé');
+  });
 }

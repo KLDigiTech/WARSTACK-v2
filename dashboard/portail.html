@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WARSTACK — Portail Communauté</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/core/variables.css">
+  <link rel="stylesheet" href="css/core/reset.css">
+  <link rel="stylesheet" href="css/core/base.css">
+  <link rel="stylesheet" href="css/components/buttons.css">
+  <link rel="stylesheet" href="css/pages/portail.css">
+  <script type="module" src="js/pages/portail.js"></script>
+</head>
+<body class="portail-page">
+
+  <div id="portail-loading" class="portail-loading">
+    <span class="spinner"></span> Chargement du portail...
+  </div>
+
+  <div id="portail-content" style="display:none">
+
+    <!-- HEADER -->
+    <header class="portail-header">
+      <img id="guild-icon" class="portail-guild-icon" src="https://cdn.discordapp.com/embed/avatars/0.png" alt="">
+      <h1 id="guild-name" class="portail-guild-name">—</h1>
+      <div id="guild-members" class="portail-guild-members"></div>
+      <a id="btn-join" class="btn btn-discord portail-join-btn" href="#">
+        <i class="fab fa-discord"></i> Rejoindre la communauté
+      </a>
+    </header>
+
+    <!-- LEADERBOARD -->
+    <section class="portail-section">
+      <h2 class="portail-section-title">🏆 Top Joueurs</h2>
+      <div id="leaderboard-list" class="portail-leaderboard"></div>
+    </section>
+
+    <!-- EVENEMENTS -->
+    <section class="portail-section">
+      <h2 class="portail-section-title">📅 Prochains Événements</h2>
+      <div id="events-list" class="portail-events"></div>
+    </section>
+
+    <!-- EQUIPE -->
+    <section class="portail-section">
+      <h2 class="portail-section-title">⚔️ L'Équipe</h2>
+      <div id="team-grid" class="portail-team-grid"></div>
+    </section>
+
+  </div>
+
+  <div class="portail-footer">WARSTACK © 2026</div>
+
+</body>
+</html>

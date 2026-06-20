@@ -83,6 +83,9 @@ if (guildId) {
   document.querySelectorAll('a[href^="/inscription.html"]').forEach(a => {
     a.href = `/inscription.html?guild=${guildId}`;
   });
+  document.querySelectorAll('a[href^="/portail.html"]').forEach(a => {
+    a.href = `/portail.html?guild=${guildId}`;
+  });
 }
 
 // Nettoyer l'URL (le guild_id est désormais stocké)

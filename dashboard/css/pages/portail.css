@@ -1,0 +1,172 @@
+.portail-page {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Rajdhani', sans-serif;
+  min-height: 100vh;
+  padding: 2rem 1rem 4rem;
+}
+
+.portail-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .75rem;
+  min-height: 60vh;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+}
+
+.portail-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: .5rem;
+  max-width: 700px;
+  margin: 0 auto 2.5rem;
+}
+
+.portail-guild-icon {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 3px solid var(--primary);
+  box-shadow: 0 0 24px var(--primary-glow-2);
+}
+
+.portail-guild-name {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--primary-bright);
+}
+
+.portail-guild-members {
+  color: var(--text-muted);
+  font-size: .9rem;
+}
+
+.portail-join-btn {
+  margin-top: .75rem;
+}
+
+.portail-section {
+  max-width: 900px;
+  margin: 0 auto 2.5rem;
+}
+
+.portail-section-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--text);
+}
+
+.portail-empty {
+  color: var(--text-muted);
+  text-align: center;
+  padding: 1.5rem;
+}
+
+/* LEADERBOARD */
+.portail-leaderboard {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.portail-row {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: .6rem .9rem;
+}
+
+.portail-rank {
+  width: 36px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--primary-bright);
+}
+
+.portail-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.portail-name {
+  flex: 1;
+  font-weight: 600;
+}
+
+.portail-xp {
+  color: var(--primary);
+  font-family: 'Share Tech Mono', monospace;
+  font-weight: 700;
+}
+
+/* EVENTS */
+.portail-events {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.portail-event-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: .8rem 1rem;
+}
+
+.portail-event-date {
+  color: var(--text-muted);
+  font-size: .85rem;
+  margin-bottom: .25rem;
+}
+
+.portail-event-title {
+  font-weight: 700;
+}
+
+/* TEAM */
+.portail-team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: .75rem;
+}
+
+.portail-team-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.portail-team-card img {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  margin-bottom: .5rem;
+}
+
+.portail-team-name {
+  font-weight: 700;
+}
+
+.portail-team-role {
+  color: var(--text-muted);
+  font-size: .8rem;
+}
+
+.portail-footer {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: .8rem;
+  margin-top: 2rem;
+}

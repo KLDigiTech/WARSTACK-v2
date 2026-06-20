@@ -7,19 +7,6 @@ import { clearPermissionCache }  from '../services/permissionService.js';
 import { ROLES, ROLE_PERMS, PERMS_LIST, PERMS_LABELS } from '../services/teamRoles.js';
 
 let _members      = [];
-
-const ROLE_PERMS = {
-  '👑 Fondateur'   : ['overview','players','tournament','events','suggestions','tickets','logs','moderation','analytics','settings','channels','reactions','messages','onboarding','access'],
-  '⭐ Team Leader' : ['overview','players','tournament','events','suggestions','tickets','logs'],
-  '🎮 Organisateur': ['overview','events','tournament','suggestions'],
-  '🛡 Modérateur'  : ['overview','tickets','logs','suggestions','moderation'],
-};
-
-const PERMS_LIST = ['logs','tickets','suggestions','events','tournament','moderation','analytics','settings'];
-const PERMS_LABELS = { logs:'Logs', tickets:'Tickets', suggestions:'Suggestions', events:'Événements', tournament:'Tournois', moderation:'Modération', analytics:'Analytics', settings:'Paramètres' };
-const ROLES = ['👑 Fondateur','⭐ Team Leader','🎮 Organisateur','🛡 Modérateur'];
-
-let _members      = [];
 let _editingId    = null;
 let _selectedUser = null;
 let _selectedRole = null;

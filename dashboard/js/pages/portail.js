@@ -5,7 +5,6 @@ import { SUPABASE_URL, SUPABASE_KEY, BOT_URL } from '../config.js';
 const params  = new URLSearchParams(window.location.search);
 const guildId = params.get('guild');
 
-// ── Fetch Supabase sans auth dashboard ───────────────────────────────────────
 async function sb(endpoint) {
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, {
@@ -19,14 +18,12 @@ async function sb(endpoint) {
   } catch { return null; }
 }
 
-// ── Init ─────────────────────────────────────────────────────────────────────
 async function init() {
   if (!guildId) {
     showError('Lien invalide. Demande le bon lien à ton serveur Discord.');
     return;
   }
 
-  // Charge config guild (sections activées + invite)
   const configs = await sb(`config?guild_id=eq.${guildId}&select=key,value`);
   const cfg     = Object.fromEntries((configs || []).map(c => [c.key, c.value]));
 
@@ -36,16 +33,13 @@ async function init() {
 
   const inviteUrl = cfg.discord_invite || '#';
 
-  // Bouton rejoindre
-  const joinBtn = document.getElementById('btn-join');
-  if (joinBtn) joinBtn.href = inviteUrl;
+  document.getElementById('btn-join').href   = inviteUrl;
+  document.getElementById('btn-ticket').href = `support.html?guild=${guildId}`;
 
-  // Affiche les sections actives
   document.querySelectorAll('.portail-section[data-section]').forEach(el => {
     if (enabledSections.includes(el.dataset.section)) el.style.display = '';
   });
 
-  // Charge données en parallèle
   const [guildInfo, xpRows, teamRows, eventRows] = await Promise.all([
     fetch(`${BOT_URL}/api/guild?guild_id=${guildId}`).then(r => r.json()).catch(() => null),
     enabledSections.includes('players')
@@ -58,21 +52,20 @@ async function init() {
   ]);
 
   renderHeader(guildInfo);
-  if (enabledSections.includes('players'))  await renderLeaderboard(xpRows || []);
-  if (enabledSections.includes('events'))   renderEvents(eventRows || []);
-  if (enabledSections.includes('overview')) await renderOverview();
-  if (enabledSections.includes('tournament')) await renderTournaments();
-  if (enabledSections.includes('birthdays'))  await renderBirthdays();
+  if (enabledSections.includes('players'))     await renderLeaderboard(xpRows || []);
+  if (enabledSections.includes('events'))      renderEvents(eventRows || []);
+  if (enabledSections.includes('overview'))    await renderOverview();
+  if (enabledSections.includes('tournament'))  await renderTournaments();
+  if (enabledSections.includes('birthdays'))   await renderBirthdays();
   if (enabledSections.includes('suggestions')) await renderSuggestions();
-  if (enabledSections.includes('origine'))    await renderOrigine();
-  if (enabledSections.includes('onboarding')) await renderOnboarding();
+  if (enabledSections.includes('origine'))     await renderOrigine();
+  if (enabledSections.includes('onboarding'))  await renderOnboarding();
   renderTeam(teamRows || []);
 
   document.getElementById('portail-loading').style.display = 'none';
   document.getElementById('portail-content').style.display = 'block';
 }
 
-// ── Header ───────────────────────────────────────────────────────────────────
 function renderHeader(guildInfo) {
   document.getElementById('guild-name').textContent = guildInfo?.name || 'Communauté WARSTACK';
   if (guildInfo?.icon) document.getElementById('guild-icon').src = guildInfo.icon;
@@ -80,7 +73,6 @@ function renderHeader(guildInfo) {
     guildInfo?.member_count ? `${guildInfo.member_count} membres` : '';
 }
 
-// ── Overview ─────────────────────────────────────────────────────────────────
 async function renderOverview() {
   const el = document.getElementById('overview-stats');
   if (!el) return;
@@ -97,7 +89,6 @@ async function renderOverview() {
   `;
 }
 
-// ── Leaderboard ───────────────────────────────────────────────────────────────
 async function renderLeaderboard(xpRows) {
   const el = document.getElementById('leaderboard-list');
   if (!xpRows.length) { el.innerHTML = '<p class="portail-empty">Aucun joueur classé pour le moment.</p>'; return; }
@@ -121,7 +112,6 @@ async function renderLeaderboard(xpRows) {
   }).join('');
 }
 
-// ── Tournois ─────────────────────────────────────────────────────────────────
 async function renderTournaments() {
   const el = document.getElementById('tournament-list');
   if (!el) return;
@@ -134,7 +124,6 @@ async function renderTournaments() {
     </div>`).join('');
 }
 
-// ── Événements ───────────────────────────────────────────────────────────────
 function renderEvents(events) {
   const el = document.getElementById('events-list');
   if (!events.length) { el.innerHTML = '<p class="portail-empty">Aucun événement prévu.</p>'; return; }
@@ -145,17 +134,12 @@ function renderEvents(events) {
     </div>`).join('');
 }
 
-// ── Anniversaires ─────────────────────────────────────────────────────────────
 async function renderBirthdays() {
   const el = document.getElementById('birthdays-list');
   if (!el) return;
-  const now   = new Date();
-  const month = now.getMonth() + 1;
+  const month = new Date().getMonth() + 1;
   const rows  = await sb(`birthdays?guild_id=eq.${guildId}&select=discord_id,username,birth_date`);
-  const thisMonth = (rows || []).filter(r => {
-    if (!r.birth_date) return false;
-    return new Date(r.birth_date).getMonth() + 1 === month;
-  });
+  const thisMonth = (rows || []).filter(r => r.birth_date && new Date(r.birth_date).getMonth() + 1 === month);
   if (!thisMonth.length) { el.innerHTML = '<p class="portail-empty">Aucun anniversaire ce mois-ci.</p>'; return; }
   el.innerHTML = thisMonth.map(r => `
     <div class="portail-row">
@@ -165,7 +149,6 @@ async function renderBirthdays() {
     </div>`).join('');
 }
 
-// ── Suggestions ───────────────────────────────────────────────────────────────
 async function renderSuggestions() {
   const el = document.getElementById('suggestions-list');
   if (!el) return;
@@ -178,11 +161,10 @@ async function renderSuggestions() {
     </div>`).join('');
 }
 
-// ── Origine ───────────────────────────────────────────────────────────────────
 async function renderOrigine() {
   const el = document.getElementById('origine-stats');
   if (!el) return;
-  const rows = await sb(`member_locations?guild_id=eq.${guildId}&select=country&order=country.asc`);
+  const rows = await sb(`member_locations?guild_id=eq.${guildId}&select=country`);
   if (!rows?.length) { el.innerHTML = '<p class="portail-empty">Aucune donnée de localisation.</p>'; return; }
   const counts = {};
   rows.forEach(r => { if (r.country) counts[r.country] = (counts[r.country] || 0) + 1; });
@@ -195,7 +177,6 @@ async function renderOrigine() {
     </div>`).join('');
 }
 
-// ── Onboarding récent ─────────────────────────────────────────────────────────
 async function renderOnboarding() {
   const el = document.getElementById('onboarding-list');
   if (!el) return;
@@ -209,7 +190,6 @@ async function renderOnboarding() {
     </div>`).join('');
 }
 
-// ── Équipe ────────────────────────────────────────────────────────────────────
 function renderTeam(members) {
   const el = document.getElementById('team-grid');
   if (!members.length) { el.innerHTML = '<p class="portail-empty">Équipe à compléter.</p>'; return; }
@@ -221,7 +201,6 @@ function renderTeam(members) {
     </div>`).join('');
 }
 
-// ── Utils ─────────────────────────────────────────────────────────────────────
 function formatDate(d) {
   if (!d) return '';
   return new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long' });

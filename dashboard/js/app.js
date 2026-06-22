@@ -1,4 +1,4 @@
-// app.js — Router + init dashboard
+// dashboard/js/app.js — FICHIER COMPLET
 
 import { initModal }          from './ui/modal.js';
 import { $ }                  from './utils/dom.js';
@@ -11,9 +11,6 @@ import { loadConfigs, getConfig } from './services/configService.js';
 
 initModal();
 
-// ── PRELOAD THÈME ─────────────────────────────────────────────────────────────
-// Appliqué avant tout le reste pour éviter le flash de couleurs par défaut
-
 async function preloadTheme() {
   try {
     const configs = await loadConfigs();
@@ -24,7 +21,6 @@ async function preloadTheme() {
       const tokens = JSON.parse(savedTokens);
       for (const [varName, value] of Object.entries(tokens)) {
         root.style.setProperty(varName, value);
-        // Recalcule les dérivés
         if (varName === '--primary') {
           root.style.setProperty('--green',          value);
           root.style.setProperty('--primary-glow',   hexToRgba(value, .08));
@@ -93,8 +89,6 @@ function loadGoogleFont(fontFamily) {
   document.head.appendChild(link);
 }
 
-// ── CLOCK ─────────────────────────────────────────────────────────────────────
-
 function updateClock() {
   const now = new Date();
   $('#current-time').textContent =
@@ -102,8 +96,6 @@ function updateClock() {
 }
 setInterval(updateClock, 1000);
 updateClock();
-
-// ── BOT STATUS ────────────────────────────────────────────────────────────────
 
 async function checkBotStatus() {
   try {
@@ -123,8 +115,6 @@ async function checkBotStatus() {
 }
 checkBotStatus();
 setInterval(checkBotStatus, 30000);
-
-// ── SECTIONS ──────────────────────────────────────────────────────────────────
 
 const sections = {
   overview:    () => import('./sections/overview.js').then(m => m.initOverview()),
@@ -154,13 +144,13 @@ const sections = {
 
 const PUBLIC_SECTIONS = [
   'overview', 'players', 'analytics', 'tournament', 'welcome', 'onboarding', 'roles',
-  'birthdays', 'suggestions', 'events', 'origine',  'messages', 'reactions', 'channels', 'ocr-test', 'rulebuilder','team',
+  'birthdays', 'suggestions', 'events', 'origine', 'messages', 'reactions', 'channels',
+  'ocr-test', 'rulebuilder', 'team',
 ];
 
-// ── ROUTER ────────────────────────────────────────────────────────────────────
+const MEMBER_SECTIONS = ['players', 'tournament', 'tickets', 'suggestions', 'events', 'origine'];
 
 async function navigate(section) {
-  // Cleanup sections avec polling actif
   try {
     const ticketsMod = await import('./sections/tickets.js').catch(() => null);
     if (ticketsMod?.destroyTickets) ticketsMod.destroyTickets();
@@ -175,7 +165,6 @@ async function navigate(section) {
   if (titleEl) titleEl.textContent = item.querySelector('span')?.textContent || '';
 
   const content = $('#section-content');
-  // Skeleton de chargement au lieu de "CHARGEMENT..."
   content.innerHTML = `
     <div style="display:flex;flex-direction:column;gap:16px;padding:4px 0">
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px">
@@ -202,8 +191,6 @@ async function navigate(section) {
   window.location.hash = section;
 }
 
-// ── EMOJI PICKER ──────────────────────────────────────────────────────────────
-
 function attachAllEmojiPickers() {
   document.querySelectorAll('textarea.form-textarea').forEach(ta => {
     if (ta.dataset.emojiAttached) return;
@@ -218,15 +205,22 @@ function generateId(el) {
   return id;
 }
 
-// ── PERMISSIONS ───────────────────────────────────────────────────────────────
-
 async function applyPermissions() {
   try {
     const permissions = await getUserPermissions();
+    const isMember    = window.WARSTACK_IS_MEMBER === true;
+
     document.querySelectorAll('.nav-item').forEach(item => {
       const section = item.dataset.section;
-      if (!section)                          { item.style.display = 'flex'; return; }
+      if (!section) { item.style.display = 'flex'; return; }
+
+      if (isMember) {
+        item.style.display = MEMBER_SECTIONS.includes(section) ? 'flex' : 'none';
+        return;
+      }
+
       if (PUBLIC_SECTIONS.includes(section)) { item.style.display = 'flex'; return; }
+
       if (!permissions || permissions.length === 0) {
         item.style.display = 'flex';
       } else {
@@ -238,8 +232,6 @@ async function applyPermissions() {
   }
 }
 
-// ── NAV EVENTS ────────────────────────────────────────────────────────────────
-
 document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', async (e) => {
     if (!item.dataset.section) return;
@@ -248,10 +240,8 @@ document.querySelectorAll('.nav-item').forEach(item => {
   });
 });
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
-
 async function initDashboard() {
-  await preloadTheme(); // thème en premier, avant tout rendu
+  await preloadTheme();
   await applyPermissions();
   await loadEmojis();
   const initial = window.location.hash?.replace('#', '') || 'overview';

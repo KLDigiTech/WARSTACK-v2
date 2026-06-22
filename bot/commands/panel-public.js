@@ -23,7 +23,6 @@ module.exports = {
     const guild   = interaction.guild;
     const guildId = guild.id;
 
-    // ── Stats live ───────────────────────────────────────────
     const [xpRows, eventRows, ticketRows, tournamentRows] = await Promise.all([
       supabase.from('warstack_xp').select('xp,discord_id').eq('guild_id', guildId).order('xp', { ascending: false }).limit(1),
       supabase.from('events').select('id').eq('guild_id', guildId).eq('status', 'active'),
@@ -42,16 +41,15 @@ module.exports = {
       topPlayerName = member?.user?.username || null;
     }
 
-    // ── Embed ───────────────────────────────────────────────
     const embed = new EmbedBuilder()
       .setColor(0x00ff66)
       .setTitle(`⚔️ ${guild.name}`)
       .setDescription('Bienvenue sur la communauté Battlefield 6. Rejoins-nous, grimpe le classement, participe aux tournois.')
       .setThumbnail(guild.iconURL({ size: 256 }) || null)
       .addFields(
-        { name: '👥 Membres', value: `${guild.memberCount}`, inline: true },
-        { name: '📅 Événements actifs', value: `${eventsCount}`, inline: true },
-        { name: '✅ Tickets résolus', value: `${ticketsCount}`, inline: true },
+        { name: '👥 Membres',           value: `${guild.memberCount}`, inline: true },
+        { name: '📅 Événements actifs', value: `${eventsCount}`,       inline: true },
+        { name: '✅ Tickets résolus',   value: `${ticketsCount}`,       inline: true },
       )
       .setFooter({ text: 'WARSTACK • Battlefield 6' });
 
@@ -67,6 +65,7 @@ module.exports = {
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder().setLabel('🌐 Portail').setStyle(ButtonStyle.Link).setURL(`${DASHBOARD_URL}/portail.html?guild=${guildId}`),
+      new ButtonBuilder().setLabel('🎫 Ouvrir un ticket').setStyle(ButtonStyle.Link).setURL(`${DASHBOARD_URL}/support.html?guild=${guildId}`),
       new ButtonBuilder().setLabel('📝 S\'inscrire').setStyle(ButtonStyle.Link).setURL(`${DASHBOARD_URL}/inscription.html?guild=${guildId}`),
     );
 

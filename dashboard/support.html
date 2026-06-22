@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WARSTACK — Support</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/core/variables.css">
+  <link rel="stylesheet" href="css/core/reset.css">
+  <link rel="stylesheet" href="css/core/base.css">
+  <link rel="stylesheet" href="css/components/buttons.css">
+  <link rel="stylesheet" href="css/pages/support.css">
+  <script type="module" src="js/pages/support.js"></script>
+</head>
+<body class="support-page">
+
+  <div id="support-loading" class="support-loading">
+    <span class="spinner"></span> Chargement...
+  </div>
+
+  <div id="support-login" class="support-box" style="display:none">
+    <div class="support-logo">⚔️ WARSTACK</div>
+    <h1 class="support-title">Support</h1>
+    <p class="support-sub">Connecte-toi avec Discord pour ouvrir un ticket.</p>
+    <button id="btn-discord-login" class="btn btn-discord support-discord-btn">
+      <i class="fab fa-discord"></i> Connexion avec Discord
+    </button>
+  </div>
+
+  <div id="support-form" class="support-box" style="display:none">
+    <div class="support-logo">⚔️ WARSTACK</div>
+    <h1 class="support-title">Ouvrir un ticket</h1>
+
+    <div class="support-user" id="support-user-info"></div>
+
+    <div id="support-already" class="support-alert" style="display:none">
+      <i class="fas fa-exclamation-triangle"></i>
+      Tu as déjà un ticket ouvert. Retrouve-le sur ton serveur Discord.
+    </div>
+
+    <div id="support-fields">
+      <div class="support-group" id="support-cat-group" style="display:none">
+        <label class="support-label">Catégorie</label>
+        <div id="support-categories" class="support-cat-grid"></div>
+      </div>
+
+      <div class="support-group">
+        <label class="support-label">Sujet <span class="support-required">*</span></label>
+        <input type="text" id="support-subject" class="support-input" placeholder="Résumé en quelques mots..." maxlength="100">
+      </div>
+
+      <div class="support-group">
+        <label class="support-label">Description <span class="support-required">*</span></label>
+        <textarea id="support-description" class="support-input support-textarea" placeholder="Décris ton problème en détail..." maxlength="1000"></textarea>
+      </div>
+
+      <button id="btn-submit-ticket" class="btn btn-primary support-submit-btn">
+        <i class="fas fa-paper-plane"></i> Envoyer
+      </button>
+    </div>
+  </div>
+
+  <div id="support-success" class="support-box" style="display:none">
+    <div class="support-success-icon">✅</div>
+    <h2 class="support-title">Ticket envoyé !</h2>
+    <p class="support-sub">Un salon a été créé sur le serveur Discord. Le staff va prendre en charge ta demande.</p>
+    <a id="support-back-portail" class="btn btn-secondary" href="#">← Retour au portail</a>
+  </div>
+
+  <div class="support-footer">WARSTACK © 2026</div>
+
+</body>
+</html>

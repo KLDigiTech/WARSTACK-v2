@@ -780,7 +780,121 @@ router.post('/moderation/lift', auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+router.post('/ticket/create-public', async (req, res) => {
+  try {
+    const { guild_id, discord_id, username, avatar_url, subject, description, category_id } = req.body;
 
+    if (!guild_id || !discord_id || !subject || !description) {
+      return res.status(400).json({ error: 'Champs manquants' });
+    }
+
+    const guild = global.botClient.guilds.cache.get(guild_id);
+    if (!guild) return res.status(404).json({ error: 'Serveur introuvable' });
+
+    const { data: existing } = await supabase
+      .from('tickets')
+      .select('id')
+      .eq('guild_id', guild_id)
+      .eq('discord_id', discord_id)
+      .in('status', ['open', 'in_progress'])
+      .maybeSingle();
+
+    if (existing) {
+      return res.status(409).json({ error: 'Tu as déjà un ticket ouvert.' });
+    }
+
+    const { data: configs } = await supabase.from('config').select('*').eq('guild_id', guild_id);
+    const getConf = (key) => configs?.find(c => c.key === key)?.value;
+
+    const categoryWaitingId = getConf('ticket_category_waiting');
+    const staffRoleId       = getConf('ticket_staff_role');
+    const leaderRoleId      = getConf('ticket_leader_role');
+    const logChId           = getConf('ticket_logs_channel');
+
+    let ticketType = { id: 'public', label: 'Support public', emoji: '🌐' };
+    if (category_id) {
+      const { data: catData } = await supabase.from('ticket_categories').select('*').eq('id', category_id).single();
+      if (catData) ticketType = { id: catData.id, label: catData.label, emoji: catData.emoji };
+    }
+
+    const channelName = `ticket-${username.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 16)}-${Date.now().toString().slice(-4)}`;
+
+    const permissionOverwrites = [
+      { id: guild.roles.everyone, deny: ['ViewChannel'] },
+      { id: discord_id, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'] },
+    ];
+    if (staffRoleId) {
+      permissionOverwrites.push({ id: staffRoleId, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'ManageMessages'] });
+    }
+    if (leaderRoleId && leaderRoleId !== staffRoleId) {
+      permissionOverwrites.push({ id: leaderRoleId, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'ManageMessages'] });
+    }
+
+    const ticketChannel = await guild.channels.create({
+      name  : channelName,
+      type  : 0,
+      parent: categoryWaitingId || null,
+      permissionOverwrites,
+    });
+
+    const { data: ticketData } = await supabase.from('tickets').insert({
+      guild_id        : guild_id,
+      discord_id,
+      username,
+      type            : ticketType.id,
+      subject,
+      channel_id      : ticketChannel.id,
+      status          : 'open',
+      last_activity_at: new Date().toISOString(),
+    }).select().single();
+
+    const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+
+    const embed = new EmbedBuilder()
+      .setTitle(`${ticketType.emoji} Ticket — ${subject}`)
+      .setColor(0x00ff66)
+      .setDescription(description)
+      .addFields(
+        { name: '👤 Membre',   value: `${username} (<@${discord_id}>)`, inline: true },
+        { name: '📂 Catégorie', value: ticketType.label,                  inline: true },
+        { name: '🌐 Origine',  value: 'Portail public',                   inline: true },
+      )
+      .setThumbnail(avatar_url || null)
+      .setTimestamp();
+
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder().setCustomId('ticket_take_staff') .setLabel('Prendre en charge').setEmoji('✅').setStyle(ButtonStyle.Success),
+      new ButtonBuilder().setCustomId('ticket_take_leader').setLabel('Leader')            .setEmoji('👑').setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder().setCustomId('ticket_close')      .setLabel('Fermer')            .setEmoji('🔒').setStyle(ButtonStyle.Danger),
+    );
+
+    await ticketChannel.send({ embeds: [embed], components: [row] });
+
+    if (logChId) {
+      const logCh = guild.channels.cache.get(logChId);
+      if (logCh) {
+        await logCh.send({
+          embeds: [
+            new EmbedBuilder()
+              .setTitle('🎫 Nouveau ticket public')
+              .setColor(0x00ff66)
+              .addFields(
+                { name: 'Membre',   value: `${username}`,       inline: true },
+                { name: 'Sujet',    value: subject,             inline: true },
+                { name: 'Salon',    value: `<#${ticketChannel.id}>`, inline: true },
+              )
+              .setTimestamp()
+          ]
+        }).catch(() => {});
+      }
+    }
+
+    res.json({ success: true, channel_id: ticketChannel.id, ticket_id: ticketData?.id });
+  } catch (err) {
+    console.error('ticket/create-public:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
 // ENVOYER PANEL TICKETS
 router.post('/ticket/panel', auth, async (req, res) => {
   try {

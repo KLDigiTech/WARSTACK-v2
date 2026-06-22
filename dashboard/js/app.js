@@ -1,5 +1,3 @@
-// dashboard/js/app.js — FICHIER COMPLET
-
 import { initModal }          from './ui/modal.js';
 import { $ }                  from './utils/dom.js';
 import { getBotStatus }       from './services/botService.js';
@@ -150,6 +148,8 @@ const PUBLIC_SECTIONS = [
 
 const MEMBER_SECTIONS = ['players', 'tournament', 'tickets', 'suggestions', 'events', 'origine'];
 
+let _memberViewActive = false;
+
 async function navigate(section) {
   try {
     const ticketsMod = await import('./sections/tickets.js').catch(() => null);
@@ -208,7 +208,7 @@ function generateId(el) {
 async function applyPermissions() {
   try {
     const permissions = await getUserPermissions();
-    const isMember    = window.WARSTACK_IS_MEMBER === true;
+    const isMember    = window.WARSTACK_IS_MEMBER === true || _memberViewActive;
 
     document.querySelectorAll('.nav-item').forEach(item => {
       const section = item.dataset.section;
@@ -232,6 +232,37 @@ async function applyPermissions() {
   }
 }
 
+function initToggleView() {
+  const btn   = document.getElementById('btn-toggle-view');
+  const label = document.getElementById('toggle-view-label');
+  const icon  = btn?.querySelector('i');
+
+  if (!btn) return;
+
+  if (window.WARSTACK_IS_MEMBER) { btn.style.display = 'none'; return; }
+
+  btn.style.display = 'inline-flex';
+
+  btn.addEventListener('click', async () => {
+    _memberViewActive = !_memberViewActive;
+
+    if (_memberViewActive) {
+      label.textContent = 'Vue staff';
+      icon.className    = 'fas fa-shield-alt';
+      btn.classList.add('active');
+    } else {
+      label.textContent = 'Vue membre';
+      icon.className    = 'fas fa-users';
+      btn.classList.remove('active');
+    }
+
+    await applyPermissions();
+
+    const firstVisible = document.querySelector('.nav-item[data-section]:not([style*="none"])');
+    if (firstVisible) firstVisible.click();
+  });
+}
+
 document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', async (e) => {
     if (!item.dataset.section) return;
@@ -244,6 +275,7 @@ async function initDashboard() {
   await preloadTheme();
   await applyPermissions();
   await loadEmojis();
+  initToggleView();
   const initial = window.location.hash?.replace('#', '') || 'overview';
   await navigate(initial);
   initTooltips();

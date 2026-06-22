@@ -34,3 +34,27 @@
   flex-direction : column;
   gap            : 28px;
 }
+
+.btn-view-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .35rem .8rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-family: var(--font-base);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all .18s;
+}
+
+.btn-view-toggle:hover,
+.btn-view-toggle.active {
+  border-color: var(--primary);
+  color: var(--primary-bright);
+  background: var(--primary-glow);
+}

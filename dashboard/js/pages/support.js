@@ -1,4 +1,6 @@
-import { supabase }                     from '../supabaseClient.js';
+// dashboard/js/pages/support.js — FICHIER COMPLET
+
+import { supabase }                            from '../supabaseClient.js';
 import { SUPABASE_URL, SUPABASE_KEY, BOT_URL } from '../config.js';
 
 const params  = new URLSearchParams(window.location.search);
@@ -24,7 +26,6 @@ async function init() {
     return;
   }
 
-  currentUser = session.user;
   await showForm(session);
 }
 
@@ -41,10 +42,10 @@ async function loginWithDiscord() {
 async function showForm(session) {
   hide(elLoading);
 
-  const meta       = session.user.user_metadata || {};
-  const discordId  = meta.provider_id || meta.sub || session.user.id;
-  const username   = meta.full_name || meta.name || meta.custom_claims?.global_name || 'Membre';
-  const avatarUrl  = meta.avatar_url || '';
+  const meta      = session.user.user_metadata || {};
+  const discordId = meta.provider_id || meta.sub || session.user.id;
+  const username  = meta.full_name || meta.name || meta.custom_claims?.global_name || 'Membre';
+  const avatarUrl = meta.avatar_url || '';
 
   currentUser = { discordId, username, avatarUrl };
 
@@ -54,7 +55,7 @@ async function showForm(session) {
     <span>${username}</span>
   `;
 
-  const { data: existing } = await sbGet(`tickets?guild_id=eq.${guildId}&discord_id=eq.${discordId}&status=in.(open,in_progress)&select=id&limit=1`);
+  const existing = await sbGet(`tickets?guild_id=eq.${guildId}&discord_id=eq.${discordId}&status=in.(open,in_progress)&select=id&limit=1`);
   if (existing?.length) {
     show(document.getElementById('support-already'));
     document.getElementById('support-fields').style.display = 'none';
@@ -63,7 +64,6 @@ async function showForm(session) {
   }
 
   await loadCategories();
-
   show(elForm);
 
   document.getElementById('btn-submit-ticket').addEventListener('click', submitTicket);
@@ -76,9 +76,7 @@ async function loadCategories() {
 
   const grid = document.getElementById('support-categories');
   grid.innerHTML = cats.map(c => `
-    <button class="support-cat-btn" data-id="${c.id}">
-      ${c.emoji} ${c.label}
-    </button>
+    <button class="support-cat-btn" data-id="${c.id}">${c.emoji} ${c.label}</button>
   `).join('');
 
   grid.querySelectorAll('.support-cat-btn').forEach(btn => {
@@ -97,11 +95,11 @@ async function submitTicket() {
   const description = document.getElementById('support-description').value.trim();
   const btn         = document.getElementById('btn-submit-ticket');
 
-  if (!subject || subject.length < 5)       { alert('Sujet trop court (5 caractères min).'); return; }
+  if (!subject || subject.length < 5)        { alert('Sujet trop court (5 caractères min).'); return; }
   if (!description || description.length < 10) { alert('Description trop courte (10 caractères min).'); return; }
 
-  btn.disabled   = true;
-  btn.innerHTML  = '<i class="fas fa-spinner fa-spin"></i> Envoi...';
+  btn.disabled  = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi...';
 
   try {
     const res = await fetch(`${BOT_URL}/api/ticket/create-public`, {
@@ -124,6 +122,10 @@ async function submitTicket() {
       if (res.status === 409) {
         show(document.getElementById('support-already'));
         document.getElementById('support-fields').style.display = 'none';
+        return;
+      }
+      if (res.status === 403) {
+        alert(data.error);
         return;
       }
       throw new Error(data.error || 'Erreur serveur');

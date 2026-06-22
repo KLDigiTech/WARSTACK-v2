@@ -780,6 +780,9 @@ router.post('/moderation/lift', auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// bot/api.js — route POST /api/ticket/create-public UNIQUEMENT
+// Remplace l'ancien bloc create-public
+
 router.post('/ticket/create-public', async (req, res) => {
   try {
     const { guild_id, discord_id, username, avatar_url, subject, description, category_id } = req.body;
@@ -790,6 +793,11 @@ router.post('/ticket/create-public', async (req, res) => {
 
     const guild = global.botClient.guilds.cache.get(guild_id);
     if (!guild) return res.status(404).json({ error: 'Serveur introuvable' });
+
+    const member = await guild.members.fetch(discord_id).catch(() => null);
+    if (!member) {
+      return res.status(403).json({ error: 'Tu dois être membre du serveur Discord pour ouvrir un ticket.' });
+    }
 
     const { data: existing } = await supabase
       .from('tickets')
@@ -821,13 +829,16 @@ router.post('/ticket/create-public', async (req, res) => {
 
     const permissionOverwrites = [
       { id: guild.roles.everyone, deny: ['ViewChannel'] },
-      { id: discord_id, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'] },
+      { id: member, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'] },
     ];
+
     if (staffRoleId) {
-      permissionOverwrites.push({ id: staffRoleId, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'ManageMessages'] });
+      const staffRole = guild.roles.cache.get(staffRoleId);
+      if (staffRole) permissionOverwrites.push({ id: staffRole, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'ManageMessages'] });
     }
     if (leaderRoleId && leaderRoleId !== staffRoleId) {
-      permissionOverwrites.push({ id: leaderRoleId, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'ManageMessages'] });
+      const leaderRole = guild.roles.cache.get(leaderRoleId);
+      if (leaderRole) permissionOverwrites.push({ id: leaderRole, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'ManageMessages'] });
     }
 
     const ticketChannel = await guild.channels.create({
@@ -855,9 +866,9 @@ router.post('/ticket/create-public', async (req, res) => {
       .setColor(0x00ff66)
       .setDescription(description)
       .addFields(
-        { name: '👤 Membre',   value: `${username} (<@${discord_id}>)`, inline: true },
+        { name: '👤 Membre',    value: `${username} (<@${discord_id}>)`, inline: true },
         { name: '📂 Catégorie', value: ticketType.label,                  inline: true },
-        { name: '🌐 Origine',  value: 'Portail public',                   inline: true },
+        { name: '🌐 Origine',   value: 'Portail public',                  inline: true },
       )
       .setThumbnail(avatar_url || null)
       .setTimestamp();
@@ -879,9 +890,9 @@ router.post('/ticket/create-public', async (req, res) => {
               .setTitle('🎫 Nouveau ticket public')
               .setColor(0x00ff66)
               .addFields(
-                { name: 'Membre',   value: `${username}`,       inline: true },
-                { name: 'Sujet',    value: subject,             inline: true },
-                { name: 'Salon',    value: `<#${ticketChannel.id}>`, inline: true },
+                { name: 'Membre', value: username,                 inline: true },
+                { name: 'Sujet',  value: subject,                  inline: true },
+                { name: 'Salon',  value: `<#${ticketChannel.id}>`, inline: true },
               )
               .setTimestamp()
           ]

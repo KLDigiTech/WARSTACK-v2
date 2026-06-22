@@ -1,26 +1,45 @@
+// dashboard/js/sections/suggestions.js — FICHIER COMPLET
+
 import { loadConfigs, saveConfig, getConfig } from '../services/configService.js';
 import { callBotAPI, fetchSupabase }           from '../api.js';
 import { showToast }                           from '../ui/toast.js';
 import { getActiveGuildId }                    from '../services/guildService.js';
 
-let currentFilter    = 'all';
+let currentFilter     = 'all';
 let currentSuggestion = null;
 
 export async function initSuggestions() {
+  const isMember = window.WARSTACK_IS_MEMBER === true || window._memberViewActive === true;
+
+  if (isMember) {
+    document.querySelector('.suggestions-layout > div:first-child')?.remove();
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        loadSuggestions();
+      });
+    });
+
+    await loadSuggestions();
+    await loadStats();
+    await loadLeaderboard();
+    return;
+  }
 
   const [configs, channelsData] = await Promise.all([
     loadConfigs(),
     callBotAPI('channels'),
   ]);
 
-  // ── Salons ──────────────────────────────────────────────
   const textChannels = (channelsData?.channels || []).filter(c => c.type === 'text');
   const chOpts = `<option value="">Aucun</option>` +
     textChannels.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
   document.getElementById('suggestions-channel').innerHTML = chOpts;
   document.getElementById('suggestions-logs').innerHTML    = chOpts;
 
-  // ── Config sauvegardée ──────────────────────────────────
   document.getElementById('suggestions-enabled').checked   = getConfig(configs, 'suggestions_enabled') === 'true';
   document.getElementById('suggestions-channel').value     = getConfig(configs, 'suggestions_channel') || '';
   document.getElementById('suggestions-logs').value        = getConfig(configs, 'suggestions_logs')    || '';
@@ -28,7 +47,6 @@ export async function initSuggestions() {
   document.getElementById('suggestions-threads').checked   = getConfig(configs, 'suggestions_threads') === 'true';
   document.getElementById('suggestions-anonymous').checked = getConfig(configs, 'suggestions_anonymous') === 'true';
 
-  // ── Sauvegarder ─────────────────────────────────────────
   document.getElementById('btn-save-suggestions').addEventListener('click', async () => {
     await Promise.all([
       saveConfig('suggestions_enabled',   String(document.getElementById('suggestions-enabled').checked)),
@@ -41,7 +59,6 @@ export async function initSuggestions() {
     showToast('✅ Configuration sauvegardée !');
   });
 
-  // ── Filtres ─────────────────────────────────────────────
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -51,20 +68,17 @@ export async function initSuggestions() {
     });
   });
 
-  // ── Modal ───────────────────────────────────────────────
   document.getElementById('modal-close').addEventListener('click',  closeModal);
   document.getElementById('modal-cancel').addEventListener('click', closeModal);
   document.getElementById('modal-save-note').addEventListener('click', saveStaffNote);
 
-  // ── Charger ─────────────────────────────────────────────
   await loadSuggestions();
   await loadStats();
   await loadLeaderboard();
 }
 
-// ── Charger suggestions ──────────────────────────────────────────────────────
-
 async function loadSuggestions() {
+  const isMember  = window.WARSTACK_IS_MEMBER === true || window._memberViewActive === true;
   const container = document.getElementById('suggestions-list');
   container.innerHTML = `<div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>`;
 
@@ -95,26 +109,25 @@ async function loadSuggestions() {
           <span class="vote-up">👍 ${s.votes_up}</span>
           <span class="vote-down">👎 ${s.votes_down}</span>
         </div>
-        <div class="suggestion-actions">
+        ${!isMember ? `<div class="suggestion-actions">
           <button class="btn btn-sm sug-btn" data-id="${s.id}" data-action="reviewing" title="En analyse">🔵</button>
           <button class="btn btn-sm sug-btn" data-id="${s.id}" data-action="accepted"  title="Accepter">🟢</button>
           <button class="btn btn-sm sug-btn" data-id="${s.id}" data-action="refused"   title="Refuser">🔴</button>
           <button class="btn btn-sm sug-btn" data-id="${s.id}" data-action="implemented" title="Implémenter">⚫</button>
           <button class="btn btn-sm sug-btn" data-id="${s.id}" data-action="note"      title="Note staff">📝</button>
           <button class="btn btn-danger btn-sm sug-btn" data-id="${s.id}" data-action="delete" title="Supprimer">🗑️</button>
-        </div>
+        </div>` : ''}
       </div>
       ${s.staff_note ? `<div class="staff-note">📝 ${s.staff_note}</div>` : ''}
     </div>
   `).join('');
 
-  // Events actions
-  document.querySelectorAll('.sug-btn').forEach(btn => {
-    btn.addEventListener('click', () => handleAction(btn.dataset.id, btn.dataset.action));
-  });
+  if (!isMember) {
+    document.querySelectorAll('.sug-btn').forEach(btn => {
+      btn.addEventListener('click', () => handleAction(btn.dataset.id, btn.dataset.action));
+    });
+  }
 }
-
-// ── Actions ──────────────────────────────────────────────────────────────────
 
 async function handleAction(id, action) {
   if (action === 'delete') {
@@ -132,18 +145,13 @@ async function handleAction(id, action) {
     return;
   }
 
-  // Changer statut
   await fetchSupabase(`suggestions?id=eq.${id}`, 'PATCH', { status: action });
-
-  // Notifier le bot pour éditer le message Discord
   await callBotAPI('suggestion/status', 'POST', { suggestion_id: id, status: action });
 
   showToast(`✅ Statut mis à jour`);
   await loadSuggestions();
   await loadStats();
 }
-
-// ── Modal note staff ─────────────────────────────────────────────────────────
 
 function closeModal() {
   document.getElementById('modal-staff-note').style.display = 'none';
@@ -160,8 +168,6 @@ async function saveStaffNote() {
   await loadSuggestions();
 }
 
-// ── Stats ────────────────────────────────────────────────────────────────────
-
 async function loadStats() {
   const guildId = await getActiveGuildId();
   const data = await fetchSupabase(`suggestions?guild_id=eq.${guildId}&select=status`);
@@ -171,8 +177,6 @@ async function loadStats() {
   document.getElementById('stat-refused').textContent     = list.filter(s => s.status === 'refused').length;
   document.getElementById('stat-implemented').textContent = list.filter(s => s.status === 'implemented').length;
 }
-
-// ── Leaderboard ──────────────────────────────────────────────────────────────
 
 async function loadLeaderboard() {
   const guildId = await getActiveGuildId();
@@ -204,8 +208,6 @@ async function loadLeaderboard() {
     </div>
   `).join('');
 }
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
 
 function statusLabel(status) {
   const map = {

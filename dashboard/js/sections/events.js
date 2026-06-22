@@ -1,3 +1,5 @@
+// dashboard/js/sections/events.js — FICHIER COMPLET
+
 import { callBotAPI, fetchSupabase } from '../api.js';
 import { showToast }                 from '../ui/toast.js';
 import { getActiveGuildId }          from '../services/guildService.js';
@@ -7,6 +9,30 @@ let currentFilter = 'all';
 let contactTarget = 'present';
 
 export async function initEvents() {
+  const isMember = window.WARSTACK_IS_MEMBER === true || window._memberViewActive === true;
+
+  if (isMember) {
+    document.querySelector('.events-layout > div:first-child')?.remove();
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        loadEvents();
+      });
+    });
+
+    document.getElementById('btn-close-event')?.addEventListener('click', () => {
+      currentEvent = null;
+      document.getElementById('event-detail').style.display      = 'none';
+      document.getElementById('event-placeholder').style.display = 'block';
+    });
+
+    await loadEvents();
+    await loadStats();
+    return;
+  }
 
   const channelsData  = await callBotAPI('channels');
   const textChannels  = (channelsData?.channels || []).filter(c => c.type === 'text');
@@ -20,7 +46,6 @@ export async function initEvents() {
   document.getElementById('event-channel').innerHTML = chOpts;
   document.getElementById('event-voice').innerHTML   = vcOpts;
 
-  // ── Preview live ─────────────────────────────────────────
   ['event-title', 'event-description', 'event-date', 'event-time', 'event-max'].forEach(id => {
     document.getElementById(id).addEventListener('input', updatePreview);
   });
@@ -28,13 +53,11 @@ export async function initEvents() {
   updateClock();
   setInterval(updateClock, 1000);
 
-  // ── Toggle form ─────────────────────────────────────────
   document.getElementById('btn-toggle-form').addEventListener('click', () => {
     const form = document.getElementById('event-form');
     form.style.display = form.style.display === 'none' ? 'block' : 'none';
   });
 
-  // ── Aperçu local ─────────────────────────────────────────
   document.getElementById('btn-preview-event').addEventListener('click', () => {
     updatePreview();
     document.getElementById('event-preview-panel').style.display = 'block';
@@ -45,7 +68,6 @@ export async function initEvents() {
     document.getElementById('event-preview-panel').style.display = 'none';
   });
 
-  // ── Bouton TEST Discord ──────────────────────────────────
   document.getElementById('btn-test-event').addEventListener('click', async () => {
     const channelId = document.getElementById('event-channel').value;
     if (!channelId) return showToast('❌ Choisis un salon annonces d\'abord', 'error');
@@ -54,7 +76,6 @@ export async function initEvents() {
     else showToast('❌ Erreur lors du test', 'error');
   });
 
-  // ── Filtres ─────────────────────────────────────────────
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -64,25 +85,20 @@ export async function initEvents() {
     });
   });
 
-  // ── Créer événement ─────────────────────────────────────
   document.getElementById('btn-create-event').addEventListener('click', createEvent);
 
-  // ── Recherche participants ───────────────────────────────
   document.getElementById('participant-search').addEventListener('input', e => {
     filterParticipants(e.target.value);
   });
 
-  // ── Fermer détail ────────────────────────────────────────
   document.getElementById('btn-close-event').addEventListener('click', () => {
     currentEvent = null;
     document.getElementById('event-detail').style.display      = 'none';
     document.getElementById('event-placeholder').style.display = 'block';
   });
 
-  // ── Export CSV ───────────────────────────────────────────
   document.getElementById('btn-export-csv').addEventListener('click', exportCSV);
 
-  // ── Contact participants ─────────────────────────────────
   document.getElementById('btn-msg-participants').addEventListener('click', () => {
     contactTarget = 'present';
     document.getElementById('modal-contact-title').textContent = '📢 Message aux présents';
@@ -99,7 +115,6 @@ export async function initEvents() {
   document.getElementById('modal-contact-cancel').addEventListener('click', closeContactModal);
   document.getElementById('modal-contact-send').addEventListener('click',   sendContactMessage);
 
-  // ── Annuler événement ────────────────────────────────────
   document.getElementById('btn-cancel-event').addEventListener('click', async () => {
     if (!currentEvent) return;
     if (!confirm('Annuler cet événement ? Les participants seront notifiés.')) return;
@@ -116,8 +131,6 @@ export async function initEvents() {
   await loadEvents();
   await loadStats();
 }
-
-// ── Preview Discord live ─────────────────────────────────────────────────────
 
 function updatePreview() {
   const title = document.getElementById('event-title').value       || 'Nouvel événement';
@@ -140,8 +153,6 @@ function updateClock() {
   const el  = document.getElementById('ev-dp-time');
   if (el) el.textContent = t;
 }
-
-// ── Créer événement ──────────────────────────────────────────────────────────
 
 async function createEvent() {
   const title       = document.getElementById('event-title').value.trim();
@@ -198,8 +209,6 @@ async function createEvent() {
   await loadStats();
 }
 
-// ── Charger événements ───────────────────────────────────────────────────────
-
 async function loadEvents() {
   const container = document.getElementById('events-list');
   container.innerHTML = `<div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>`;
@@ -233,8 +242,6 @@ async function loadEvents() {
   });
 }
 
-// ── Sélectionner événement ───────────────────────────────────────────────────
-
 async function selectEvent(id, list) {
   currentEvent = list.find(e => e.id === id);
   if (!currentEvent) return;
@@ -249,8 +256,6 @@ async function selectEvent(id, list) {
     c.classList.toggle('active', c.dataset.id === id);
   });
 }
-
-// ── Participants ─────────────────────────────────────────────────────────────
 
 let allParticipants = [];
 
@@ -283,7 +288,8 @@ async function loadParticipants() {
 }
 
 function renderParticipants(list) {
-  const el = document.getElementById('participants-list');
+  const isMember    = window.WARSTACK_IS_MEMBER === true || window._memberViewActive === true;
+  const el          = document.getElementById('participants-list');
   if (!list.length) {
     el.innerHTML = `<div style="color:var(--text-muted);font-size:0.85rem">Aucun participant.</div>`;
     return;
@@ -298,25 +304,27 @@ function renderParticipants(list) {
         <span class="participant-name">${p.username}</span>
         ${p.checked_in ? '<span class="checkin-badge">CHECK-IN</span>' : ''}
       </div>
-      <div style="display:flex;gap:0.3rem">
+      ${!isMember ? `<div style="display:flex;gap:0.3rem">
         <button class="btn btn-sm sug-btn" onclick="window.checkinParticipant('${p.id}')" title="Check-in">✔️</button>
         <button class="btn btn-danger btn-sm" onclick="window.removeParticipant('${p.id}')" title="Retirer">🗑️</button>
-      </div>
+      </div>` : ''}
     </div>
   `).join('');
 
-  window.checkinParticipant = async (pid) => {
-    await fetchSupabase(`event_participants?id=eq.${pid}`, 'PATCH', { checked_in: true });
-    showToast('✅ Check-in effectué');
-    await loadParticipants();
-  };
+  if (!isMember) {
+    window.checkinParticipant = async (pid) => {
+      await fetchSupabase(`event_participants?id=eq.${pid}`, 'PATCH', { checked_in: true });
+      showToast('✅ Check-in effectué');
+      await loadParticipants();
+    };
 
-  window.removeParticipant = async (pid) => {
-    if (!confirm('Retirer ce participant ?')) return;
-    await fetchSupabase(`event_participants?id=eq.${pid}`, 'DELETE');
-    showToast('✅ Participant retiré');
-    await loadParticipants();
-  };
+    window.removeParticipant = async (pid) => {
+      if (!confirm('Retirer ce participant ?')) return;
+      await fetchSupabase(`event_participants?id=eq.${pid}`, 'DELETE');
+      showToast('✅ Participant retiré');
+      await loadParticipants();
+    };
+  }
 }
 
 function filterParticipants(query) {
@@ -325,8 +333,6 @@ function filterParticipants(query) {
     : allParticipants;
   renderParticipants(filtered);
 }
-
-// ── Stats globales ───────────────────────────────────────────────────────────
 
 async function loadStats() {
   const guildId = await getActiveGuildId();
@@ -346,8 +352,6 @@ async function loadStats() {
   document.getElementById('stat-events-presence').textContent     = total
     ? `${Math.round((present / total) * 100)}%` : '0%';
 }
-
-// ── Export CSV ───────────────────────────────────────────────────────────────
 
 function exportCSV() {
   if (!allParticipants.length) return showToast('❌ Aucun participant', 'error');
@@ -371,8 +375,6 @@ function exportCSV() {
   a.click();
   URL.revokeObjectURL(url);
 }
-
-// ── Modal contact ────────────────────────────────────────────────────────────
 
 function closeContactModal() {
   document.getElementById('modal-contact').style.display = 'none';
@@ -401,8 +403,6 @@ async function sendContactMessage() {
 
   closeContactModal();
 }
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
 
 function statusLabel(status) {
   const map = {

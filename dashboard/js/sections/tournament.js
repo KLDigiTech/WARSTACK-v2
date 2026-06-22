@@ -1,3 +1,5 @@
+// dashboard/js/sections/tournament.js — FICHIER COMPLET
+
 import { fetchSupabase, updateSupabase, insertSupabase, deleteSupabase, callBotAPI } from '../api.js';
 import { supabase } from '../supabaseClient.js';
 import { showConfirm } from '../ui/confirm.js';
@@ -9,6 +11,9 @@ let showCreateForm = false;
 let currentTournoi = null;
 
 export async function initTournament() {
+  const isMember = window.WARSTACK_IS_MEMBER === true || window._memberViewActive === true;
+  window._tournamentIsMember = isMember;
+
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -18,6 +23,11 @@ export async function initTournament() {
       loadTab(btn.dataset.tab);
     });
   });
+
+  if (isMember) {
+    document.querySelectorAll('.tab-btn[data-tab="outils"]').forEach(b => b.style.display = 'none');
+  }
+
   currentTournoi = await getTournoiActif();
   loadTab('tournoi');
 }
@@ -32,91 +42,90 @@ async function loadTab(tab) {
   }
 }
 
-// =====================================================
-// TOURNOI
-// =====================================================
-
 async function loadTournoi() {
+  const isMember  = window._tournamentIsMember === true;
   const container = document.getElementById('tab-tournoi');
   container.innerHTML = '<p>Chargement...</p>';
 
-  const guildId = await getActiveGuildId();
+  const guildId  = await getActiveGuildId();
   const tournois = await fetchSupabase(`tournaments?guild_id=eq.${guildId}&order=created_at.desc&limit=20`);
   const actifs   = tournois?.filter(t => t.status === 'active') || [];
   const archives = tournois?.filter(t => t.status !== 'active') || [];
 
   let html = '';
 
-  html += `
-    <div class="tournament-topbar">
-      <button class="btn btn-primary" id="btn-toggle-create">
-        <i class="fas fa-plus"></i> Nouveau tournoi
-      </button>
-    </div>
-  `;
-
-  html += `
-    <div class="tournament-create-card" id="create-form" style="display:${showCreateForm ? 'block' : 'none'}">
-      <div class="tournament-create-header">➕ CRÉER UN TOURNOI</div>
-      <div class="tournament-form-grid">
-        <div class="form-group full">
-          <label>Nom du tournoi</label>
-          <input type="text" id="t-nom" class="form-input" placeholder="ex: Tournoi PöF — Saison 1">
-        </div>
-        <div class="form-group">
-          <label>Date de début</label>
-          <input type="date" id="t-start" class="form-input">
-        </div>
-        <div class="form-group">
-          <label>Date de fin</label>
-          <input type="date" id="t-end" class="form-input">
-        </div>
-        <div class="form-group">
-          <label>Max joueurs <span class="muted">(0 = illimité)</span></label>
-          <input type="number" id="t-max" class="form-input" value="0" min="0">
-        </div>
-        <div class="form-group">
-          <label>Phase <span class="muted">(optionnel)</span></label>
-          <input type="text" id="t-phase" class="form-input" placeholder="ex: Phase 1, RedSec, Multi...">
-        </div>
-        <div class="form-group">
-          <label>Points par kill</label>
-          <input type="number" id="t-ppk" class="form-input" value="1" min="0">
-        </div>
-        <div class="form-group">
-          <label>Points Top 1</label>
-          <input type="number" id="t-top1" class="form-input" value="10" min="0">
-        </div>
-        <div class="form-group">
-          <label>Points Top 2</label>
-          <input type="number" id="t-top2" class="form-input" value="7" min="0">
-        </div>
-        <div class="form-group">
-          <label>Points Top 3</label>
-          <input type="number" id="t-top3" class="form-input" value="5" min="0">
-        </div>
-        <div class="form-group">
-          <label>Points Top 4</label>
-          <input type="number" id="t-top4" class="form-input" value="3" min="0">
-        </div>
-        <div class="form-group">
-          <label>Points Top 5</label>
-          <input type="number" id="t-top5" class="form-input" value="1" min="0">
-        </div>
-        <div class="form-group full">
-          <label>Description <span class="muted">(optionnel)</span></label>
-          <textarea id="t-desc" class="form-textarea" placeholder="Règles, format, informations..."></textarea>
-        </div>
-      </div>
-      <div class="tournament-actions">
-        <button id="btn-create-tournoi" class="btn btn-primary">
-          <i class="fas fa-trophy"></i> Créer le tournoi
+  if (!isMember) {
+    html += `
+      <div class="tournament-topbar">
+        <button class="btn btn-primary" id="btn-toggle-create">
+          <i class="fas fa-plus"></i> Nouveau tournoi
         </button>
-        <button id="btn-cancel-create" class="btn btn-secondary">Annuler</button>
-        <span class="form-helper">* Champs obligatoires : nom, dates</span>
       </div>
-    </div>
-  `;
+    `;
+
+    html += `
+      <div class="tournament-create-card" id="create-form" style="display:${showCreateForm ? 'block' : 'none'}">
+        <div class="tournament-create-header">➕ CRÉER UN TOURNOI</div>
+        <div class="tournament-form-grid">
+          <div class="form-group full">
+            <label>Nom du tournoi</label>
+            <input type="text" id="t-nom" class="form-input" placeholder="ex: Tournoi PöF — Saison 1">
+          </div>
+          <div class="form-group">
+            <label>Date de début</label>
+            <input type="date" id="t-start" class="form-input">
+          </div>
+          <div class="form-group">
+            <label>Date de fin</label>
+            <input type="date" id="t-end" class="form-input">
+          </div>
+          <div class="form-group">
+            <label>Max joueurs <span class="muted">(0 = illimité)</span></label>
+            <input type="number" id="t-max" class="form-input" value="0" min="0">
+          </div>
+          <div class="form-group">
+            <label>Phase <span class="muted">(optionnel)</span></label>
+            <input type="text" id="t-phase" class="form-input" placeholder="ex: Phase 1, RedSec, Multi...">
+          </div>
+          <div class="form-group">
+            <label>Points par kill</label>
+            <input type="number" id="t-ppk" class="form-input" value="1" min="0">
+          </div>
+          <div class="form-group">
+            <label>Points Top 1</label>
+            <input type="number" id="t-top1" class="form-input" value="10" min="0">
+          </div>
+          <div class="form-group">
+            <label>Points Top 2</label>
+            <input type="number" id="t-top2" class="form-input" value="7" min="0">
+          </div>
+          <div class="form-group">
+            <label>Points Top 3</label>
+            <input type="number" id="t-top3" class="form-input" value="5" min="0">
+          </div>
+          <div class="form-group">
+            <label>Points Top 4</label>
+            <input type="number" id="t-top4" class="form-input" value="3" min="0">
+          </div>
+          <div class="form-group">
+            <label>Points Top 5</label>
+            <input type="number" id="t-top5" class="form-input" value="1" min="0">
+          </div>
+          <div class="form-group full">
+            <label>Description <span class="muted">(optionnel)</span></label>
+            <textarea id="t-desc" class="form-textarea" placeholder="Règles, format, informations..."></textarea>
+          </div>
+        </div>
+        <div class="tournament-actions">
+          <button id="btn-create-tournoi" class="btn btn-primary">
+            <i class="fas fa-trophy"></i> Créer le tournoi
+          </button>
+          <button id="btn-cancel-create" class="btn btn-secondary">Annuler</button>
+          <span class="form-helper">* Champs obligatoires : nom, dates</span>
+        </div>
+      </div>
+    `;
+  }
 
   if (actifs.length) {
     actifs.forEach(actif => {
@@ -150,10 +159,11 @@ async function loadTournoi() {
               </div>
               ${actif.description ? `<p class="tournament-description">${actif.description}</p>` : ''}
             </div>
+            ${!isMember ? `
             <div class="tournament-actions-column">
               <button class="btn btn-danger btn-terminer" data-id="${actif.id}">🏁 Terminer</button>
               <button class="btn btn-secondary btn-annuler" data-id="${actif.id}">❌ Annuler</button>
-            </div>
+            </div>` : ''}
           </div>
         </div>
       `;
@@ -167,7 +177,7 @@ async function loadTournoi() {
       <div class="tournament-history-card">
         <div class="tournament-history-title">📁 HISTORIQUE</div>
         <table class="data-table">
-          <thead><tr><th>Nom</th><th>Phase</th><th>Début</th><th>Fin</th><th>Statut</th><th>Action</th></tr></thead>
+          <thead><tr><th>Nom</th><th>Phase</th><th>Début</th><th>Fin</th><th>Statut</th>${!isMember ? '<th>Action</th>' : ''}</tr></thead>
           <tbody>
             ${archives.map(t => `
               <tr>
@@ -176,7 +186,7 @@ async function loadTournoi() {
                 <td>${formatDate(t.start_date)}</td>
                 <td>${formatDate(t.end_date)}</td>
                 <td class="${t.status === 'termine' ? 'status-green' : 'status-red'}">${t.status}</td>
-                <td><button class="btn btn-danger btn-sm" onclick="window.supprimerTournoi('${t.id}', '${t.name}')">🗑️</button></td>
+                ${!isMember ? `<td><button class="btn btn-danger btn-sm" onclick="window.supprimerTournoi('${t.id}', '${t.name}')">🗑️</button></td>` : ''}
               </tr>
             `).join('')}
           </tbody>
@@ -188,30 +198,28 @@ async function loadTournoi() {
   html += `<div id="tournament-feedback" class="feedback"></div>`;
   container.innerHTML = html;
 
-  document.getElementById('btn-toggle-create')?.addEventListener('click', () => {
-    showCreateForm = !showCreateForm;
-    document.getElementById('create-form').style.display = showCreateForm ? 'block' : 'none';
-  });
+  if (!isMember) {
+    document.getElementById('btn-toggle-create')?.addEventListener('click', () => {
+      showCreateForm = !showCreateForm;
+      document.getElementById('create-form').style.display = showCreateForm ? 'block' : 'none';
+    });
 
-  document.getElementById('btn-cancel-create')?.addEventListener('click', () => {
-    showCreateForm = false;
-    document.getElementById('create-form').style.display = 'none';
-  });
+    document.getElementById('btn-cancel-create')?.addEventListener('click', () => {
+      showCreateForm = false;
+      document.getElementById('create-form').style.display = 'none';
+    });
 
-  document.getElementById('btn-create-tournoi')?.addEventListener('click', creerTournoi);
+    document.getElementById('btn-create-tournoi')?.addEventListener('click', creerTournoi);
 
-  document.querySelectorAll('.btn-terminer').forEach(btn => {
-    btn.addEventListener('click', () => terminerTournoi(btn.dataset.id));
-  });
+    document.querySelectorAll('.btn-terminer').forEach(btn => {
+      btn.addEventListener('click', () => terminerTournoi(btn.dataset.id));
+    });
 
-  document.querySelectorAll('.btn-annuler').forEach(btn => {
-    btn.addEventListener('click', () => annulerTournoi(btn.dataset.id));
-  });
+    document.querySelectorAll('.btn-annuler').forEach(btn => {
+      btn.addEventListener('click', () => annulerTournoi(btn.dataset.id));
+    });
+  }
 }
-
-// =====================================================
-// SOUMISSIONS
-// =====================================================
 
 async function loadSoumissions() {
   const container = document.getElementById('tab-soumissions');
@@ -220,7 +228,6 @@ async function loadSoumissions() {
   const subs     = tournoi ? await fetchSupabase(`tournament_submissions?tournament_id=eq.${tournoi.id}&order=submitted_at.desc`) : [];
   const inscrits = tournoi ? await fetchSupabase(`tournament_entries?tournament_id=eq.${tournoi.id}&select=discord_id,team_id,team_name`) : [];
 
-  // Grouper subs par équipe
   const teamByPlayer = {};
   (inscrits || []).forEach(e => { teamByPlayer[e.discord_id] = { id: e.team_id, name: e.team_name }; });
 
@@ -236,6 +243,8 @@ async function loadSoumissions() {
     }
   });
 
+  const isMember = window._tournamentIsMember === true;
+
   const renderSubRow = (s) => `
     <tr>
       <td>${s.pseudo || '—'}</td>
@@ -247,20 +256,20 @@ async function loadSoumissions() {
         ? `<img src="${s.image_url}" class="sub-thumb" onclick="window.openScreenshot('${s.image_url}')" title="Voir le screenshot">`
         : '—'
       }</td>
-      <td>
+      ${!isMember ? `<td>
         ${s.status === 'pending' ? `
           <button class="btn btn-sm btn-primary btn-approve" data-id="${s.id}" data-tid="${tournoi?.id}" data-did="${s.discord_id}" data-kills="${s.kills}" data-score="${s.score}" data-placement="${s.placement}">✅</button>
           <button class="btn btn-sm btn-danger btn-reject" data-id="${s.id}">❌</button>
         ` : ''}
         <button class="btn btn-sm btn-danger btn-delete-sub" data-id="${s.id}">🗑️</button>
-      </td>
+      </td>` : ''}
     </tr>
   `;
 
   const renderTable = (subList) => `
     <table class="data-table">
       <thead>
-        <tr><th>Pseudo BF6</th><th>Placement</th><th>Kills</th><th>Score</th><th>Statut</th><th>Screenshot</th><th>Action</th></tr>
+        <tr><th>Pseudo BF6</th><th>Placement</th><th>Kills</th><th>Score</th><th>Statut</th><th>Screenshot</th>${!isMember ? '<th>Action</th>' : ''}</tr>
       </thead>
       <tbody>${subList.map(renderSubRow).join('')}</tbody>
     </table>
@@ -324,7 +333,6 @@ async function loadSoumissions() {
     <div class="soumission-history-title">📋 SOUMISSIONS DU TOURNOI</div>
     ${subsHtml}
 
-    <!-- MODALE SCREENSHOT -->
     <div id="screenshot-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:9999;align-items:center;justify-content:center;cursor:pointer" onclick="this.style.display='none'">
       <img id="screenshot-modal-img" src="" style="max-width:90vw;max-height:90vh;border:2px solid var(--green);border-radius:4px">
     </div>
@@ -390,7 +398,6 @@ function initSoumissionEvents(tournoi) {
       errorDiv.style.display  = 'none';
       antiCheat.style.display = 'block';
 
-      // ANTI-TRICHE 1 — Résolution
       const img = new Image();
       img.src = URL.createObjectURL(currentFile);
       await new Promise(r => img.onload = r);
@@ -401,12 +408,10 @@ function initSoumissionEvents(tournoi) {
       setCheck('sub-check-resolution', resOk, `Résolution ${w}x${h} ${resOk ? '✅' : '❌ non reconnue'}`);
       if (!resOk) throw new Error(`Résolution ${w}x${h} non reconnue. Screenshot PS5/Xbox/PC requis.`);
 
-      // ANTI-TRICHE 2 — Tournoi actif
       const tournoiOk = tournoi.status === 'active';
       setCheck('sub-check-tournoi', tournoiOk, `Tournoi ${tournoiOk ? 'actif ✅' : 'inactif ❌'}`);
       if (!tournoiOk) throw new Error('Aucun tournoi actif en ce moment.');
 
-      // ANTI-TRICHE 3 — Hash doublon
       const hashBuffer = await crypto.subtle.digest('SHA-256', await currentFile.arrayBuffer());
       imageHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
       const { data: existingHash } = await supabase.from('tournament_submissions').select('id').eq('tournament_id', tournoi.id).eq('image_hash', imageHash).maybeSingle();
@@ -414,7 +419,6 @@ function initSoumissionEvents(tournoi) {
       setCheck('sub-check-doublon', doublonOk, `Doublon ${doublonOk ? 'aucun ✅' : 'détecté ❌'}`);
       if (!doublonOk) throw new Error('Ce screenshot a déjà été soumis.');
 
-      // UPLOAD STORAGE
       const fileName = `${tournoi.id}/${Date.now()}_${currentFile.name.replace(/\s/g,'_')}`;
       const { data: uploadData, error: uploadError } = await supabase.storage.from('screenshots').upload(fileName, currentFile, { contentType: currentFile.type });
       let imageUrl = null;
@@ -423,7 +427,6 @@ function initSoumissionEvents(tournoi) {
         imageUrl = urlData?.publicUrl || null;
       }
 
-      // OCR
       const formData = new FormData();
       formData.append('image', currentFile);
       const response = await fetch(OCR_URL, { method: 'POST', body: formData });
@@ -431,7 +434,6 @@ function initSoumissionEvents(tournoi) {
       const data = await response.json();
       if (!data.success) throw new Error('OCR échoué');
 
-      // ANTI-TRICHE 4 — Pseudo inscrit
       let matchedPlayer = null;
       let matchedPseudo = null;
       for (const player of (data.players || [])) {
@@ -443,7 +445,6 @@ function initSoumissionEvents(tournoi) {
       const pseudoOk = !!matchedPlayer;
       setCheck('sub-check-pseudo', pseudoOk, `Pseudo ${pseudoOk ? `${matchedPseudo} inscrit ✅` : 'aucun joueur inscrit trouvé ⚠️'}`);
 
-      // CALCUL SCORE
       const ppk          = tournoi.points_per_kill ?? 1;
       const topPts       = [tournoi.points_top1??10, tournoi.points_top2??7, tournoi.points_top3??5, tournoi.points_top4??3, tournoi.points_top5??1];
       const placement    = data.placement ?? 0;
@@ -452,7 +453,6 @@ function initSoumissionEvents(tournoi) {
       const killsPts     = squadKills * ppk;
       const totalScore   = placementPts + killsPts;
 
-      // AUTO-APPROVE ou FLAG
       const exif = data.exif || {};
       let autoStatus = 'approved';
       let flagReason = [];
@@ -463,7 +463,6 @@ function initSoumissionEvents(tournoi) {
 
       const playerData = data.players?.[0] || {};
 
-      // INSERTION SUPABASE
       await supabase.from('tournament_submissions').insert({
         tournament_id : tournoi.id,
         discord_id    : matchedPlayer?.discord_id || null,
@@ -479,7 +478,6 @@ function initSoumissionEvents(tournoi) {
         created_at    : new Date().toISOString(),
       });
 
-      // SI AUTO-APPROUVÉ → scores + leaderboard Discord
       if (autoStatus === 'approved' && matchedPlayer?.discord_id) {
         const { data: existingScore } = await supabase.from('tournament_scores').select('*').eq('tournament_id', tournoi.id).eq('discord_id', matchedPlayer.discord_id).maybeSingle();
         if (existingScore) {
@@ -546,10 +544,6 @@ function setCheck(id, ok, msg) {
   if (el) { el.textContent = msg; el.className = `check-item ${ok ? 'check-ok' : 'check-fail'}`; }
 }
 
-// =====================================================
-// APPROVE MANUEL
-// =====================================================
-
 async function approveSubmission({ id, tid, did, kills, score, placement }) {
   await supabase.from('tournament_submissions').update({ status: 'approved' }).eq('id', id);
   const { data: existing } = await supabase.from('tournament_scores').select('*').eq('tournament_id', tid).eq('discord_id', did).maybeSingle();
@@ -578,10 +572,6 @@ async function rejectSubmission(id) {
   await supabase.from('tournament_submissions').update({ status: 'rejected' }).eq('id', id);
   loadSoumissions();
 }
-
-// =====================================================
-// SCOREBOARD
-// =====================================================
 
 async function loadScoreboard() {
   const container = document.getElementById('tab-scoreboard');
@@ -699,10 +689,6 @@ async function loadScoreboard() {
   container.innerHTML = html;
 }
 
-// =====================================================
-// INSCRITS
-// =====================================================
-
 async function loadInscrits() {
   const container = document.getElementById('tab-inscrits');
   const tournoi   = await getTournoiActif();
@@ -727,10 +713,6 @@ async function loadInscrits() {
   `;
 }
 
-// =====================================================
-// OUTILS
-// =====================================================
-
 function loadOutils() {
   document.getElementById('tab-outils').innerHTML = `
     <div class="outils-grid">
@@ -747,16 +729,19 @@ function loadOutils() {
   `;
   document.getElementById('btn-leaderboard')?.addEventListener('click', () => callBotAPI('leaderboard', 'POST'));
   document.getElementById('btn-mvp')?.addEventListener('click', () => callBotAPI('mvp', 'POST'));
+  document.getElementById('btn-reset')?.addEventListener('click', async () => {
+    if (!confirm('Reset le classement du tournoi actif ? Cette action est irréversible.')) return;
+    const tournoi = await getTournoiActif();
+    if (!tournoi) return setFeedback('❌ Aucun tournoi actif');
+    await fetchSupabase(`tournament_scores?tournament_id=eq.${tournoi.id}`, 'DELETE');
+    setFeedback('✅ Classement réinitialisé');
+  });
   document.getElementById('btn-create-channel')?.addEventListener('click', async () => {
     const result = await callBotAPI('channel/create', 'POST', { name: 'resultats-tournoi' });
     if (result?.success) setFeedback('✅ Salon créé sur Discord !');
     else setFeedback('❌ Erreur création salon');
   });
 }
-
-// =====================================================
-// HELPERS
-// =====================================================
 
 async function creerTournoi() {
   const nom   = document.getElementById('t-nom').value.trim();
@@ -829,7 +814,7 @@ window.supprimerTournoi = async function(id, nom) {
 };
 
 async function getTournoiActif() {
-  const guildId = await getActiveGuildId();
+  const guildId  = await getActiveGuildId();
   const tournois = await fetchSupabase(`tournaments?guild_id=eq.${guildId}&status=eq.active&limit=1`);
   return tournois?.[0] || null;
 }

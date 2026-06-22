@@ -1,3 +1,5 @@
+// dashboard/js/sections/tickets.js — FICHIER COMPLET
+
 import { loadConfigs, saveConfig, getConfig } from '../services/configService.js';
 import { callBotAPI, fetchSupabase }           from '../api.js';
 import { showToast }                           from '../ui/toast.js';
@@ -13,7 +15,36 @@ export function destroyTickets() {
 }
 
 export async function initTickets() {
-  const guildId = await getActiveGuildId();
+  const isMember = window.WARSTACK_IS_MEMBER === true || window._memberViewActive === true;
+  const guildId  = await getActiveGuildId();
+
+  if (isMember) {
+    const discordId = window.WARSTACK_DISCORD_ID;
+
+    document.querySelector('.tickets-layout > div:first-child')?.remove();
+
+    const listPanel = document.querySelector('.tickets-layout > div:last-child .panel');
+    if (listPanel) {
+      const openBtn = document.createElement('div');
+      openBtn.style.cssText = 'padding:0 0 1rem 0';
+      openBtn.innerHTML = `<a href="support.html?guild=${guildId}" target="_blank" class="btn btn-primary"><i class="fas fa-ticket-alt"></i> Ouvrir un ticket</a>`;
+      listPanel.querySelector('.panel-body')?.prepend(openBtn);
+    }
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        await loadMemberTickets(guildId, discordId);
+      });
+    });
+
+    await loadMemberTickets(guildId, discordId);
+    await loadMemberStats(guildId, discordId);
+    return;
+  }
+
   const [configs, channelsData, rolesData, teamData] = await Promise.all([
     loadConfigs(),
     callBotAPI('channels'),
@@ -39,7 +70,6 @@ export async function initTickets() {
   document.getElementById('ticket-category-closed').innerHTML  =
     `<option value="">Aucune (suppression auto)</option>` + categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
 
-  // Assignation à une PERSONNE de l'équipe (et non plus à un rôle générique)
   document.getElementById('ticket-assign-select').innerHTML =
     `<option value="">Non assigné</option>` + teamMembers.map(m => `<option value="${m.discord_id}" data-name="${m.username}">${m.username}</option>`).join('');
 
@@ -190,6 +220,44 @@ export async function initTickets() {
     await loadTickets();
     await loadStats();
   }, 30000);
+}
+
+async function loadMemberTickets(guildId, discordId) {
+  const el = document.getElementById('tickets-list');
+  if (!el) return;
+  el.innerHTML = `<div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>`;
+  let url = `tickets?guild_id=eq.${guildId}&discord_id=eq.${discordId}&select=*&order=created_at.desc`;
+  if (currentFilter !== 'all') url += `&status=eq.${currentFilter}`;
+  const data = await fetchSupabase(url) || [];
+  if (!data.length) {
+    el.innerHTML = `<div style="color:var(--text-muted);font-size:0.85rem">Aucun ticket pour le moment.</div>`;
+    return;
+  }
+  el.innerHTML = data.map(t => `
+    <div class="ticket-card">
+      <div class="ticket-card-header">
+        <div class="ticket-card-info">
+          <span class="ticket-emoji">🎫</span>
+          <div>
+            <div class="ticket-username">${t.subject || 'Ticket'}</div>
+            <div class="ticket-type-name">${t.type}</div>
+          </div>
+        </div>
+        <span class="ticket-status-badge status-${t.status}">${statusLabel(t.status)}</span>
+      </div>
+      <div class="ticket-card-meta">
+        <span>📅 ${new Date(t.created_at).toLocaleDateString('fr-FR')}</span>
+      </div>
+    </div>`).join('');
+}
+
+async function loadMemberStats(guildId, discordId) {
+  const data = await fetchSupabase(`tickets?guild_id=eq.${guildId}&discord_id=eq.${discordId}&select=status`) || [];
+  document.getElementById('stat-tickets-total').textContent      = data.length;
+  document.getElementById('stat-tickets-open').textContent       = data.filter(t => t.status === 'open').length;
+  document.getElementById('stat-tickets-inprogress').textContent = data.filter(t => t.status === 'in_progress').length;
+  document.getElementById('stat-tickets-closed').textContent     = data.filter(t => t.status === 'closed').length;
+  document.getElementById('stat-tickets-time').textContent       = '—';
 }
 
 async function loadTicketCategories() {
@@ -415,4 +483,4 @@ function statusLabel(s) {
 
 function priorityLabel(p) {
   return { low: '🟢 Faible', normal: '🟡 Normale', high: '🟠 Haute', critical: '🔴 Critique' }[p] || p;
-};
+}

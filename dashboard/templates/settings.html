@@ -332,9 +332,20 @@
     <div class="panel">
       <div class="panel-header">
         <h2>🌐 Portail Membre <span class="tooltip-icon"
-            data-tooltip="Choisis les sections visibles par les membres sur le portail public (lecture seule). Les sections sensibles (modération, tickets, logs, paramètres...) ne sont jamais accessibles aux membres.">ⓘ</span></h2>
+            data-tooltip="Choisis les sections visibles par les membres sur le portail public (lecture seule). Les sections sensibles (modération, tickets, logs, paramètres...) ne sont jamais accessibles aux membres.">ⓘ</span>
+        </h2>
       </div>
       <div class="panel-body">
+
+        <div class="form-group" style="margin-bottom:1.25rem">
+          <label class="form-label">🔗 Lien d'invitation Discord</label>
+          <input type="url" id="settings-discord-invite" class="form-control" placeholder="https://discord.gg/xxxxx"
+            style="max-width:420px">
+          <p style="font-size:0.78rem;color:var(--text-muted);margin-top:.3rem">
+            Affiché sur le bouton "Rejoindre la communauté" du portail public.
+          </p>
+        </div>
+
         <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem">
           Active les sections que tes membres pourront voir sur le portail public (lecture seule, aucune action admin).
         </p>

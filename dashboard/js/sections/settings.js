@@ -364,13 +364,24 @@ function renderModules() {
   `).join('');
 }
 
+// dashboard/js/sections/settings.js
+// Remplace la fonction renderPortalSections() entière (ligne ~368 à la fin du bloc)
+
 // ── PORTAIL MEMBRE ────────────────────────────────────────────────────────────
 
 async function renderPortalSections() {
   const el = document.getElementById('settings-portal-sections');
   if (!el) return;
 
-  const enabled = await getPortalSections();
+  // Charge sections activées + lien invite
+  const [enabled, configs] = await Promise.all([
+    getPortalSections(),
+    loadConfigs(),
+  ]);
+
+  const inviteVal = getConfig(configs, 'discord_invite') || '';
+  const inviteInput = document.getElementById('settings-discord-invite');
+  if (inviteInput) inviteInput.value = inviteVal;
 
   el.innerHTML = PORTAL_ELIGIBLE_SECTIONS.map(s => `
     <label class="settings-portal-toggle">
@@ -383,7 +394,13 @@ async function renderPortalSections() {
   document.getElementById('btn-save-portal')?.addEventListener('click', async () => {
     const checked = [...el.querySelectorAll('input[data-portal-section]:checked')]
       .map(input => input.dataset.portalSection);
-    await savePortalSections(checked);
+
+    const inviteUrl = document.getElementById('settings-discord-invite')?.value.trim() || '';
+
+    await Promise.all([
+      savePortalSections(checked),
+      saveConfig('discord_invite', inviteUrl),
+    ]);
     showToast('✅ Portail membre sauvegardé');
   });
 }

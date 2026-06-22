@@ -170,3 +170,35 @@
   font-size: .8rem;
   margin-top: 2rem;
 }
+
+/* KPI overview */
+.portail-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: .75rem;
+}
+
+.portail-kpi {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.25rem 1rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+}
+
+.portail-kpi-val {
+  font-size: 1.8rem;
+  font-weight: 700;
+  font-family: 'Share Tech Mono', monospace;
+  color: var(--primary-bright);
+}
+
+.portail-kpi-label {
+  font-size: .8rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}

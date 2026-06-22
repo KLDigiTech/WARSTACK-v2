@@ -23,77 +23,70 @@
 
   <div id="portail-content" style="display:none">
 
-    <!-- HEADER -->
     <header class="portail-header">
       <img id="guild-icon" class="portail-guild-icon" src="https://cdn.discordapp.com/embed/avatars/0.png" alt="">
       <h1 id="guild-name" class="portail-guild-name">—</h1>
       <div id="guild-members" class="portail-guild-members"></div>
-      <a id="btn-join" class="btn btn-discord portail-join-btn" href="#" target="_blank" rel="noopener">
-        <i class="fab fa-discord"></i> Rejoindre la communauté
-      </a>
+      <div class="portail-header-btns">
+        <a id="btn-join" class="btn btn-discord" href="#" target="_blank" rel="noopener">
+          <i class="fab fa-discord"></i> Rejoindre la communauté
+        </a>
+        <a id="btn-ticket" class="btn btn-secondary" href="#">
+          <i class="fas fa-ticket-alt"></i> Ouvrir un ticket
+        </a>
+      </div>
     </header>
 
-    <!-- OVERVIEW -->
     <section class="portail-section" data-section="overview" style="display:none">
       <h2 class="portail-section-title">📊 Vue d'ensemble</h2>
       <div id="overview-stats" class="portail-overview-grid"></div>
     </section>
 
-    <!-- PLAYERS / LEADERBOARD -->
     <section class="portail-section" data-section="players" style="display:none">
       <h2 class="portail-section-title">🏆 Top Joueurs</h2>
       <div id="leaderboard-list" class="portail-leaderboard"></div>
     </section>
 
-    <!-- TOURNAMENT -->
     <section class="portail-section" data-section="tournament" style="display:none">
       <h2 class="portail-section-title">🎮 Tournois</h2>
       <div id="tournament-list" class="portail-events"></div>
     </section>
 
-    <!-- EVENTS -->
     <section class="portail-section" data-section="events" style="display:none">
       <h2 class="portail-section-title">📅 Prochains Événements</h2>
       <div id="events-list" class="portail-events"></div>
     </section>
 
-    <!-- BIRTHDAYS -->
     <section class="portail-section" data-section="birthdays" style="display:none">
       <h2 class="portail-section-title">🎂 Anniversaires du mois</h2>
       <div id="birthdays-list" class="portail-leaderboard"></div>
     </section>
 
-    <!-- SUGGESTIONS -->
     <section class="portail-section" data-section="suggestions" style="display:none">
       <h2 class="portail-section-title">💡 Dernières Suggestions</h2>
       <div id="suggestions-list" class="portail-events"></div>
     </section>
 
-    <!-- ORIGINE / CARTE -->
     <section class="portail-section" data-section="origine" style="display:none">
       <h2 class="portail-section-title">🌍 Membres dans le monde</h2>
       <div id="origine-stats" class="portail-leaderboard"></div>
     </section>
 
-    <!-- ONBOARDING -->
     <section class="portail-section" data-section="onboarding" style="display:none">
       <h2 class="portail-section-title">✅ Derniers membres accueillis</h2>
       <div id="onboarding-list" class="portail-leaderboard"></div>
     </section>
 
-    <!-- WELCOME -->
     <section class="portail-section" data-section="welcome" style="display:none">
       <h2 class="portail-section-title">👋 Arrivées & Départs</h2>
       <div id="welcome-list" class="portail-leaderboard"></div>
     </section>
 
-    <!-- ROLES -->
     <section class="portail-section" data-section="roles" style="display:none">
       <h2 class="portail-section-title">🏷️ Rôles auto</h2>
       <div id="roles-list" class="portail-events"></div>
     </section>
 
-    <!-- EQUIPE (toujours visible) -->
     <section class="portail-section" id="section-team">
       <h2 class="portail-section-title">⚔️ L'Équipe</h2>
       <div id="team-grid" class="portail-team-grid"></div>

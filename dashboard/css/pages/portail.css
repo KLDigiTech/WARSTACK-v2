@@ -202,3 +202,11 @@
   text-transform: uppercase;
   letter-spacing: .5px;
 }
+
+.portail-header-btns {
+  display: flex;
+  gap: .75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: .75rem;
+}

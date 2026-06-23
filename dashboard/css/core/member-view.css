@@ -1,29 +1,34 @@
-/* Joueurs — masquer bouton ajouter */
-body.member-view #btn-add-player { display: none !important; }
+body.member-view #btn-add-player                        { display: none !important; }
 
-/* Tournoi — masquer création/gestion/outils */
-body.member-view .tab-btn[data-tab="outils"]    { display: none !important; }
-body.member-view #btn-toggle-create             { display: none !important; }
-body.member-view #create-form                   { display: none !important; }
-body.member-view .btn-terminer                  { display: none !important; }
-body.member-view .btn-annuler                   { display: none !important; }
-body.member-view .tournament-actions-column     { display: none !important; }
+body.member-view .tab-btn[data-tab="outils"]            { display: none !important; }
+body.member-view #btn-toggle-create                     { display: none !important; }
+body.member-view #create-form                           { display: none !important; }
+body.member-view .btn-terminer                          { display: none !important; }
+body.member-view .btn-annuler                           { display: none !important; }
+body.member-view .tournament-actions-column             { display: none !important; }
 body.member-view .data-table th:last-child,
-body.member-view .data-table td:last-child      { display: none !important; }
+body.member-view .data-table td:last-child              { display: none !important; }
 
-/* Suggestions — masquer config, boutons modération */
-body.member-view .suggestions-layout > div:first-child { display: none !important; }
-body.member-view .suggestion-actions            { display: none !important; }
+body.member-view .suggestions-layout > div:first-child  { display: none !important; }
+body.member-view .suggestion-actions                    { display: none !important; }
+body.member-view #member-suggest-form                   { display: block !important; }
 
-/* Événements — masquer panel création, actions staff */
-body.member-view .events-layout > div:first-child      { display: none !important; }
-body.member-view #btn-msg-participants          { display: none !important; }
-body.member-view #btn-msg-maybe                 { display: none !important; }
-body.member-view #btn-cancel-event              { display: none !important; }
-body.member-view #btn-export-csv                { display: none !important; }
-body.member-view #participant-search            { display: none !important; }
+body.member-view .events-layout > div:first-child       { display: none !important; }
+body.member-view #btn-msg-participants                   { display: none !important; }
+body.member-view #btn-msg-maybe                         { display: none !important; }
+body.member-view #btn-cancel-event                      { display: none !important; }
+body.member-view #btn-export-csv                        { display: none !important; }
+body.member-view #participant-search                    { display: none !important; }
 
-/* Tickets — masquer config, types, modal gestion */
-body.member-view .tickets-layout > div:first-child     { display: none !important; }
-body.member-view #modal-ticket                  { display: none !important; }
-body.member-view .ticket-card                   { cursor: default !important; }
+body.member-view .tickets-layout > div:first-child      { display: none !important; }
+body.member-view #tickets-list .ticket-card             { cursor: default !important; }
+body.member-view #modal-ticket                          { display: none !important; }
+body.member-view #member-ticket-open                    { display: block !important; }
+
+body.member-view #locations-delete-btn                  { display: none !important; }
+body.member-view .location-row .btn-danger              { display: none !important; }
+body.member-view #member-location-form                  { display: block !important; }
+
+body.member-view .nav-item[href]:not([data-section])    { display: none !important; }
+body.member-view #member-overview                       { display: block !important; }
+body.member-view #staff-overview                        { display: none !important; }

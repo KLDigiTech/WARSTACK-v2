@@ -1,12 +1,12 @@
 // dashboard/js/sections/tickets.js — FICHIER COMPLET
 
 import { loadConfigs, saveConfig, getConfig } from '../services/configService.js';
-import { callBotAPI, fetchSupabase }           from '../api.js';
-import { showToast }                           from '../ui/toast.js';
-import { getActiveGuildId }                    from '../services/guildService.js';
+import { callBotAPI, fetchSupabase } from '../api.js';
+import { showToast } from '../ui/toast.js';
+import { getActiveGuildId } from '../services/guildService.js';
 
-let currentTicket    = null;
-let currentFilter    = 'all';
+let currentTicket = null;
+let currentFilter = 'all';
 let ticketCategories = [];
 let _refreshInterval = null;
 
@@ -16,12 +16,12 @@ export function destroyTickets() {
 
 export async function initTickets() {
   const isMember = window.WARSTACK_IS_MEMBER === true || window._memberViewActive === true;
-  const guildId  = await getActiveGuildId();
+  const guildId = await getActiveGuildId();
 
   if (isMember) {
     const discordId = window.WARSTACK_DISCORD_ID;
 
-    document.querySelector('.tickets-layout > div:first-child')?.remove();
+    document.getElementById('link-open-ticket').href = `support.html?guild=${guildId}`;
 
     const listPanel = document.querySelector('.tickets-layout > div:last-child .panel');
     if (listPanel) {
@@ -53,34 +53,34 @@ export async function initTickets() {
   ]);
 
   const textChannels = (channelsData?.channels || []).filter(c => c.type === 'text');
-  const categories   = (channelsData?.channels || []).filter(c => c.type === 'category');
-  const roles        = rolesData?.roles || [];
-  const teamMembers  = teamData || [];
+  const categories = (channelsData?.channels || []).filter(c => c.type === 'category');
+  const roles = rolesData?.roles || [];
+  const teamMembers = teamData || [];
 
-  const chOpts   = `<option value="">Aucun</option>`  + textChannels.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-  const catOpts  = `<option value="">Aucune</option>` + categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-  const roleOpts = `<option value="">Aucun</option>`  + roles.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+  const chOpts = `<option value="">Aucun</option>` + textChannels.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  const catOpts = `<option value="">Aucune</option>` + categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  const roleOpts = `<option value="">Aucun</option>` + roles.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
 
-  document.getElementById('ticket-create-channel').innerHTML   = chOpts;
-  document.getElementById('ticket-logs-channel').innerHTML     = chOpts;
-  document.getElementById('ticket-staff-role').innerHTML       = roleOpts;
-  document.getElementById('ticket-leader-role').innerHTML      = roleOpts;
+  document.getElementById('ticket-create-channel').innerHTML = chOpts;
+  document.getElementById('ticket-logs-channel').innerHTML = chOpts;
+  document.getElementById('ticket-staff-role').innerHTML = roleOpts;
+  document.getElementById('ticket-leader-role').innerHTML = roleOpts;
   document.getElementById('ticket-category-waiting').innerHTML = catOpts;
-  document.getElementById('ticket-category-active').innerHTML  = catOpts;
-  document.getElementById('ticket-category-closed').innerHTML  =
+  document.getElementById('ticket-category-active').innerHTML = catOpts;
+  document.getElementById('ticket-category-closed').innerHTML =
     `<option value="">Aucune (suppression auto)</option>` + categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
 
   document.getElementById('ticket-assign-select').innerHTML =
     `<option value="">Non assigné</option>` + teamMembers.map(m => `<option value="${m.discord_id}" data-name="${m.username}">${m.username}</option>`).join('');
 
-  document.getElementById('ticket-create-channel').value   = getConfig(configs, 'ticket_create_channel')   || '';
-  document.getElementById('ticket-logs-channel').value     = getConfig(configs, 'ticket_logs_channel')     || '';
-  document.getElementById('ticket-staff-role').value       = getConfig(configs, 'ticket_staff_role')       || '';
-  document.getElementById('ticket-leader-role').value      = getConfig(configs, 'ticket_leader_role')      || '';
+  document.getElementById('ticket-create-channel').value = getConfig(configs, 'ticket_create_channel') || '';
+  document.getElementById('ticket-logs-channel').value = getConfig(configs, 'ticket_logs_channel') || '';
+  document.getElementById('ticket-staff-role').value = getConfig(configs, 'ticket_staff_role') || '';
+  document.getElementById('ticket-leader-role').value = getConfig(configs, 'ticket_leader_role') || '';
   document.getElementById('ticket-category-waiting').value = getConfig(configs, 'ticket_category_waiting') || '';
-  document.getElementById('ticket-category-active').value  = getConfig(configs, 'ticket_category_active')  || '';
-  document.getElementById('ticket-category-closed').value  = getConfig(configs, 'ticket_category_closed')  || '';
-  document.getElementById('ticket-transcript').checked     = getConfig(configs, 'ticket_transcript') !== 'false';
+  document.getElementById('ticket-category-active').value = getConfig(configs, 'ticket_category_active') || '';
+  document.getElementById('ticket-category-closed').value = getConfig(configs, 'ticket_category_closed') || '';
+  document.getElementById('ticket-transcript').checked = getConfig(configs, 'ticket_transcript') !== 'false';
 
   await loadTicketCategories();
 
@@ -88,14 +88,14 @@ export async function initTickets() {
 
   document.getElementById('btn-save-tickets').addEventListener('click', async () => {
     await Promise.all([
-      saveConfig('ticket_create_channel',   document.getElementById('ticket-create-channel').value),
-      saveConfig('ticket_logs_channel',     document.getElementById('ticket-logs-channel').value),
-      saveConfig('ticket_staff_role',       document.getElementById('ticket-staff-role').value),
-      saveConfig('ticket_leader_role',      document.getElementById('ticket-leader-role').value),
+      saveConfig('ticket_create_channel', document.getElementById('ticket-create-channel').value),
+      saveConfig('ticket_logs_channel', document.getElementById('ticket-logs-channel').value),
+      saveConfig('ticket_staff_role', document.getElementById('ticket-staff-role').value),
+      saveConfig('ticket_leader_role', document.getElementById('ticket-leader-role').value),
       saveConfig('ticket_category_waiting', document.getElementById('ticket-category-waiting').value),
-      saveConfig('ticket_category_active',  document.getElementById('ticket-category-active').value),
-      saveConfig('ticket_category_closed',  document.getElementById('ticket-category-closed').value),
-      saveConfig('ticket_transcript',       String(document.getElementById('ticket-transcript').checked)),
+      saveConfig('ticket_category_active', document.getElementById('ticket-category-active').value),
+      saveConfig('ticket_category_closed', document.getElementById('ticket-category-closed').value),
+      saveConfig('ticket_transcript', String(document.getElementById('ticket-transcript').checked)),
     ]);
     showToast('✅ Configuration sauvegardée !');
   });
@@ -122,8 +122,8 @@ export async function initTickets() {
   document.getElementById('btn-close-ticket').addEventListener('click', async () => {
     if (!currentTicket) return;
     await fetchSupabase(`tickets?id=eq.${currentTicket.id}`, 'PATCH', {
-      status     : 'closed',
-      closed_at  : new Date().toISOString(),
+      status: 'closed',
+      closed_at: new Date().toISOString(),
     });
     showToast('✅ Ticket marqué résolu — le salon Discord reste accessible');
     closeTicketModal();
@@ -135,11 +135,11 @@ export async function initTickets() {
     if (!currentTicket) return;
     if (!confirm('Archiver ce ticket ? Le salon Discord sera supprimé (une transcription reste disponible).')) return;
     await fetchSupabase(`tickets?id=eq.${currentTicket.id}`, 'PATCH', {
-      status     : 'archived',
-      closed_at  : currentTicket.closed_at || new Date().toISOString(),
+      status: 'archived',
+      closed_at: currentTicket.closed_at || new Date().toISOString(),
     });
     await callBotAPI('ticket/close', 'POST', {
-      ticket_id : currentTicket.id,
+      ticket_id: currentTicket.id,
       channel_id: currentTicket.channel_id,
       transcript: document.getElementById('ticket-transcript').checked,
     });
@@ -151,21 +151,21 @@ export async function initTickets() {
 
   document.getElementById('btn-take-ticket').addEventListener('click', async () => {
     if (!currentTicket) return;
-    const myId   = window.WARSTACK_DISCORD_ID;
+    const myId = window.WARSTACK_DISCORD_ID;
     const select = document.getElementById('ticket-assign-select');
-    const opt    = [...select.options].find(o => o.value === myId);
+    const opt = [...select.options].find(o => o.value === myId);
     const myName = opt?.dataset.name || 'Toi';
     if (!myId) return showToast('❌ Impossible de t\'identifier', 'error');
     await fetchSupabase(`tickets?id=eq.${currentTicket.id}`, 'PATCH', {
-      assigned_to     : myName,
-      taken_by_id     : myId,
-      taken_at        : new Date().toISOString(),
-      status          : 'in_progress',
+      assigned_to: myName,
+      taken_by_id: myId,
+      taken_at: new Date().toISOString(),
+      status: 'in_progress',
     });
     currentTicket.assigned_to = myName;
     currentTicket.taken_by_id = myId;
-    currentTicket.taken_at    = new Date().toISOString();
-    currentTicket.status      = 'in_progress';
+    currentTicket.taken_at = new Date().toISOString();
+    currentTicket.status = 'in_progress';
     select.value = myId;
     showToast(`✅ ${myName} a pris en charge ce ticket`);
     await loadTickets();
@@ -174,18 +174,18 @@ export async function initTickets() {
 
   document.getElementById('btn-assign-ticket').addEventListener('click', async () => {
     if (!currentTicket) return;
-    const select        = document.getElementById('ticket-assign-select');
-    const assignedId     = select.value;
-    const assignedName   = select.selectedOptions[0]?.dataset.name || null;
+    const select = document.getElementById('ticket-assign-select');
+    const assignedId = select.value;
+    const assignedName = select.selectedOptions[0]?.dataset.name || null;
     await fetchSupabase(`tickets?id=eq.${currentTicket.id}`, 'PATCH', {
       assigned_to: assignedId ? assignedName : null,
       taken_by_id: assignedId || null,
-      taken_at   : assignedId ? new Date().toISOString() : null,
-      status     : assignedId ? 'in_progress' : 'open',
+      taken_at: assignedId ? new Date().toISOString() : null,
+      status: assignedId ? 'in_progress' : 'open',
     });
     currentTicket.assigned_to = assignedId ? assignedName : null;
     currentTicket.taken_by_id = assignedId || null;
-    currentTicket.status      = assignedId ? 'in_progress' : 'open';
+    currentTicket.status = assignedId ? 'in_progress' : 'open';
     showToast(assignedId ? `✅ ${assignedName} a pris en charge ce ticket` : '✅ Ticket désassigné');
     await loadTickets();
     refreshTicketMeta();
@@ -253,11 +253,11 @@ async function loadMemberTickets(guildId, discordId) {
 
 async function loadMemberStats(guildId, discordId) {
   const data = await fetchSupabase(`tickets?guild_id=eq.${guildId}&discord_id=eq.${discordId}&select=status`) || [];
-  document.getElementById('stat-tickets-total').textContent      = data.length;
-  document.getElementById('stat-tickets-open').textContent       = data.filter(t => t.status === 'open').length;
+  document.getElementById('stat-tickets-total').textContent = data.length;
+  document.getElementById('stat-tickets-open').textContent = data.filter(t => t.status === 'open').length;
   document.getElementById('stat-tickets-inprogress').textContent = data.filter(t => t.status === 'in_progress').length;
-  document.getElementById('stat-tickets-closed').textContent     = data.filter(t => t.status === 'closed').length;
-  document.getElementById('stat-tickets-time').textContent       = '—';
+  document.getElementById('stat-tickets-closed').textContent = data.filter(t => t.status === 'closed').length;
+  document.getElementById('stat-tickets-time').textContent = '—';
 }
 
 async function loadTicketCategories() {
@@ -357,11 +357,28 @@ async function loadTickets() {
           ${t.subject ? `<span style="color:var(--text-muted);font-style:italic;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.subject}</span>` : ''}
           ${t.assigned_to ? `<span>🛡️ ${t.assigned_to} a pris en charge</span>` : '<span style="color:var(--text-muted)">Non assigné</span>'}
         </div>
+        <div class="ticket-card-meta">
+        <span>📅 ${new Date(t.created_at).toLocaleDateString('fr-FR')}</span>
+        ${t.subject ? `<span style="color:var(--text-muted);font-style:italic;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.subject}</span>` : ''}
+        ${t.assigned_to ? `<span>🛡️ ${t.assigned_to} a pris en charge</span>` : '<span style="color:var(--text-muted)">Non assigné</span>'}
+        <button class="btn btn-danger btn-sm btn-delete-ticket" data-id="${t.id}" data-channel="${t.channel_id}" style="margin-left:auto;padding:0.15rem 0.5rem;font-size:0.75rem" title="Supprimer">🗑️</button>
+      </div>
       </div>
     `;
   }).join('');
   el.querySelectorAll('.ticket-card').forEach(card => {
     card.addEventListener('click', () => openTicket(card.dataset.id, data));
+  });
+  el.querySelectorAll('.btn-delete-ticket').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (!confirm('Supprimer ce ticket ? Le salon Discord sera également supprimé.')) return;
+      await callBotAPI('ticket/close', 'POST', { ticket_id: btn.dataset.id, channel_id: btn.dataset.channel, transcript: false });
+      await fetchSupabase(`tickets?id=eq.${btn.dataset.id}`, 'DELETE');
+      showToast('🗑️ Ticket supprimé');
+      await loadTickets();
+      await loadStats();
+    });
   });
 }
 
@@ -385,15 +402,15 @@ async function openTicket(id, list) {
       ${currentTicket.subject ? `<div style="grid-column:1/-1"><span class="meta-label">Sujet</span><span>${currentTicket.subject}</span></div>` : ''}
       <div><span class="meta-label">Ouvert le</span><span>${new Date(currentTicket.created_at).toLocaleString('fr-FR')}</span></div>
       ${currentTicket.assigned_to ? `<div><span class="meta-label">Assigné à</span><span>🛡️ ${currentTicket.assigned_to} a pris en charge</span></div>` : ''}
-      ${currentTicket.taken_at    ? `<div><span class="meta-label">Pris en charge le</span><span>${new Date(currentTicket.taken_at).toLocaleString('fr-FR')}</span></div>` : ''}
-      ${currentTicket.closed_at   ? `<div><span class="meta-label">${currentTicket.status === 'archived' ? 'Archivé' : 'Résolu'} le</span><span>${new Date(currentTicket.closed_at).toLocaleString('fr-FR')}</span></div>` : ''}
+      ${currentTicket.taken_at ? `<div><span class="meta-label">Pris en charge le</span><span>${new Date(currentTicket.taken_at).toLocaleString('fr-FR')}</span></div>` : ''}
+      ${currentTicket.closed_at ? `<div><span class="meta-label">${currentTicket.status === 'archived' ? 'Archivé' : 'Résolu'} le</span><span>${new Date(currentTicket.closed_at).toLocaleString('fr-FR')}</span></div>` : ''}
     </div>
   `;
-  const btnClose   = document.getElementById('btn-close-ticket');
+  const btnClose = document.getElementById('btn-close-ticket');
   const btnArchive = document.getElementById('btn-archive-ticket');
-  btnClose.disabled      = currentTicket.status === 'closed' || currentTicket.status === 'archived';
+  btnClose.disabled = currentTicket.status === 'closed' || currentTicket.status === 'archived';
   btnClose.style.opacity = btnClose.disabled ? '0.4' : '';
-  btnArchive.disabled      = currentTicket.status === 'archived';
+  btnArchive.disabled = currentTicket.status === 'archived';
   btnArchive.style.opacity = btnArchive.disabled ? '0.4' : '';
   await loadTicketNotes(currentTicket.id);
 }
@@ -416,21 +433,21 @@ function refreshTicketMeta() {
       ${currentTicket.subject ? `<div style="grid-column:1/-1"><span class="meta-label">Sujet</span><span>${currentTicket.subject}</span></div>` : ''}
       <div><span class="meta-label">Ouvert le</span><span>${new Date(currentTicket.created_at).toLocaleString('fr-FR')}</span></div>
       ${currentTicket.assigned_to ? `<div><span class="meta-label">Assigné à</span><span>🛡️ ${currentTicket.assigned_to} a pris en charge</span></div>` : ''}
-      ${currentTicket.taken_at    ? `<div><span class="meta-label">Pris en charge le</span><span>${new Date(currentTicket.taken_at).toLocaleString('fr-FR')}</span></div>` : ''}
-      ${currentTicket.closed_at   ? `<div><span class="meta-label">${currentTicket.status === 'archived' ? 'Archivé' : 'Résolu'} le</span><span>${new Date(currentTicket.closed_at).toLocaleString('fr-FR')}</span></div>` : ''}
+      ${currentTicket.taken_at ? `<div><span class="meta-label">Pris en charge le</span><span>${new Date(currentTicket.taken_at).toLocaleString('fr-FR')}</span></div>` : ''}
+      ${currentTicket.closed_at ? `<div><span class="meta-label">${currentTicket.status === 'archived' ? 'Archivé' : 'Résolu'} le</span><span>${new Date(currentTicket.closed_at).toLocaleString('fr-FR')}</span></div>` : ''}
     </div>
   `;
-  const btnClose   = document.getElementById('btn-close-ticket');
+  const btnClose = document.getElementById('btn-close-ticket');
   const btnArchive = document.getElementById('btn-archive-ticket');
-  btnClose.disabled        = currentTicket.status === 'closed' || currentTicket.status === 'archived';
-  btnClose.style.opacity   = btnClose.disabled ? '0.4' : '';
-  btnArchive.disabled      = currentTicket.status === 'archived';
+  btnClose.disabled = currentTicket.status === 'closed' || currentTicket.status === 'archived';
+  btnClose.style.opacity = btnClose.disabled ? '0.4' : '';
+  btnArchive.disabled = currentTicket.status === 'archived';
   btnArchive.style.opacity = btnArchive.disabled ? '0.4' : '';
 }
 
 async function loadTicketNotes(ticketId) {
   const data = await fetchSupabase(`mod_notes?discord_id=eq.ticket_${ticketId}&order=created_at.desc`) || [];
-  const el   = document.getElementById('ticket-notes-list');
+  const el = document.getElementById('ticket-notes-list');
   if (!data.length) {
     el.innerHTML = `<div style="color:var(--text-muted);font-size:0.8rem">Aucune note.</div>`;
     return;
@@ -458,23 +475,23 @@ async function addTicketNote() {
 async function loadStats() {
   const guildId = await getActiveGuildId();
   const data = await fetchSupabase(`tickets?guild_id=eq.${guildId}&select=status,created_at,closed_at`) || [];
-  const open       = data.filter(t => t.status === 'open').length;
+  const open = data.filter(t => t.status === 'open').length;
   const inProgress = data.filter(t => t.status === 'in_progress').length;
-  const closed     = data.filter(t => t.status === 'closed');
+  const closed = data.filter(t => t.status === 'closed');
   let avgTime = '—';
   if (closed.length) {
     const times = closed.filter(t => t.closed_at).map(t => new Date(t.closed_at) - new Date(t.created_at));
     if (times.length) {
-      const avg  = times.reduce((a, b) => a + b, 0) / times.length;
+      const avg = times.reduce((a, b) => a + b, 0) / times.length;
       const mins = Math.round(avg / 60000);
       avgTime = mins < 60 ? `${mins}min` : `${Math.round(mins / 60)}h`;
     }
   }
-  document.getElementById('stat-tickets-total').textContent      = data.length;
-  document.getElementById('stat-tickets-open').textContent       = open;
+  document.getElementById('stat-tickets-total').textContent = data.length;
+  document.getElementById('stat-tickets-open').textContent = open;
   document.getElementById('stat-tickets-inprogress').textContent = inProgress;
-  document.getElementById('stat-tickets-closed').textContent     = closed.length;
-  document.getElementById('stat-tickets-time').textContent       = avgTime;
+  document.getElementById('stat-tickets-closed').textContent = closed.length;
+  document.getElementById('stat-tickets-time').textContent = avgTime;
 }
 
 function statusLabel(s) {

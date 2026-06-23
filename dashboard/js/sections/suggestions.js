@@ -1,11 +1,11 @@
 // dashboard/js/sections/suggestions.js — FICHIER COMPLET
 
 import { loadConfigs, saveConfig, getConfig } from '../services/configService.js';
-import { callBotAPI, fetchSupabase }           from '../api.js';
-import { showToast }                           from '../ui/toast.js';
-import { getActiveGuildId }                    from '../services/guildService.js';
+import { callBotAPI, fetchSupabase } from '../api.js';
+import { showToast } from '../ui/toast.js';
+import { getActiveGuildId } from '../services/guildService.js';
 
-let currentFilter     = 'all';
+let currentFilter = 'all';
 let currentSuggestion = null;
 
 export async function initSuggestions() {
@@ -22,7 +22,25 @@ export async function initSuggestions() {
         loadSuggestions();
       });
     });
-
+    document.getElementById('btn-submit-member-suggest')?.addEventListener('click', async () => {
+      const content = document.getElementById('suggest-member-input').value.trim();
+      if (!content || content.length < 10) { showToast('❌ Suggestion trop courte', 'error'); return; }
+      const guildId = await getActiveGuildId();
+      const discordId = window.WARSTACK_DISCORD_ID;
+      const { data: player } = await fetchSupabase(`players?discord_id=eq.${discordId}&select=username&limit=1`);
+      await fetchSupabase('suggestions', 'POST', {
+        guild_id: guildId,
+        discord_id: discordId,
+        username: player?.[0]?.username || 'Membre',
+        content,
+        status: 'pending',
+        votes_up: 0,
+        votes_down: 0,
+      });
+      document.getElementById('suggest-member-input').value = '';
+      showToast('✅ Suggestion envoyée !');
+      await loadSuggestions();
+    });
     await loadSuggestions();
     await loadStats();
     await loadLeaderboard();
@@ -38,22 +56,22 @@ export async function initSuggestions() {
   const chOpts = `<option value="">Aucun</option>` +
     textChannels.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
   document.getElementById('suggestions-channel').innerHTML = chOpts;
-  document.getElementById('suggestions-logs').innerHTML    = chOpts;
+  document.getElementById('suggestions-logs').innerHTML = chOpts;
 
-  document.getElementById('suggestions-enabled').checked   = getConfig(configs, 'suggestions_enabled') === 'true';
-  document.getElementById('suggestions-channel').value     = getConfig(configs, 'suggestions_channel') || '';
-  document.getElementById('suggestions-logs').value        = getConfig(configs, 'suggestions_logs')    || '';
+  document.getElementById('suggestions-enabled').checked = getConfig(configs, 'suggestions_enabled') === 'true';
+  document.getElementById('suggestions-channel').value = getConfig(configs, 'suggestions_channel') || '';
+  document.getElementById('suggestions-logs').value = getConfig(configs, 'suggestions_logs') || '';
   document.getElementById('suggestions-reactions').checked = getConfig(configs, 'suggestions_reactions') !== 'false';
-  document.getElementById('suggestions-threads').checked   = getConfig(configs, 'suggestions_threads') === 'true';
+  document.getElementById('suggestions-threads').checked = getConfig(configs, 'suggestions_threads') === 'true';
   document.getElementById('suggestions-anonymous').checked = getConfig(configs, 'suggestions_anonymous') === 'true';
 
   document.getElementById('btn-save-suggestions').addEventListener('click', async () => {
     await Promise.all([
-      saveConfig('suggestions_enabled',   String(document.getElementById('suggestions-enabled').checked)),
-      saveConfig('suggestions_channel',   document.getElementById('suggestions-channel').value),
-      saveConfig('suggestions_logs',      document.getElementById('suggestions-logs').value),
+      saveConfig('suggestions_enabled', String(document.getElementById('suggestions-enabled').checked)),
+      saveConfig('suggestions_channel', document.getElementById('suggestions-channel').value),
+      saveConfig('suggestions_logs', document.getElementById('suggestions-logs').value),
       saveConfig('suggestions_reactions', String(document.getElementById('suggestions-reactions').checked)),
-      saveConfig('suggestions_threads',   String(document.getElementById('suggestions-threads').checked)),
+      saveConfig('suggestions_threads', String(document.getElementById('suggestions-threads').checked)),
       saveConfig('suggestions_anonymous', String(document.getElementById('suggestions-anonymous').checked)),
     ]);
     showToast('✅ Configuration sauvegardée !');
@@ -68,7 +86,7 @@ export async function initSuggestions() {
     });
   });
 
-  document.getElementById('modal-close').addEventListener('click',  closeModal);
+  document.getElementById('modal-close').addEventListener('click', closeModal);
   document.getElementById('modal-cancel').addEventListener('click', closeModal);
   document.getElementById('modal-save-note').addEventListener('click', saveStaffNote);
 
@@ -78,7 +96,7 @@ export async function initSuggestions() {
 }
 
 async function loadSuggestions() {
-  const isMember  = window.WARSTACK_IS_MEMBER === true || window._memberViewActive === true;
+  const isMember = window.WARSTACK_IS_MEMBER === true || window._memberViewActive === true;
   const container = document.getElementById('suggestions-list');
   container.innerHTML = `<div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>`;
 
@@ -172,9 +190,9 @@ async function loadStats() {
   const guildId = await getActiveGuildId();
   const data = await fetchSupabase(`suggestions?guild_id=eq.${guildId}&select=status`);
   const list = data || [];
-  document.getElementById('stat-total').textContent       = list.length;
-  document.getElementById('stat-accepted').textContent    = list.filter(s => s.status === 'accepted').length;
-  document.getElementById('stat-refused').textContent     = list.filter(s => s.status === 'refused').length;
+  document.getElementById('stat-total').textContent = list.length;
+  document.getElementById('stat-accepted').textContent = list.filter(s => s.status === 'accepted').length;
+  document.getElementById('stat-refused').textContent = list.filter(s => s.status === 'refused').length;
   document.getElementById('stat-implemented').textContent = list.filter(s => s.status === 'implemented').length;
 }
 
@@ -211,10 +229,10 @@ async function loadLeaderboard() {
 
 function statusLabel(status) {
   const map = {
-    pending    : '🟡 En attente',
-    reviewing  : '🔵 En analyse',
-    accepted   : '🟢 Acceptée',
-    refused    : '🔴 Refusée',
+    pending: '🟡 En attente',
+    reviewing: '🔵 En analyse',
+    accepted: '🟢 Acceptée',
+    refused: '🔴 Refusée',
     implemented: '⚫ Implémentée',
   };
   return map[status] || status;

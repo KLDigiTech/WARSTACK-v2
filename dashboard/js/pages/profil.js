@@ -7,7 +7,6 @@ const loading  = document.getElementById('profil-loading');
 const notfound = document.getElementById('profil-notfound');
 const content  = document.getElementById('profil-content');
 
-// ── GRADES MILITAIRES ─────────────────────────────────────────
 const GRADES = [
   { level: 1,  xp: 0,     name: 'Recrue',           emoji: '🪖' },
   { level: 2,  xp: 100,   name: 'Soldat',            emoji: '🎖️' },
@@ -37,7 +36,6 @@ function getNextGrade(xp) {
   return GRADES.find(g => g.xp > xp) || null;
 }
 
-// ── BR RANK SCORE ─────────────────────────────────────────────
 const BR_RANK_SCORES = {
   'bronze i': 1,   'bronze ii': 2,   'bronze iii': 3,   'bronze iv': 4,   'bronze v': 5,
   'silver i': 6,   'silver ii': 7,   'silver iii': 8,   'silver iv': 9,   'silver v': 10,
@@ -48,7 +46,6 @@ const BR_RANK_SCORES = {
   'masters': 30,
 };
 
-// ── PAYS ──────────────────────────────────────────────────────
 const PAYS_LIST = [
   { name: 'France',         code: 'FR' }, { name: 'Belgique',       code: 'BE' },
   { name: 'Suisse',         code: 'CH' }, { name: 'Canada',         code: 'CA' },
@@ -75,7 +72,6 @@ function getFlag(code) {
   );
 }
 
-// ── COORDS ────────────────────────────────────────────────────
 const CITY_COORDS = {
   'paris': { lat: 48.8566, lng: 2.3522 }, 'marseille': { lat: 43.2965, lng: 5.3698 },
   'lyon': { lat: 45.7640, lng: 4.8357 }, 'toulouse': { lat: 43.6047, lng: 1.4442 },
@@ -118,7 +114,6 @@ function getCityCoords(city, country) {
   return COUNTRY_COORDS[country] || { lat: 46.5, lng: 2.5 };
 }
 
-// ── UTILS ─────────────────────────────────────────────────────
 function calcScore(s) {
   if (!s) return 0;
   const kd      = parseFloat(s.kd)      || 0;
@@ -126,11 +121,9 @@ function calcScore(s) {
   const kills   = parseInt(s.kills)     || 0;
   const games   = parseInt(s.games)     || 1;
   const kpm     = kills / games;
-
   const brKey   = (s.br_rank || '').toLowerCase().trim();
   const brVal   = BR_RANK_SCORES[brKey] ?? 0;
   const brScore = (brVal / 30) * 100;
-
   return (
     (Math.min(winrate / 60, 1) * 100 * 0.30) +
     (Math.min(kd / 5, 1)       * 100 * 0.25) +
@@ -146,7 +139,7 @@ function getDivision(score) {
   if (s >= 55) return { name: 'Phantom',  emoji: '👻', color: '#9B59B6' };
   if (s >= 45) return { name: 'Elite',    emoji: '💎', color: '#00BFFF' };
   if (s >= 35) return { name: 'Veteran',  emoji: '🎖️', color: '#FF6600' };
-  if (s >= 25) return { name: 'Soldat',    emoji: '⚔️', color: '#95A5A6' };
+  if (s >= 25) return { name: 'Soldat',   emoji: '⚔️', color: '#95A5A6' };
   return             { name: 'Recruit',   emoji: '🪖', color: '#607D8B' };
 }
 
@@ -172,13 +165,12 @@ function initTabs() {
   });
 }
 
-// ── BLOC WARSTACK XP / COINS / GRADE ─────────────────────────
 function renderWARSTACKBlock(xpData, walletData) {
-  const xp         = xpData?.xp     ?? 0;
-  const coins      = walletData?.coins ?? 0;
-  const grade      = getGrade(xp);
-  const nextGrade  = getNextGrade(xp);
-  const progress   = nextGrade
+  const xp        = xpData?.xp      ?? 0;
+  const coins     = walletData?.coins ?? 0;
+  const grade     = getGrade(xp);
+  const nextGrade = getNextGrade(xp);
+  const progress  = nextGrade
     ? Math.round(((xp - grade.xp) / (nextGrade.xp - grade.xp)) * 100)
     : 100;
 
@@ -217,7 +209,6 @@ function renderWARSTACKBlock(xpData, walletData) {
   `;
 }
 
-// ── MODAL LOCALISATION ────────────────────────────────────────
 async function injectEditLocalisation(player) {
   const { supabase }                   = await import('../supabaseClient.js');
   const { SUPABASE_URL, SUPABASE_KEY } = await import('../config.js');
@@ -305,9 +296,9 @@ async function injectEditLocalisation(player) {
           apikey        : SUPABASE_KEY,
           Authorization : `Bearer ${SUPABASE_KEY}`,
           'Content-Type': 'application/json',
-          Prefer        : 'return=representation'
+          Prefer        : 'return=representation',
         },
-        body: JSON.stringify({ country, country_code: countryCode, region, city })
+        body: JSON.stringify({ country, country_code: countryCode, region, city }),
       });
 
       if (!res.ok) throw new Error('Erreur serveur');
@@ -321,7 +312,7 @@ async function injectEditLocalisation(player) {
           apikey        : SUPABASE_KEY,
           Authorization : `Bearer ${SUPABASE_KEY}`,
           'Content-Type': 'application/json',
-          Prefer        : 'resolution=merge-duplicates'
+          Prefer        : 'resolution=merge-duplicates',
         },
         body: JSON.stringify({
           discord_id: player.discord_id,
@@ -332,7 +323,7 @@ async function injectEditLocalisation(player) {
           lat       : coords?.lat || null,
           lng       : coords?.lng || null,
           flag,
-        })
+        }),
       });
 
       modal.classList.remove('open');
@@ -357,7 +348,88 @@ async function injectEditLocalisation(player) {
   });
 }
 
-// ── LOAD PROFIL ───────────────────────────────────────────────
+async function injectEditPseudo(player) {
+  const { supabase }                   = await import('../supabaseClient.js');
+  const { SUPABASE_URL, SUPABASE_KEY } = await import('../config.js');
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return;
+
+  const sessionDiscordId = session.user?.user_metadata?.provider_id
+                        || session.user?.user_metadata?.sub;
+  if (sessionDiscordId !== player.discord_id) return;
+
+  const identity = document.querySelector('.profil-identity');
+  if (!identity) return;
+
+  const editBtn       = document.createElement('button');
+  editBtn.className   = 'profil-edit-btn';
+  editBtn.style.marginTop = '8px';
+  editBtn.innerHTML   = `<i class="fas fa-edit"></i> Modifier mon pseudo BF6`;
+  identity.appendChild(editBtn);
+
+  const modal = document.createElement('div');
+  modal.className = 'profil-loc-modal';
+  modal.innerHTML = `
+    <div class="profil-loc-overlay"></div>
+    <div class="profil-loc-box">
+      <div class="profil-loc-header">
+        <h3>✏️ Pseudo Battlefield 6</h3>
+        <button class="profil-loc-close"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="profil-loc-body">
+        <p class="profil-loc-hint">Ce pseudo sert à te reconnaître sur les leaderboards et les tournois.</p>
+        <div class="form-group">
+          <label>Pseudo en jeu <span style="color:#ff4444">*</span></label>
+          <input type="text" id="edit-pseudo-input" class="form-input"
+                 placeholder="Ex: HolyPriest34"
+                 value="${player.pseudo_bf6 || player.pseudo || ''}"
+                 maxlength="32">
+        </div>
+      </div>
+      <div class="profil-loc-footer">
+        <button class="profil-loc-cancel">Annuler</button>
+        <button class="profil-loc-save"><i class="fas fa-save"></i> Sauvegarder</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  editBtn.addEventListener('click', () => modal.classList.add('open'));
+  modal.querySelector('.profil-loc-overlay').addEventListener('click', () => modal.classList.remove('open'));
+  modal.querySelector('.profil-loc-close').addEventListener('click',   () => modal.classList.remove('open'));
+  modal.querySelector('.profil-loc-cancel').addEventListener('click',  () => modal.classList.remove('open'));
+
+  modal.querySelector('.profil-loc-save').addEventListener('click', async () => {
+    const pseudo  = document.getElementById('edit-pseudo-input').value.trim();
+    if (!pseudo) { alert('Le pseudo ne peut pas être vide.'); return; }
+
+    const saveBtn = modal.querySelector('.profil-loc-save');
+    saveBtn.textContent = 'Sauvegarde...';
+    saveBtn.disabled    = true;
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/players?discord_id=eq.${player.discord_id}`, {
+        method : 'PATCH',
+        headers: {
+          apikey        : SUPABASE_KEY,
+          Authorization : `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          Prefer        : 'return=representation',
+        },
+        body: JSON.stringify({ pseudo_bf6: pseudo, pseudo }),
+      });
+      if (!res.ok) throw new Error('Erreur serveur');
+      modal.classList.remove('open');
+    } catch (err) {
+      alert('Erreur : ' + err.message);
+    } finally {
+      saveBtn.innerHTML = '<i class="fas fa-save"></i> Sauvegarder';
+      saveBtn.disabled  = false;
+    }
+  });
+}
+
 async function loadProfil() {
   if (!discordId) { showNotFound(); return; }
 
@@ -390,7 +462,6 @@ async function loadProfil() {
   document.getElementById('p-score').textContent          = score;
   document.documentElement.style.setProperty('--division-color', division.color);
 
-  // Localisation
   if (player.country) {
     const flag     = getFlag(player.country_code);
     const loc      = [player.city, player.region, player.country].filter(Boolean).join(', ');
@@ -404,7 +475,6 @@ async function loadProfil() {
     }
   }
 
-  // BR Rank hero
   if (snapshot?.br_rank) {
     const brRankEl = document.getElementById('p-br-rank');
     brRankEl.style.display = 'flex';
@@ -417,7 +487,6 @@ async function loadProfil() {
     }
   }
 
-  // BR Rank card Global
   if (snapshot?.br_rank) {
     if (snapshot.br_rank_img) {
       document.getElementById('p-rank-card').style.display = 'flex';
@@ -429,26 +498,22 @@ async function loadProfil() {
     }
   }
 
-  // Stats Global
   document.getElementById('p-kills').textContent   = snapshot?.kills  ? Number(snapshot.kills).toLocaleString('fr-FR')  : '—';
   document.getElementById('p-deaths').textContent  = snapshot?.deaths ? Number(snapshot.deaths).toLocaleString('fr-FR') : '—';
   document.getElementById('p-kd').textContent      = snapshot?.kd     || '—';
   document.getElementById('p-games').textContent   = snapshot?.games  ? Number(snapshot.games).toLocaleString('fr-FR')  : '—';
   document.getElementById('p-winrate').textContent = snapshot?.winrate ? `${parseFloat(snapshot.winrate).toFixed(1)}%` : '—';
 
-  // Multiplayer
   document.getElementById('p-mp-kills').textContent   = fmt(snapshot?.mp_kills);
   document.getElementById('p-mp-deaths').textContent  = fmt(snapshot?.mp_deaths);
   document.getElementById('p-mp-kd').textContent      = snapshot?.mp_kd    || '—';
   document.getElementById('p-mp-winrate').textContent = fmt(snapshot?.mp_winrate, true);
 
-  // Battle Royale
   document.getElementById('p-br-kills').textContent   = fmt(snapshot?.br_kills);
   document.getElementById('p-br-deaths').textContent  = fmt(snapshot?.br_deaths);
   document.getElementById('p-br-kd').textContent      = snapshot?.br_kd    || '—';
   document.getElementById('p-br-winrate').textContent = fmt(snapshot?.br_winrate, true);
 
-  // BR banner onglet BR
   if (snapshot?.br_rank) {
     const banner = document.getElementById('p-br-rank-banner');
     banner.style.display = 'flex';
@@ -473,16 +538,15 @@ async function loadProfil() {
 
   document.title = `${player.username || 'Joueur'} — WARSTACK`;
 
-  // Bloc WARSTACK
   renderWARSTACKBlock(xpData, walletData);
-
   initTabs();
   await loadTournois(discordId);
+  await loadXPHistory(discordId);
+  await injectEditPseudo(player);
   await injectEditLocalisation(player);
   showContent();
 }
 
-// ── TOURNOIS ──────────────────────────────────────────────────
 async function loadTournois(discordId) {
   const container = document.getElementById('p-tournois');
 
@@ -545,7 +609,45 @@ async function loadTournois(discordId) {
   `).join('');
 }
 
-function showNotFound() { loading.style.display='none'; notfound.style.display='flex'; content.style.display='none'; }
-function showContent()  { loading.style.display='none'; notfound.style.display='none'; content.style.display='block'; }
+async function loadXPHistory(discordId) {
+  const container = document.getElementById('p-xp-history');
+  if (!container) return;
+
+  const rows = await fetchSupabase(
+    `warstack_transactions?discord_id=eq.${discordId}&order=created_at.desc&limit=10`
+  );
+
+  if (!rows?.length) {
+    container.innerHTML = '<div class="profil-empty">Aucune transaction XP.</div>';
+    return;
+  }
+
+  container.innerHTML = rows.map(r => `
+    <div class="profil-tournoi-card" style="padding:12px 16px">
+      <div>
+        <div style="font-weight:600;font-size:0.9rem">${r.reason || r.type || 'Transaction'}</div>
+        <div style="color:var(--text-muted);font-size:0.75rem">${formatDate(r.created_at)}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:1.1rem;font-weight:700;color:${r.amount > 0 ? 'var(--green)' : 'var(--red)'}">
+          ${r.amount > 0 ? '+' : ''}${r.amount} XP
+        </div>
+        ${r.coins ? `<div style="font-size:0.8rem;color:#FFD700">${r.coins > 0 ? '+' : ''}${r.coins} 💰</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function showNotFound() {
+  loading.style.display  = 'none';
+  notfound.style.display = 'flex';
+  content.style.display  = 'none';
+}
+
+function showContent() {
+  loading.style.display  = 'none';
+  notfound.style.display = 'none';
+  content.style.display  = 'block';
+}
 
 loadProfil();

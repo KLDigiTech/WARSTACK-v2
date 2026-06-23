@@ -33,7 +33,6 @@
 
     <div id="profil-content" style="display:none">
 
-      <!-- HERO -->
       <div class="profil-hero">
         <div class="profil-avatar-wrapper">
           <img id="p-avatar" src="" alt="avatar" class="profil-avatar">
@@ -56,17 +55,14 @@
         </div>
       </div>
 
-      <!-- BLOC WARSTACK XP / GRADE / COINS -->
       <div class="profil-warstack-block" id="profil-warstack-block"></div>
 
-      <!-- ONGLETS -->
       <div class="profil-tabs">
         <button class="profil-tab active" data-tab="global">🌍 Global</button>
         <button class="profil-tab" data-tab="mp">🎯 Multiplayer</button>
         <button class="profil-tab" data-tab="br">🪂 Battle Royale</button>
       </div>
 
-      <!-- GLOBAL -->
       <div class="profil-tab-content active" id="tab-global">
         <div class="profil-stats-grid">
           <div class="profil-stat-card">
@@ -94,7 +90,6 @@
             <div class="profil-stat-value" id="p-winrate">—</div>
             <div class="profil-stat-label">Win Rate</div>
           </div>
-          <!-- BR RANK CARD -->
           <div class="profil-stat-card profil-stat-rank" id="p-rank-card" style="display:none">
             <div class="profil-stat-icon">
               <img id="p-rank-card-img" src="" style="width:48px;height:48px;object-fit:contain">
@@ -110,7 +105,6 @@
         </div>
       </div>
 
-      <!-- MULTIPLAYER -->
       <div class="profil-tab-content" id="tab-mp" style="display:none">
         <div class="profil-stats-grid grid-4">
           <div class="profil-stat-card">
@@ -136,7 +130,6 @@
         </div>
       </div>
 
-      <!-- BATTLE ROYALE -->
       <div class="profil-tab-content" id="tab-br" style="display:none">
         <div class="profil-br-rank-banner" id="p-br-rank-banner" style="display:none">
           <img id="p-br-banner-img" src="" style="width:40px;height:40px;object-fit:contain;display:none">
@@ -168,9 +161,11 @@
         </div>
       </div>
 
-      <!-- TOURNOIS -->
       <div class="profil-section-title">🏆 Historique Tournois</div>
       <div id="p-tournois" class="profil-tournois-list"></div>
+
+      <div class="profil-section-title">📈 Historique XP</div>
+      <div id="p-xp-history" class="profil-tournois-list"></div>
 
       <div class="profil-footer">
         <a id="p-tracker-link" href="#" target="_blank" class="profil-tracker-btn">

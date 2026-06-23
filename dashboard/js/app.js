@@ -297,6 +297,26 @@ async function initDashboard() {
   await applyPermissions();
   await loadEmojis();
   initToggleView();
+
+  document.getElementById('nav-mon-profil')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    const discordId = window.WARSTACK_DISCORD_ID;
+    const guildId   = window.WARSTACK_GUILD_ID;
+    if (discordId) window.open(`profil.html?id=${discordId}&guild=${guildId}`, '_blank');
+  });
+
+  document.getElementById('nav-inscription')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    const guildId = window.WARSTACK_GUILD_ID || sessionStorage.getItem('warstack_guild_id') || '';
+    window.location.href = `/inscription.html?guild=${guildId}`;
+  });
+
+  document.getElementById('nav-portail')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    const guildId = window.WARSTACK_GUILD_ID || sessionStorage.getItem('warstack_guild_id') || '';
+    window.open(`/portail.html?guild=${guildId}`, '_blank');
+  });
+
   const initial = window.location.hash?.replace('#', '') || 'overview';
   await navigate(initial);
   initTooltips();

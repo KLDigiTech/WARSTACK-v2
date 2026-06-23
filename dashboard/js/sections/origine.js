@@ -27,6 +27,74 @@ export async function initOrigine() {
   });
 
   document.getElementById('btn-map-heatmap').addEventListener('click', toggleHeatmap);
+
+  const isMember = window.WARSTACK_IS_MEMBER === true || window._memberViewActive === true;
+  if (isMember) initMemberLocation();
+}
+
+async function initMemberLocation() {
+  const form = document.getElementById('member-location-form');
+  if (form) form.style.display = 'block';
+
+  const discordId = window.WARSTACK_DISCORD_ID;
+  const existing  = allMembers.find(m => m.discord_id === discordId);
+  if (existing) {
+    document.getElementById('member-city-input').value    = existing.city    || '';
+    document.getElementById('member-country-input').value = existing.country || 'France';
+  }
+
+  document.getElementById('btn-member-set-location').addEventListener('click', async () => {
+    const city    = document.getElementById('member-city-input').value.trim();
+    const country = document.getElementById('member-country-input').value.trim() || 'France';
+    const fb      = document.getElementById('member-location-feedback');
+
+    if (!city) { fb.textContent = '❌ Saisis ta ville.'; fb.style.color = 'var(--red)'; return; }
+
+    fb.textContent = '🔍 Recherche en cours...';
+    fb.style.color = 'var(--text-muted)';
+
+    try {
+      const res  = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city + ', ' + country)}&format=json&limit=1`);
+      const data = await res.json();
+
+      if (!data.length) {
+        fb.textContent = '❌ Ville introuvable. Essaie avec un autre nom.';
+        fb.style.color = 'var(--red)';
+        return;
+      }
+
+      const result   = data[0];
+      const lat      = parseFloat(result.lat);
+      const lng      = parseFloat(result.lon);
+      const addrParts = result.display_name.split(',');
+      const region   = addrParts[addrParts.length - 3]?.trim() || '';
+      const guildId  = await getActiveGuildId();
+
+      const { data: player } = await fetchSupabase(`players?discord_id=eq.${discordId}&select=username,avatar_url&limit=1`);
+      const username = player?.[0]?.username || 'Membre';
+      const flag     = country.toLowerCase().includes('france') ? '🇫🇷' : '';
+
+      await fetchSupabase(`member_locations?discord_id=eq.${discordId}`, 'DELETE');
+      await fetchSupabase('member_locations', 'POST', {
+        discord_id: discordId,
+        username,
+        city,
+        region,
+        country,
+        flag,
+        lat,
+        lng,
+      });
+
+      fb.textContent = `✅ Position enregistrée : ${city}, ${country}`;
+      fb.style.color = 'var(--primary)';
+
+      await loadData();
+    } catch (err) {
+      fb.textContent = '❌ Erreur : ' + err.message;
+      fb.style.color = 'var(--red)';
+    }
+  });
 }
 
 // ── LEAFLET + PLUGINS ─────────────────────────────────────────────────────────

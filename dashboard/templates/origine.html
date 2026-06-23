@@ -29,7 +29,32 @@
     </div>
   </div>
 </div>
-
+<div id="member-location-form" class="panel" style="display:none;margin-bottom:1.5rem">
+  <div class="panel-header">
+    <h2>📍 Ma position sur la carte</h2>
+  </div>
+  <div class="panel-body">
+    <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1rem">
+      Renseigne ta ville pour apparaître sur la carte du clan. Visible par tous les membres.
+    </p>
+    <div style="display:flex;gap:.75rem;align-items:flex-end;flex-wrap:wrap">
+      <div style="flex:1;min-width:200px">
+        <label
+          style="font-size:0.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:.3rem">Ville</label>
+        <input type="text" id="member-city-input" class="form-input" placeholder="ex: Montpellier">
+      </div>
+      <div style="flex:1;min-width:150px">
+        <label
+          style="font-size:0.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:.3rem">Pays</label>
+        <input type="text" id="member-country-input" class="form-input" placeholder="ex: France" value="France">
+      </div>
+      <button class="btn btn-primary" id="btn-member-set-location">
+        <i class="fas fa-map-marker-alt"></i> Me placer sur la carte
+      </button>
+    </div>
+    <div id="member-location-feedback" style="margin-top:.75rem;font-size:0.85rem"></div>
+  </div>
+</div>
 <!-- LAYOUT PRINCIPAL -->
 <div class="carte-layout">
 

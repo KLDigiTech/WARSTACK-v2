@@ -238,8 +238,11 @@ function initToggleView() {
   const icon  = btn?.querySelector('i');
 
   if (!btn) return;
-
-  if (window.WARSTACK_IS_MEMBER) { btn.style.display = 'none'; return; }
+  if (window.WARSTACK_IS_MEMBER) {
+    document.body.classList.add('member-view');
+    btn.style.display = 'none';
+    return;
+  }
 
   btn.style.display = 'inline-flex';
 
@@ -247,10 +250,12 @@ function initToggleView() {
     _memberViewActive = !_memberViewActive;
 
     if (_memberViewActive) {
+      document.body.classList.add('member-view');
       label.textContent = 'Vue staff';
       icon.className    = 'fas fa-shield-alt';
       btn.classList.add('active');
     } else {
+      document.body.classList.remove('member-view');
       label.textContent = 'Vue membre';
       icon.className    = 'fas fa-users';
       btn.classList.remove('active');
@@ -258,7 +263,7 @@ function initToggleView() {
 
     await applyPermissions();
 
-    const firstVisible = document.querySelector('.nav-item[data-section]:not([style*="none"])');
+    const firstVisible = document.querySelector('.nav-item[data-section]:not([style*="display: none"]):not([style*="display:none"])');
     if (firstVisible) firstVisible.click();
   });
 }

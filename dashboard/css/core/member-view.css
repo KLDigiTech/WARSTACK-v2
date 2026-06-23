@@ -32,3 +32,4 @@ body.member-view #member-location-form                  { display: block !import
 body.member-view .nav-item[href]:not([data-section])    { display: none !important; }
 body.member-view #member-overview                       { display: block !important; }
 body.member-view #staff-overview                        { display: none !important; }
+body.member-view .carte-delete-btn                      { display: none !important; }

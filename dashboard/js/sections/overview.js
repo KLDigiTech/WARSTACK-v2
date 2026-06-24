@@ -284,8 +284,8 @@ export async function initMemberOverview() {
   const guildId   = await getActiveGuildId();
   const discordId = window.WARSTACK_DISCORD_ID;
 
-  const [players, tournois, events, suggestions, myTickets, myPlayer] = await Promise.all([
-    fetchSupabase(`players?guild_id=eq.${guildId}&select=discord_id`),
+  const [members, tournois, events, suggestions, myTickets, myPlayer] = await Promise.all([
+    fetchSupabase(`warstack_xp?guild_id=eq.${guildId}&select=discord_id`),
     fetchSupabase(`tournaments?guild_id=eq.${guildId}&status=eq.active&select=id,name,start_date,end_date`),
     fetchSupabase(`events?guild_id=eq.${guildId}&status=eq.open&select=id,title,date,time&order=date.asc&limit=5`),
     fetchSupabase(`suggestions?guild_id=eq.${guildId}&select=id,content,status,username,created_at&order=created_at.desc&limit=5`),
@@ -293,7 +293,7 @@ export async function initMemberOverview() {
     fetchSupabase(`players?discord_id=eq.${discordId}&select=*&limit=1`),
   ]);
 
-  document.getElementById('mov-members').textContent     = players?.length || '—';
+  document.getElementById('mov-members').textContent     = members?.length || '—';
   document.getElementById('mov-tournois').textContent    = tournois?.length || '0';
   document.getElementById('mov-events').textContent      = events?.length || '0';
   document.getElementById('mov-suggestions').textContent = suggestions?.length || '0';

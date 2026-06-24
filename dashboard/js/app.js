@@ -148,7 +148,7 @@ const PUBLIC_SECTIONS = [
 
 const MEMBER_SECTIONS = ['overview', 'players', 'tournament', 'tickets', 'suggestions', 'events', 'origine'];
 
-let _memberViewActive = false;
+window._memberViewActive = false;
 
 async function navigate(section) {
   try {
@@ -209,7 +209,7 @@ function generateId(el) {
 async function applyPermissions() {
   try {
     const permissions = await getUserPermissions();
-    const isMember    = window.WARSTACK_IS_MEMBER === true || _memberViewActive;
+    const isMember    = window.WARSTACK_IS_MEMBER === true || window._memberViewActive;
 
     document.querySelectorAll('.nav-group').forEach(group => {
       const items = group.querySelectorAll('.nav-item[data-section]');
@@ -255,6 +255,7 @@ function initToggleView() {
   if (!btn) return;
 
   if (window.WARSTACK_IS_MEMBER) {
+    window._memberViewActive = true;
     document.body.classList.add('member-view');
     btn.style.display = 'none';
     return;
@@ -263,9 +264,9 @@ function initToggleView() {
   btn.style.display = 'inline-flex';
 
   btn.addEventListener('click', async () => {
-    _memberViewActive = !_memberViewActive;
+    window._memberViewActive = !window._memberViewActive;
 
-    if (_memberViewActive) {
+    if (window._memberViewActive) {
       document.body.classList.add('member-view');
       label.textContent = 'Vue staff';
       icon.className    = 'fas fa-shield-alt';

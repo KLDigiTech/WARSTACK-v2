@@ -3,6 +3,18 @@ import { showSkeleton } from '../ui/skeleton.js';
 import { getActiveGuildId } from '../services/guildService.js';
 
 export async function initOverview() {
+  const isMember = window.WARSTACK_IS_MEMBER === true || window._memberViewActive === true;
+
+  if (isMember) {
+    document.getElementById('staff-overview').style.display  = 'none';
+    document.getElementById('member-overview').style.display = 'block';
+    await initMemberOverview();
+    return;
+  }
+
+  document.getElementById('staff-overview').style.display  = 'block';
+  document.getElementById('member-overview').style.display = 'none';
+
   showSkeleton('ov-activity-list',    'activity',   7);
   showSkeleton('ov-tickets-list',     'panel-rows', 4);
   showSkeleton('ov-suggestions-list', 'panel-rows', 4);
@@ -37,8 +49,6 @@ export async function initOverview() {
       document.querySelector(`[data-section="${section}"]`)?.click();
     });
   });
-  const isMember = window.WARSTACK_IS_MEMBER === true || window._memberViewActive === true;
-  if (isMember) { await initMemberOverview(); return; }
 }
 
 async function loadServerStats() {
@@ -283,9 +293,9 @@ export async function initMemberOverview() {
     fetchSupabase(`players?discord_id=eq.${discordId}&select=*&limit=1`),
   ]);
 
-  document.getElementById('mov-members').textContent    = players?.length || '—';
-  document.getElementById('mov-tournois').textContent   = tournois?.length || '0';
-  document.getElementById('mov-events').textContent     = events?.length || '0';
+  document.getElementById('mov-members').textContent     = players?.length || '—';
+  document.getElementById('mov-tournois').textContent    = tournois?.length || '0';
+  document.getElementById('mov-events').textContent      = events?.length || '0';
   document.getElementById('mov-suggestions').textContent = suggestions?.length || '0';
 
   const p = myPlayer?.[0];

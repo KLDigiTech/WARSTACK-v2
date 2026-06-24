@@ -348,88 +348,6 @@ async function injectEditLocalisation(player) {
   });
 }
 
-async function injectEditPseudo(player) {
-  const { supabase }                   = await import('../supabaseClient.js');
-  const { SUPABASE_URL, SUPABASE_KEY } = await import('../config.js');
-
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return;
-
-  const sessionDiscordId = session.user?.user_metadata?.provider_id
-                        || session.user?.user_metadata?.sub;
-  if (sessionDiscordId !== player.discord_id) return;
-
-  const identity = document.querySelector('.profil-identity');
-  if (!identity) return;
-
-  const editBtn       = document.createElement('button');
-  editBtn.className   = 'profil-edit-btn';
-  editBtn.style.marginTop = '8px';
-  editBtn.innerHTML   = `<i class="fas fa-edit"></i> Modifier mon pseudo BF6`;
-  identity.appendChild(editBtn);
-
-  const modal = document.createElement('div');
-  modal.className = 'profil-loc-modal';
-  modal.innerHTML = `
-    <div class="profil-loc-overlay"></div>
-    <div class="profil-loc-box">
-      <div class="profil-loc-header">
-        <h3>✏️ Pseudo Battlefield 6</h3>
-        <button class="profil-loc-close"><i class="fas fa-times"></i></button>
-      </div>
-      <div class="profil-loc-body">
-        <p class="profil-loc-hint">Ce pseudo sert à te reconnaître sur les leaderboards et les tournois.</p>
-        <div class="form-group">
-          <label>Pseudo en jeu <span style="color:#ff4444">*</span></label>
-          <input type="text" id="edit-pseudo-input" class="form-input"
-                 placeholder="Ex: HolyPriest34"
-                 value="${player.pseudo_bf6 || player.pseudo || ''}"
-                 maxlength="32">
-        </div>
-      </div>
-      <div class="profil-loc-footer">
-        <button class="profil-loc-cancel">Annuler</button>
-        <button class="profil-loc-save"><i class="fas fa-save"></i> Sauvegarder</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-
-  editBtn.addEventListener('click', () => modal.classList.add('open'));
-  modal.querySelector('.profil-loc-overlay').addEventListener('click', () => modal.classList.remove('open'));
-  modal.querySelector('.profil-loc-close').addEventListener('click',   () => modal.classList.remove('open'));
-  modal.querySelector('.profil-loc-cancel').addEventListener('click',  () => modal.classList.remove('open'));
-
-  modal.querySelector('.profil-loc-save').addEventListener('click', async () => {
-    const pseudo  = document.getElementById('edit-pseudo-input').value.trim();
-    if (!pseudo) { alert('Le pseudo ne peut pas être vide.'); return; }
-
-    const saveBtn = modal.querySelector('.profil-loc-save');
-    saveBtn.textContent = 'Sauvegarde...';
-    saveBtn.disabled    = true;
-
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/players?discord_id=eq.${player.discord_id}`, {
-        method : 'PATCH',
-        headers: {
-          apikey        : SUPABASE_KEY,
-          Authorization : `Bearer ${SUPABASE_KEY}`,
-          'Content-Type': 'application/json',
-          Prefer        : 'return=representation',
-        },
-        body: JSON.stringify({ pseudo_bf6: pseudo, pseudo }),
-      });
-      if (!res.ok) throw new Error('Erreur serveur');
-      modal.classList.remove('open');
-    } catch (err) {
-      alert('Erreur : ' + err.message);
-    } finally {
-      saveBtn.innerHTML = '<i class="fas fa-save"></i> Sauvegarder';
-      saveBtn.disabled  = false;
-    }
-  });
-}
-
 async function loadProfil() {
   if (!discordId) { showNotFound(); return; }
 
@@ -542,7 +460,6 @@ async function loadProfil() {
   initTabs();
   await loadTournois(discordId);
   await loadXPHistory(discordId);
-  await injectEditPseudo(player);
   await injectEditLocalisation(player);
   showContent();
 }

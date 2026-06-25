@@ -12,8 +12,6 @@ export async function initEvents() {
   const isMember = window.WARSTACK_IS_MEMBER === true || window._memberViewActive === true;
 
   if (isMember) {
-    document.querySelector('.events-layout > div:first-child')?.remove();
-
     document.querySelectorAll('.filter-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));

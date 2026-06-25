@@ -1,22 +1,12 @@
-// dashboard/js/sections/register.js
-
 import { supabase } from '../supabaseClient.js';
-console.log('register.js chargé');
-const TRACKER_REGEX = /tracker\.gg\/bf6\/profile\/(\d+)/;
 
-// =====================================================
-// INIT
-// =====================================================
+const TRACKER_REGEX = /tracker\.gg\/bf6\/profile\/(\d+)/;
+const guildId = new URLSearchParams(window.location.search).get('guild');
 
 async function init() {
-  console.log('init start');
   showState('loading');
-
   try {
-    const { data, error } = await supabase.auth.getSession();
-    console.log('session data:', data);
-    console.log('session error:', error);
-
+    const { data } = await supabase.auth.getSession();
     if (data?.session?.user) {
       await handleLoggedIn(data.session.user);
     } else {
@@ -24,15 +14,10 @@ async function init() {
       initDiscordBtn();
     }
   } catch(e) {
-    console.error('init crash:', e);
     showState('discord');
     initDiscordBtn();
   }
 }
-
-// =====================================================
-// BOUTON DISCORD
-// =====================================================
 
 function initDiscordBtn() {
   document.getElementById('btn-discord-login')?.addEventListener('click', async () => {
@@ -44,16 +29,11 @@ function initDiscordBtn() {
   });
 }
 
-// =====================================================
-// APRÈS CONNEXION DISCORD
-// =====================================================
-
 async function handleLoggedIn(user) {
   const discordId = user.id;
   const username  = user.user_metadata?.full_name || user.user_metadata?.name || user.email;
   const avatar    = user.user_metadata?.avatar_url || null;
 
-  // Vérifie si déjà enregistré
   const { data: existing } = await supabase
     .from('players')
     .select('*')
@@ -68,16 +48,11 @@ async function handleLoggedIn(user) {
   showForm(user);
 }
 
-// =====================================================
-// FORMULAIRE
-// =====================================================
-
 function showForm(user) {
   const discordId = user.id;
   const username  = user.user_metadata?.full_name || user.user_metadata?.name || user.email;
   const avatar    = user.user_metadata?.avatar_url || null;
 
-  // Banner user Discord
   document.getElementById('reg-user-banner').innerHTML = `
     <div class="reg-user-info">
       ${avatar ? `<img src="${avatar}" class="reg-avatar">` : '<div class="reg-avatar-placeholder"><i class="fab fa-discord"></i></div>'}
@@ -142,8 +117,7 @@ function showForm(user) {
   });
 
   function checkReady() {
-    const ok = pseudoInput.value.trim().length >= 3 && !!selectedPlatform && !!trackerId;
-    btnRegister.disabled = !ok;
+    btnRegister.disabled = !(pseudoInput.value.trim().length >= 3 && !!selectedPlatform && !!trackerId);
   }
 
   btnRegister.addEventListener('click', async () => {
@@ -176,13 +150,20 @@ function showForm(user) {
       return;
     }
 
+    if (guildId) {
+      await supabase.from('warstack_xp').upsert(
+        { discord_id: discordId, guild_id: guildId, xp: 0, level: 1 },
+        { onConflict: 'discord_id,guild_id' }
+      );
+      await supabase.from('warstack_wallets').upsert(
+        { discord_id: discordId, guild_id: guildId, coins: 0, total_earned: 0 },
+        { onConflict: 'discord_id,guild_id' }
+      );
+    }
+
     showSuccess({ pseudo, platform, username, avatar, trackerId });
   });
 }
-
-// =====================================================
-// DÉJÀ ENREGISTRÉ
-// =====================================================
 
 function showAlready(player, username, avatar) {
   showState('already');
@@ -197,16 +178,11 @@ function showAlready(player, username, avatar) {
     Tracker ID : <span>${player.tracker_id || '—'}</span>
   `;
 
-  // Bouton mettre à jour → repasse sur le form
   document.getElementById('btn-update')?.addEventListener('click', async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user) showUpdateForm(session.user, player);
   });
 }
-
-// =====================================================
-// MISE À JOUR
-// =====================================================
 
 function showUpdateForm(user, existing) {
   const discordId = user.id;
@@ -225,7 +201,6 @@ function showUpdateForm(user, existing) {
 
   showState('form');
 
-  // Pré-rempli avec les données existantes
   const pseudoInput  = document.getElementById('reg-pseudo');
   const trackerInput = document.getElementById('reg-tracker');
   const pseudoHint   = document.getElementById('reg-pseudo-hint');
@@ -245,7 +220,6 @@ function showUpdateForm(user, existing) {
   let selectedPlatform = existing.platform || null;
   let trackerId        = existing.tracker_id || null;
 
-  // Sélectionne la plateforme existante
   platformBtns.forEach(btn => {
     if (btn.dataset.platform === selectedPlatform) btn.classList.add('selected');
     btn.addEventListener('click', () => {
@@ -312,13 +286,20 @@ function showUpdateForm(user, existing) {
       avatar_url  : avatar,
     }).eq('discord_id', discordId);
 
+    if (guildId) {
+      await supabase.from('warstack_xp').upsert(
+        { discord_id: discordId, guild_id: guildId, xp: 0, level: 1 },
+        { onConflict: 'discord_id,guild_id' }
+      );
+      await supabase.from('warstack_wallets').upsert(
+        { discord_id: discordId, guild_id: guildId, coins: 0, total_earned: 0 },
+        { onConflict: 'discord_id,guild_id' }
+      );
+    }
+
     showSuccess({ pseudo, platform, username, avatar, trackerId });
   });
 }
-
-// =====================================================
-// SUCCESS
-// =====================================================
 
 function showSuccess({ pseudo, platform, username, avatar, trackerId }) {
   showState('success');
@@ -332,18 +313,10 @@ function showSuccess({ pseudo, platform, username, avatar, trackerId }) {
   `;
 }
 
-// =====================================================
-// HELPERS
-// =====================================================
-
 function showState(name) {
   document.querySelectorAll('.insc-state').forEach(el => el.classList.remove('visible'));
   document.getElementById(`state-${name}`)?.classList.add('visible');
 }
-
-// =====================================================
-// START
-// =====================================================
 
 document.addEventListener('DOMContentLoaded', () => init());
 

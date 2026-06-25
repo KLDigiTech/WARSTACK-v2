@@ -20,6 +20,7 @@ module.exports = {
     const discordId = interaction.user.id;
     const username  = interaction.user.username;
     const avatarUrl = interaction.user.displayAvatarURL({ extension: 'png', size: 256 });
+    const guildId   = interaction.guildId;
 
     const match = url.match(/tracker\.gg\/bf6\/profile\/(\d+)/);
     if (!match) {
@@ -30,7 +31,6 @@ module.exports = {
 
     const trackerId = match[1];
 
-    // Upsert joueur
     const { data: existing } = await supabase
       .from('players')
       .select('*')
@@ -53,12 +53,24 @@ module.exports = {
       }
     }
 
-    // Réponse immédiate — scrape en arrière-plan
+    await supabase
+      .from('warstack_xp')
+      .upsert(
+        { discord_id: discordId, guild_id: guildId, xp: existing?.xp ?? 0, level: 1 },
+        { onConflict: 'discord_id,guild_id' }
+      );
+
+    await supabase
+      .from('warstack_wallets')
+      .upsert(
+        { discord_id: discordId, guild_id: guildId, coins: 0, total_earned: 0 },
+        { onConflict: 'discord_id,guild_id' }
+      );
+
     await interaction.editReply({
       content: `⏳ Profil lié ! Récupération de tes stats tracker.gg en cours...\n🔗 \`${url}\``
     });
 
-    // Scrape immédiat
     const stats = await scrapeTrackerGG('psn', trackerId);
 
     if (!stats) {
@@ -67,7 +79,6 @@ module.exports = {
       });
     }
 
-    // Sauvegarde snapshot complet
     await supabase.from('player_snapshots').insert({
       tracker_id  : trackerId,
       kills       : stats.kills      || 0,
@@ -93,18 +104,17 @@ module.exports = {
       snapshot_at : new Date().toISOString(),
     });
 
-    // Embed résultat
     const embed = new EmbedBuilder()
       .setTitle(`✅ ${username} — Profil WARSTACK`)
       .setColor(0x00ff66)
       .setThumbnail(avatarUrl)
       .addFields(
-        { name: '🎯 K/D Global',    value: `\`${stats.kd}\``,          inline: true },
-        { name: '💀 Kills',         value: `\`${stats.kills}\``,        inline: true },
-        { name: '🏆 Wins',          value: `\`${stats.wins}\``,         inline: true },
+        { name: '🎯 K/D Global',    value: `\`${stats.kd}\``,           inline: true },
+        { name: '💀 Kills',         value: `\`${stats.kills}\``,         inline: true },
+        { name: '🏆 Wins',          value: `\`${stats.wins}\``,          inline: true },
         { name: '🎖️ BR Rank',       value: `\`${stats.br_rank || '—'}\``, inline: true },
-        { name: '🔫 MP K/D',        value: `\`${stats.mp_kd}\``,        inline: true },
-        { name: '📊 Win Rate',       value: `\`${stats.winrate}%\``,     inline: true },
+        { name: '🔫 MP K/D',        value: `\`${stats.mp_kd}\``,         inline: true },
+        { name: '📊 Win Rate',       value: `\`${stats.winrate}%\``,      inline: true },
       )
       .setFooter({ text: `WARSTACK • Tracker ID: ${trackerId}` })
       .setTimestamp();

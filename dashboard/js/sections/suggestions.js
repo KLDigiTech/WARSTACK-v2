@@ -98,6 +98,7 @@ export async function initSuggestions() {
 async function loadSuggestions() {
   const isMember = window.WARSTACK_IS_MEMBER === true || window._memberViewActive === true;
   const container = document.getElementById('suggestions-list');
+  if (!container) return;
   container.innerHTML = `<div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>`;
 
   const guildId = await getActiveGuildId();
@@ -211,6 +212,7 @@ async function loadLeaderboard() {
   const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
 
   const el = document.getElementById('suggestions-leaderboard');
+  if (!el) return;
   if (!sorted.length) {
     el.innerHTML = `<div style="color:var(--text-muted);font-size:0.85rem">Aucune donnée.</div>`;
     return;

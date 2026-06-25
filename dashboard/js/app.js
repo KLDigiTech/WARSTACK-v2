@@ -150,7 +150,10 @@ const MEMBER_SECTIONS = ['overview', 'players', 'tournament', 'tickets', 'sugges
 
 window._memberViewActive = false;
 
+let _navToken = 0;
+
 async function navigate(section) {
+  const myToken = ++_navToken;
   try {
     const ticketsMod = await import('./sections/tickets.js').catch(() => null);
     if (ticketsMod?.destroyTickets) ticketsMod.destroyTickets();
@@ -180,13 +183,17 @@ async function navigate(section) {
   try {
     const res  = await fetch(`/templates/${section}.html`);
     const html = await res.text();
+    if (_navToken !== myToken) return;
     content.innerHTML = html;
   } catch {
+    if (_navToken !== myToken) return;
     content.innerHTML = '';
   }
 
+  if (_navToken !== myToken) return;
   if (sections[section]) await sections[section]();
 
+  if (_navToken !== myToken) return;
   attachAllEmojiPickers();
   await applyPermissions();
   window.location.hash = section;

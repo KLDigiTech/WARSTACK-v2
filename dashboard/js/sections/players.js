@@ -657,21 +657,23 @@ function initAddPlayerModal() {
     btnConfirm.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
 
     try {
-      const existing = await fetchSupabase(`players?discord_id=eq.${finalDiscordId}`);
-      if (existing?.length > 0) { showError('Ce Discord ID existe déjà.'); return; }
+      const existingXp = await fetchSupabase(`warstack_xp?discord_id=eq.${finalDiscordId}&guild_id=eq.${guildId}`);
+      if (existingXp?.length > 0) { showError('Ce joueur est déjà membre de ce serveur.'); return; }
 
-      await insertSupabase('players', {
-        discord_id: finalDiscordId,
-        username: username,
-        pseudo_bf6: pseudoBf6,
-        platform: selectedPlatform,
-        tracker_id: trackerId,
-        tracker_url: trackerUrl || null,
-        avatar_url: fetchedAvatar || null,
-        created_at: new Date().toISOString(),
-      });
+      const existingPlayer = await fetchSupabase(`players?discord_id=eq.${finalDiscordId}`);
+      if (!existingPlayer?.length) {
+        await insertSupabase('players', {
+          discord_id: finalDiscordId,
+          username: username,
+          pseudo_bf6: pseudoBf6,
+          platform: selectedPlatform,
+          tracker_id: trackerId,
+          tracker_url: trackerUrl || null,
+          avatar_url: fetchedAvatar || null,
+          created_at: new Date().toISOString(),
+        });
+      }
 
-      // Rattache le joueur au serveur actif (sinon il n'apparaît dans aucune liste)
       const now = new Date().toISOString();
       await insertSupabase('warstack_xp', {
         discord_id: finalDiscordId,

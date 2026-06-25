@@ -21,15 +21,8 @@ export async function initTickets() {
   if (isMember) {
     const discordId = window.WARSTACK_DISCORD_ID;
 
-    document.getElementById('link-open-ticket').href = `support.html?guild=${guildId}`;
-
-    const listPanel = document.querySelector('.tickets-layout > div:last-child .panel');
-    if (listPanel) {
-      const openBtn = document.createElement('div');
-      openBtn.style.cssText = 'padding:0 0 1rem 0';
-      openBtn.innerHTML = `<a href="support.html?guild=${guildId}" target="_blank" class="btn btn-primary"><i class="fas fa-ticket-alt"></i> Ouvrir un ticket</a>`;
-      listPanel.querySelector('.panel-body')?.prepend(openBtn);
-    }
+    const linkOpen = document.getElementById('link-open-ticket');
+    if (linkOpen) linkOpen.href = `support.html?guild=${guildId}`;
 
     document.querySelectorAll('.filter-btn').forEach(btn => {
       btn.addEventListener('click', async () => {

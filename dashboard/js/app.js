@@ -191,11 +191,13 @@ async function navigate(section) {
   }
 
   if (_navToken !== myToken) return;
+  await applyPermissions();
+
+  if (_navToken !== myToken) return;
   if (sections[section]) await sections[section]();
 
   if (_navToken !== myToken) return;
   attachAllEmojiPickers();
-  await applyPermissions();
   window.location.hash = section;
 }
 

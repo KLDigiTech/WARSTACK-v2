@@ -6,19 +6,19 @@ export async function initOverview() {
   const isMember = window.WARSTACK_IS_MEMBER === true || window._memberViewActive === true;
 
   if (isMember) {
-    document.getElementById('staff-overview').style.display  = 'none';
+    document.getElementById('staff-overview').style.display = 'none';
     document.getElementById('member-overview').style.display = 'block';
     await initMemberOverview();
     return;
   }
 
-  document.getElementById('staff-overview').style.display  = 'block';
+  document.getElementById('staff-overview').style.display = 'block';
   document.getElementById('member-overview').style.display = 'none';
 
-  showSkeleton('ov-activity-list',    'activity',   7);
-  showSkeleton('ov-tickets-list',     'panel-rows', 4);
+  showSkeleton('ov-activity-list', 'activity', 7);
+  showSkeleton('ov-tickets-list', 'panel-rows', 4);
   showSkeleton('ov-suggestions-list', 'panel-rows', 4);
-  showSkeleton('ov-events-list',      'panel-rows', 3);
+  showSkeleton('ov-events-list', 'panel-rows', 3);
 
   document.querySelectorAll('.ov-kpi-value').forEach(el => {
     el.innerHTML = `<span class="skeleton sk-title" style="width:52px;display:inline-block"></span>`;
@@ -53,28 +53,31 @@ export async function initOverview() {
 
 async function loadServerStats() {
   const guildId = await getActiveGuildId();
-  const [guildData, tickets, suggestions, events, sanctions, automodLogs] = await Promise.all([
+  const [guildData, tickets, suggestions, events, sanctions, automodLogs, xpRows] = await Promise.all([
     callBotAPI('guild').catch(() => null),
     fetchSupabase(`tickets?guild_id=eq.${guildId}&status=eq.open&select=id`).catch(() => []),
     fetchSupabase(`suggestions?guild_id=eq.${guildId}&select=id`).catch(() => []),
     fetchSupabase(`events?guild_id=eq.${guildId}&select=id`).catch(() => []),
     fetchSupabase(`sanctions?guild_id=eq.${guildId}&created_at=gte.${weekAgo()}&select=id`).catch(() => []),
     fetchSupabase(`audit_logs?guild_id=eq.${guildId}&type=eq.moderation&created_at=gte.${weekAgo()}&select=id`).catch(() => []),
+    fetchSupabase(`warstack_xp?guild_id=eq.${guildId}&select=discord_id`).catch(() => []),
   ]);
 
-  const members     = guildData?.member_count    || 0;
+  const members     = guildData?.member_count || 0;
+  const joueurs     = xpRows?.length || 0;
   const ticketCount = Array.isArray(tickets)     ? tickets.length     : 0;
   const suggCount   = Array.isArray(suggestions) ? suggestions.length : 0;
   const evtCount    = Array.isArray(events)      ? events.length      : 0;
   const warnCount   = Array.isArray(sanctions)   ? sanctions.length   : 0;
   const autoCount   = Array.isArray(automodLogs) ? automodLogs.length : 0;
 
-  setKPI('ov-members',     members,     members > 0 ? 'up' : 'flat',   Math.min(members / 500 * 100, 100));
+  setKPI('ov-members',     members,     members > 0     ? 'up'   : 'flat', Math.min(members / 500 * 100, 100));
+  setKPI('ov-joueurs',     joueurs,     joueurs > 0     ? 'up'   : 'flat', members > 0 ? Math.min(joueurs / members * 100, 100) : 0);
   setKPI('ov-tickets',     ticketCount, ticketCount > 5 ? 'down' : ticketCount > 0 ? 'flat' : 'up', Math.min(ticketCount / 20 * 100, 100));
-  setKPI('ov-suggestions', suggCount,   suggCount > 0 ? 'up' : 'flat', Math.min(suggCount / 50 * 100, 100));
-  setKPI('ov-events',      evtCount,    evtCount > 0  ? 'up' : 'flat', Math.min(evtCount / 10 * 100, 100));
-  setKPI('ov-automod',     autoCount,   autoCount > 10 ? 'down' : 'flat', Math.min(autoCount / 30 * 100, 100));
-  setKPI('ov-warns',       warnCount,   warnCount > 5  ? 'down' : 'flat', Math.min(warnCount / 20 * 100, 100));
+  setKPI('ov-suggestions', suggCount,   suggCount > 0   ? 'up'   : 'flat', Math.min(suggCount / 50 * 100, 100));
+  setKPI('ov-events',      evtCount,    evtCount > 0    ? 'up'   : 'flat', Math.min(evtCount / 10 * 100, 100));
+  setKPI('ov-automod',     autoCount,   autoCount > 10  ? 'down' : 'flat', Math.min(autoCount / 30 * 100, 100));
+  setKPI('ov-warns',       warnCount,   warnCount > 5   ? 'down' : 'flat', Math.min(warnCount / 20 * 100, 100));
 }
 
 function setKPI(id, value, trend, barPct) {
@@ -124,19 +127,19 @@ async function loadActivity() {
   }
 
   const iconMap = {
-    message_delete  : { i: '🗑', bg: 'rgba(255,68,68,.1)' },
-    message_edit    : { i: '✏️', bg: 'rgba(255,255,255,.06)' },
-    member_join     : { i: '➕', bg: 'rgba(0,230,118,.1)' },
-    member_leave    : { i: '➖', bg: 'rgba(255,107,53,.1)' },
-    ticket_open     : { i: '🎫', bg: 'rgba(255,189,46,.1)' },
-    ticket_close    : { i: '🔒', bg: 'rgba(255,255,255,.06)' },
-    suggestion_post : { i: '💡', bg: 'rgba(64,196,255,.1)' },
-    ban             : { i: '🔨', bg: 'rgba(255,68,68,.15)' },
-    kick            : { i: '👢', bg: 'rgba(255,68,68,.12)' },
-    warn            : { i: '⚠️', bg: 'rgba(255,189,46,.12)' },
-    mute            : { i: '🔇', bg: 'rgba(255,107,53,.1)' },
-    automod_kick    : { i: '🤖', bg: 'rgba(0,255,100,.08)' },
-    automod_ban     : { i: '🤖', bg: 'rgba(255,68,68,.1)' },
+    message_delete  : { i: '🗑',  bg: 'rgba(255,68,68,.1)' },
+    message_edit    : { i: '✏️',  bg: 'rgba(255,255,255,.06)' },
+    member_join     : { i: '➕',  bg: 'rgba(0,230,118,.1)' },
+    member_leave    : { i: '➖',  bg: 'rgba(255,107,53,.1)' },
+    ticket_open     : { i: '🎫',  bg: 'rgba(255,189,46,.1)' },
+    ticket_close    : { i: '🔒',  bg: 'rgba(255,255,255,.06)' },
+    suggestion_post : { i: '💡',  bg: 'rgba(64,196,255,.1)' },
+    ban             : { i: '🔨',  bg: 'rgba(255,68,68,.15)' },
+    kick            : { i: '👢',  bg: 'rgba(255,68,68,.12)' },
+    warn            : { i: '⚠️',  bg: 'rgba(255,189,46,.12)' },
+    mute            : { i: '🔇',  bg: 'rgba(255,107,53,.1)' },
+    automod_kick    : { i: '🤖',  bg: 'rgba(0,255,100,.08)' },
+    automod_ban     : { i: '🤖',  bg: 'rgba(255,68,68,.1)' },
   };
 
   el.innerHTML = logs.map(l => {
@@ -284,7 +287,8 @@ export async function initMemberOverview() {
   const guildId   = await getActiveGuildId();
   const discordId = window.WARSTACK_DISCORD_ID;
 
-  const [members, tournois, events, suggestions, myTickets, myPlayer] = await Promise.all([
+  const [discordData, xpRows, tournois, events, suggestions, myTickets, myPlayer] = await Promise.all([
+    callBotAPI('guild').catch(() => null),
     fetchSupabase(`warstack_xp?guild_id=eq.${guildId}&select=discord_id`),
     fetchSupabase(`tournaments?guild_id=eq.${guildId}&status=eq.active&select=id,name,start_date,end_date`),
     fetchSupabase(`events?guild_id=eq.${guildId}&status=eq.open&select=id,title,date,time&order=date.asc&limit=5`),
@@ -293,9 +297,10 @@ export async function initMemberOverview() {
     fetchSupabase(`players?discord_id=eq.${discordId}&select=*&limit=1`),
   ]);
 
-  document.getElementById('mov-members').textContent     = members?.length || '—';
-  document.getElementById('mov-tournois').textContent    = tournois?.length || '0';
-  document.getElementById('mov-events').textContent      = events?.length || '0';
+  document.getElementById('mov-members').textContent  = discordData?.member_count || '—';
+  document.getElementById('mov-joueurs').textContent  = xpRows?.length || '0';
+  document.getElementById('mov-tournois').textContent = tournois?.length || '0';
+  document.getElementById('mov-events').textContent   = events?.length || '0';
   document.getElementById('mov-suggestions').textContent = suggestions?.length || '0';
 
   const p = myPlayer?.[0];
@@ -335,7 +340,7 @@ export async function initMemberOverview() {
 
   document.getElementById('mov-suggestions-list').innerHTML = suggestions?.length ? suggestions.map(s => `
     <div style="padding:.4rem 0;border-bottom:1px solid var(--border)">
-      <div style="font-size:0.85rem">${s.content?.slice(0,80)}${s.content?.length > 80 ? '...' : ''}</div>
+      <div style="font-size:0.85rem">${s.content?.slice(0, 80)}${s.content?.length > 80 ? '...' : ''}</div>
       <div style="color:var(--text-muted);font-size:0.75rem">${s.username} · ${new Date(s.created_at).toLocaleDateString('fr-FR')}</div>
     </div>`).join('') : `<div style="color:var(--text-muted);font-size:0.85rem">Aucune suggestion.</div>`;
 }

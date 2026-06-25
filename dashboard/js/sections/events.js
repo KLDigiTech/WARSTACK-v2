@@ -211,6 +211,7 @@ async function loadEvents() {
   const container = document.getElementById('events-list');
   if (!container) return;
   container.innerHTML = `<div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>`;
+  const guildId = await getActiveGuildId();
   let url = `events?guild_id=eq.${guildId}&select=*&order=date.desc,time.desc`;
   if (currentFilter !== 'all') url += `&status=eq.${currentFilter}`;
 

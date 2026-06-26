@@ -12,17 +12,6 @@ export async function initSuggestions() {
   const isMember = window.WARSTACK_IS_MEMBER === true || window._memberViewActive === true;
 
   if (isMember) {
-    document.querySelector('.suggestions-layout > div:first-child')?.remove();
-
-    const memberForm = document.getElementById('member-suggest-form');
-    if (memberForm) memberForm.style.display = 'block';
-
-    const suggestionsRight = document.querySelector('.suggestions-right');
-    if (suggestionsRight) {
-      suggestionsRight.style.display = 'flex';
-      suggestionsRight.style.flexDirection = 'column-reverse';
-    }
-
     document.querySelectorAll('.filter-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -51,7 +40,6 @@ export async function initSuggestions() {
       await loadSuggestions();
       await loadStats();
       await loadLeaderboard();
-      return;
     });
     await loadSuggestions();
     await loadStats();

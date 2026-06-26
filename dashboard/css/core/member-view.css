@@ -11,8 +11,6 @@ body.member-view .data-table td:last-child              { display: none !importa
 
 body.member-view .suggestions-layout > div:first-child  { display: none !important; }
 body.member-view .suggestion-actions                    { display: none !important; }
-body.member-view #member-suggest-form                   { display: block !important; }
-body.member-view .suggestions-right                     { display: flex !important; flex-direction: column-reverse !important; }
 
 body.member-view .events-staff-panel                    { display: none !important; }
 body.member-view #btn-msg-participants                   { display: none !important; }

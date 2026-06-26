@@ -4,22 +4,13 @@
     <span class="coins-value" id="boutique-coins">0</span>
     <span class="coins-label">WAR Coins</span>
   </div>
-  <div class="boutique-tabs" id="boutique-tabs">
+  <div class="boutique-tabs">
     <button class="boutique-tab active" data-tab="shop">🏪 Boutique</button>
     <button class="boutique-tab" data-tab="inventory">🎒 Inventaire</button>
   </div>
 </div>
 
 <div id="boutique-shop-panel">
-  <div class="boutique-filters">
-    <button class="filter-btn active" data-cat="all">Tous</button>
-    <button class="filter-btn" data-cat="badge">🏅 Badges</button>
-    <button class="filter-btn" data-cat="title">📛 Titres</button>
-    <button class="filter-btn" data-cat="profile_frame">🖼️ Cadres</button>
-    <button class="filter-btn" data-cat="profile_background">🎨 Fonds</button>
-    <button class="filter-btn" data-cat="soldier_skin">🎖️ Soldat</button>
-    <button class="filter-btn" data-cat="discord_role">👑 Rôles</button>
-  </div>
 
   <div class="boutique-staff-panel" id="boutique-staff-panel">
     <div class="panel">
@@ -83,14 +74,38 @@
     </div>
   </div>
 
-  <div class="boutique-grid" id="boutique-grid">
-    <div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>
+  <div class="panel">
+    <div class="panel-header">
+      <h2>🏪 Items disponibles</h2>
+      <div class="boutique-filters">
+        <button class="filter-btn active" data-cat="all">Tous</button>
+        <button class="filter-btn" data-cat="badge">🏅 Badges</button>
+        <button class="filter-btn" data-cat="title">📛 Titres</button>
+        <button class="filter-btn" data-cat="profile_frame">🖼️ Cadres</button>
+        <button class="filter-btn" data-cat="profile_background">🎨 Fonds</button>
+        <button class="filter-btn" data-cat="soldier_skin">🎖️ Soldat</button>
+        <button class="filter-btn" data-cat="discord_role">👑 Rôles</button>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="boutique-grid" id="boutique-grid">
+        <div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>
+      </div>
+    </div>
   </div>
+
 </div>
 
 <div id="boutique-inventory-panel" style="display:none">
-  <div class="boutique-grid" id="inventory-grid">
-    <div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>
+  <div class="panel">
+    <div class="panel-header">
+      <h2>🎒 Mon inventaire</h2>
+    </div>
+    <div class="panel-body">
+      <div class="boutique-grid" id="inventory-grid">
+        <div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>
+      </div>
+    </div>
   </div>
 </div>
 

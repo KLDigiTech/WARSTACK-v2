@@ -231,6 +231,28 @@ export async function initOnboarding() {
 
   document.getElementById('ob-save').addEventListener('click', saveOnboarding);
   document.getElementById('ob-btn-post').addEventListener('click', postPanel);
+  document.getElementById('ob-btn-test')?.addEventListener('click', async () => {
+    const channelId = document.getElementById('ob-channel').value;
+    if (!channelId) return showToast('❌ Configure d\'abord un salon d\'onboarding', 'error');
+
+    const btn = document.getElementById('ob-btn-test');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi...';
+
+    try {
+      const result = await callBotAPI('onboarding/test', 'POST', {});
+      if (result?.success) {
+        showToast('✅ Message de test envoyé dans le salon !');
+      } else {
+        showToast('❌ ' + (result?.error || 'Erreur'), 'error');
+      }
+    } catch {
+      showToast('❌ Erreur réseau', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-flask"></i> Tester';
+    }
+  });
 
   loadStats();
 }

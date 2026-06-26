@@ -1160,6 +1160,67 @@ router.post('/onboarding/post', auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+router.post('/onboarding/test', auth, async (req, res) => {
+  try {
+    const guild = resolveGuild(req);
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
+
+    const { data: configs } = await supabase.from('config').select('*').eq('guild_id', guild.id);
+    const getConf = k => configs?.find(c => c.key === k)?.value;
+
+    const obChannelId = getConf('ob_channel');
+    if (!obChannelId) return res.status(400).json({ error: 'Salon d\'onboarding non configuré' });
+
+    const obChannel = guild.channels.cache.get(obChannelId);
+    if (!obChannel) return res.status(404).json({ error: 'Salon introuvable' });
+
+    const owner = await guild.members.fetch(guild.ownerId).catch(() => null);
+    if (!owner) return res.status(404).json({ error: 'Impossible de récupérer le fondateur' });
+
+    const welcomeTitle = getConf('ob_welcome_title') || `👋 Bienvenue sur ${guild.name} !`;
+    const welcomeDesc  = (getConf('ob_welcome_desc') ||
+      'Tu es sur le point de rejoindre notre communauté.\n\nClique sur le bouton ci-dessous pour commencer ton inscription. Cela ne prend que quelques minutes !')
+      .replace(/{user}/g,    owner.user.username)
+      .replace(/{server}/g,  guild.name)
+      .replace(/{mention}/g, owner.toString());
+
+    const guildIconUrl  = guild.iconURL({ extension: 'png', size: 256 }) || null;
+    const registerUrl   = getConf('ob_register_url') ||
+      `https://warstack-v2.vercel.app/register-public.html?guild=${guild.id}`;
+
+    const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+
+    const embed = new EmbedBuilder()
+      .setTitle(`🧪 [TEST] ${welcomeTitle}`)
+      .setDescription(welcomeDesc)
+      .setColor(0xFF6B35)
+      .setThumbnail(owner.user.displayAvatarURL({ extension: 'png', size: 256 }))
+      .addFields(
+        { name: '📋 Étapes', value: '1️⃣ Règlement → 2️⃣ Pseudo → 3️⃣ Équipe → 4️⃣ Plateforme → 5️⃣ Jeux → 6️⃣ Tracker', inline: false },
+        { name: '⚠️ Test', value: 'Ceci est un message de test. Le vrai embed sera identique sans le badge [TEST].', inline: false }
+      )
+      .setFooter({ text: `WARSTACK • Test — ${guild.name}`, iconURL: guildIconUrl || undefined })
+      .setTimestamp();
+
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setLabel('🚀 Commencer l\'inscription')
+        .setURL(registerUrl)
+        .setStyle(ButtonStyle.Link)
+    );
+
+    await obChannel.send({
+      content : `${owner.toString()} *(simulation d'arrivée d'un nouveau membre)*`,
+      embeds  : [embed],
+      components: [row],
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('❌ onboarding/test error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
 router.post('/onboarding/approve', auth, async (req, res) => {
   try {
     const { discord_id } = req.body;

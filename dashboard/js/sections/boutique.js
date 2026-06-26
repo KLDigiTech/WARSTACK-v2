@@ -55,8 +55,8 @@ async function loadCoins() {
 
 async function loadShop() {
   const guildId = await getActiveGuildId();
-  const data = await fetchSupabase(`shop_items?guild_id=eq.${guildId}&available=eq.true&select=*&order=created_at.desc`);
-  allItems = data || [];
+  const data = await fetchSupabase(`shop_items?guild_id=eq.${guildId}&select=*&order=created_at.desc`);
+  allItems = (data || []).filter(i => i.available !== false);
   renderShop();
 }
 
@@ -73,10 +73,12 @@ function renderShop() {
 
   grid.innerHTML = filtered.map(item => `
     <div class="boutique-card rarity-${item.rarity}" data-id="${item.id}">
-      <div class="boutique-card-icon">${item.image_url
-        ? `<img src="${item.image_url}" alt="${item.name}">`
-        : `<span>${item.icon || '🎁'}</span>`
-      }</div>
+      <div class="boutique-card-icon">
+        ${item.image_url
+          ? `<img src="${item.image_url}" alt="${item.name}">`
+          : `<span>${item.icon || '🎁'}</span>`
+        }
+      </div>
       <div class="boutique-card-info">
         <div class="boutique-card-name">${item.name}</div>
         <div class="boutique-card-cat">${categoryLabel(item.category)}</div>
@@ -112,12 +114,14 @@ async function loadInventory() {
     const item = pi.shop_items;
     if (!item) return '';
     return `
-      <div class="boutique-card rarity-${item.rarity} ${pi.equipped ? 'equipped' : ''}" data-player-item-id="${pi.id}" data-item-id="${item.id}">
+      <div class="boutique-card rarity-${item.rarity} ${pi.equipped ? 'equipped' : ''}" data-player-item-id="${pi.id}">
         ${pi.equipped ? '<div class="equipped-badge">✅ Équipé</div>' : ''}
-        <div class="boutique-card-icon">${item.image_url
-          ? `<img src="${item.image_url}" alt="${item.name}">`
-          : `<span>${item.icon || '🎁'}</span>`
-        }</div>
+        <div class="boutique-card-icon">
+          ${item.image_url
+            ? `<img src="${item.image_url}" alt="${item.name}">`
+            : `<span>${item.icon || '🎁'}</span>`
+          }
+        </div>
         <div class="boutique-card-info">
           <div class="boutique-card-name">${item.name}</div>
           <div class="boutique-card-cat">${categoryLabel(item.category)}</div>

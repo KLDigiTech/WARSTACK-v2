@@ -1,10 +1,10 @@
-import { initModal }          from './ui/modal.js';
-import { $ }                  from './utils/dom.js';
-import { getBotStatus }       from './services/botService.js';
+import { initModal } from './ui/modal.js';
+import { $ } from './utils/dom.js';
+import { getBotStatus } from './services/botService.js';
 import { getUserPermissions } from './services/permissionService.js';
 import { loadEmojis, attachEmojiPicker } from './components/emojiPicker.js';
-import { initTooltips }       from './components/tooltip.js';
-import { initNotifications }  from './components/notifications.js';
+import { initTooltips } from './components/tooltip.js';
+import { initNotifications } from './components/notifications.js';
 import { loadConfigs, getConfig } from './services/configService.js';
 
 initModal();
@@ -12,7 +12,7 @@ initModal();
 async function preloadTheme() {
   try {
     const configs = await loadConfigs();
-    const root    = document.documentElement;
+    const root = document.documentElement;
 
     const savedTokens = getConfig(configs, 'theme_tokens');
     if (savedTokens) {
@@ -20,19 +20,19 @@ async function preloadTheme() {
       for (const [varName, value] of Object.entries(tokens)) {
         root.style.setProperty(varName, value);
         if (varName === '--primary') {
-          root.style.setProperty('--green',          value);
-          root.style.setProperty('--primary-glow',   hexToRgba(value, .08));
+          root.style.setProperty('--green', value);
+          root.style.setProperty('--primary-glow', hexToRgba(value, .08));
           root.style.setProperty('--primary-glow-2', hexToRgba(value, .18));
-          root.style.setProperty('--border',         hexToRgba(value, .18));
-          root.style.setProperty('--border-hover',   hexToRgba(value, .45));
+          root.style.setProperty('--border', hexToRgba(value, .18));
+          root.style.setProperty('--border-hover', hexToRgba(value, .45));
         }
         if (varName === '--danger') {
-          root.style.setProperty('--red',         value);
+          root.style.setProperty('--red', value);
           root.style.setProperty('--danger-soft', hexToRgba(value, .12));
           root.style.setProperty('--danger-glow', hexToRgba(value, .25));
         }
         if (varName === '--warning') {
-          root.style.setProperty('--yellow',       value);
+          root.style.setProperty('--yellow', value);
           root.style.setProperty('--warning-soft', hexToRgba(value, .12));
           root.style.setProperty('--warning-glow', hexToRgba(value, .25));
         }
@@ -52,26 +52,26 @@ async function preloadTheme() {
 
     const savedRadius = getConfig(configs, 'theme_radius');
     if (savedRadius) {
-      root.style.setProperty('--radius',    savedRadius);
+      root.style.setProperty('--radius', savedRadius);
       root.style.setProperty('--radius-xs', savedRadius);
     }
-  } catch {}
+  } catch { }
 }
 
 function hexToRgba(hex, alpha) {
   if (!hex || hex.length < 7) return `rgba(0,255,100,${alpha})`;
-  const r = parseInt(hex.slice(1,3), 16);
-  const g = parseInt(hex.slice(3,5), 16);
-  const b = parseInt(hex.slice(5,7), 16);
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
 function lightenHex(hex, amount) {
   if (!hex || hex.length < 7) return hex;
-  const r = Math.min(255, parseInt(hex.slice(1,3), 16) + amount);
-  const g = Math.min(255, parseInt(hex.slice(3,5), 16) + amount);
-  const b = Math.min(255, parseInt(hex.slice(5,7), 16) + amount);
-  return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+  const r = Math.min(255, parseInt(hex.slice(1, 3), 16) + amount);
+  const g = Math.min(255, parseInt(hex.slice(3, 5), 16) + amount);
+  const b = Math.min(255, parseInt(hex.slice(5, 7), 16) + amount);
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
 
 function loadGoogleFont(fontFamily) {
@@ -81,8 +81,8 @@ function loadGoogleFont(fontFamily) {
   const id = `gfont-${name.replace(/\s/g, '-')}`;
   if (document.getElementById(id)) return;
   const link = document.createElement('link');
-  link.id   = id;
-  link.rel  = 'stylesheet';
+  link.id = id;
+  link.rel = 'stylesheet';
   link.href = `https://fonts.googleapis.com/css2?family=${name.replace(/\s/g, '+')}:wght@400;600;700&display=swap`;
   document.head.appendChild(link);
 }
@@ -97,8 +97,8 @@ updateClock();
 
 async function checkBotStatus() {
   try {
-    const data  = await getBotStatus();
-    const dot   = $('#status-dot');
+    const data = await getBotStatus();
+    const dot = $('#status-dot');
     const label = $('#status-label');
     if (data?.status === 'online') {
       dot?.classList.add('online');
@@ -115,29 +115,29 @@ checkBotStatus();
 setInterval(checkBotStatus, 30000);
 
 const sections = {
-  overview:    () => import('./sections/overview.js').then(m => m.initOverview()),
-  players:     () => import('./sections/players.js').then(m => m.initPlayers()),
-  analytics:   () => import('./sections/analytics.js').then(m => m.initAnalytics()),
-  tournament:  () => import('./sections/tournament.js').then(m => m.initTournament()),
-  welcome:     () => import('./sections/welcome.js').then(m => m.initWelcome()),
-  onboarding:  () => import('./sections/onboarding.js').then(m => m.initOnboarding()),
-  roles:       () => import('./sections/roles.js').then(m => m.initRoles()),
-  birthdays:   () => import('./sections/birthdays.js').then(m => m.initBirthdays()),
+  overview: () => import('./sections/overview.js').then(m => m.initOverview()),
+  players: () => import('./sections/players.js').then(m => m.initPlayers()),
+  analytics: () => import('./sections/analytics.js').then(m => m.initAnalytics()),
+  tournament: () => import('./sections/tournament.js').then(m => m.initTournament()),
+  welcome: () => import('./sections/welcome.js').then(m => m.initWelcome()),
+  onboarding: () => import('./sections/onboarding.js').then(m => m.initOnboarding()),
+  roles: () => import('./sections/roles.js').then(m => m.initRoles()),
+  birthdays: () => import('./sections/birthdays.js').then(m => m.initBirthdays()),
   suggestions: () => import('./sections/suggestions.js').then(m => m.initSuggestions()),
-  events:      () => import('./sections/events.js').then(m => m.initEvents()),
-  moderation:  () => import('./sections/moderation.js').then(m => m.initModeration()),
-  automod:     () => import('./sections/automod.js').then(m => m.initAutomod()),
-  tickets:     () => import('./sections/tickets.js').then(m => m.initTickets()),
-  logs:        () => import('./sections/logs.js').then(m => m.initLogs()),
-  messages:    () => import('./sections/messages.js').then(m => m.initMessages()),
-  reactions:   () => import('./sections/reactions.js').then(m => m.initReactions()),
-  channels:    () => import('./sections/channels.js').then(m => m.initChannels()),
-  access:      () => import('./sections/access.js').then(m => m.initAccess()),
-  settings:    () => import('./sections/settings.js').then(m => m.initSettings()),
-  'ocr-test':  () => import('./sections/ocr-test.js').then(m => m.initOcrTest()),
-  origine:     () => import('./sections/origine.js').then(m => m.initOrigine()),
+  events: () => import('./sections/events.js').then(m => m.initEvents()),
+  moderation: () => import('./sections/moderation.js').then(m => m.initModeration()),
+  automod: () => import('./sections/automod.js').then(m => m.initAutomod()),
+  tickets: () => import('./sections/tickets.js').then(m => m.initTickets()),
+  logs: () => import('./sections/logs.js').then(m => m.initLogs()),
+  messages: () => import('./sections/messages.js').then(m => m.initMessages()),
+  reactions: () => import('./sections/reactions.js').then(m => m.initReactions()),
+  channels: () => import('./sections/channels.js').then(m => m.initChannels()),
+  access: () => import('./sections/access.js').then(m => m.initAccess()),
+  settings: () => import('./sections/settings.js').then(m => m.initSettings()),
+  'ocr-test': () => import('./sections/ocr-test.js').then(m => m.initOcrTest()),
+  origine: () => import('./sections/origine.js').then(m => m.initOrigine()),
   rulebuilder: () => import('./sections/rulebuilder.js').then(m => m.initRuleBuilder()),
-  team:        () => import('./sections/team.js').then(m => m.initTeam()),
+  team: () => import('./sections/team.js').then(m => m.initTeam()),
 };
 
 const PUBLIC_SECTIONS = [
@@ -157,7 +157,7 @@ async function navigate(section) {
   try {
     const ticketsMod = await import('./sections/tickets.js').catch(() => null);
     if (ticketsMod?.destroyTickets) ticketsMod.destroyTickets();
-  } catch {}
+  } catch { }
 
   document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
   const item = document.querySelector(`[data-section="${section}"]`);
@@ -181,7 +181,7 @@ async function navigate(section) {
   `;
 
   try {
-    const res  = await fetch(`/templates/${section}.html`);
+    const res = await fetch(`/templates/${section}.html`);
     const html = await res.text();
     if (_navToken !== myToken) return;
     content.innerHTML = html;
@@ -218,7 +218,7 @@ function generateId(el) {
 async function applyPermissions() {
   try {
     const permissions = await getUserPermissions();
-    const isMember    = window.WARSTACK_IS_MEMBER === true || window._memberViewActive;
+    const isMember = window.WARSTACK_IS_MEMBER === true || window._memberViewActive;
 
     document.querySelectorAll('.nav-group').forEach(group => {
       const items = group.querySelectorAll('.nav-item[data-section]');
@@ -226,7 +226,7 @@ async function applyPermissions() {
 
       items.forEach(item => {
         const section = item.dataset.section;
-        let visible   = false;
+        let visible = false;
 
         if (isMember) {
           visible = MEMBER_SECTIONS.includes(section);
@@ -248,7 +248,16 @@ async function applyPermissions() {
     });
 
     document.querySelectorAll('.nav-item:not([data-section])').forEach(item => {
-      item.style.display = isMember ? 'none' : 'flex';
+      const id = item.id;
+      if (isMember) {
+        if (id === 'nav-mon-profil' || id === 'nav-portail') {
+          item.style.display = 'flex';
+        } else {
+          item.style.display = 'none';
+        }
+      } else {
+        item.style.display = 'flex';
+      }
     });
 
   } catch {
@@ -257,9 +266,9 @@ async function applyPermissions() {
 }
 
 function initToggleView() {
-  const btn   = document.getElementById('btn-toggle-view');
+  const btn = document.getElementById('btn-toggle-view');
   const label = document.getElementById('toggle-view-label');
-  const icon  = btn?.querySelector('i');
+  const icon = btn?.querySelector('i');
 
   if (!btn) return;
 
@@ -278,12 +287,12 @@ function initToggleView() {
     if (window._memberViewActive) {
       document.body.classList.add('member-view');
       label.textContent = 'Vue staff';
-      icon.className    = 'fas fa-shield-alt';
+      icon.className = 'fas fa-shield-alt';
       btn.classList.add('active');
     } else {
       document.body.classList.remove('member-view');
       label.textContent = 'Vue membre';
-      icon.className    = 'fas fa-users';
+      icon.className = 'fas fa-users';
       btn.classList.remove('active');
     }
 
@@ -311,14 +320,19 @@ async function initDashboard() {
   document.getElementById('nav-mon-profil')?.addEventListener('click', (e) => {
     e.preventDefault();
     const discordId = window.WARSTACK_DISCORD_ID;
-    const guildId   = window.WARSTACK_GUILD_ID;
+    const guildId = window.WARSTACK_GUILD_ID;
     if (discordId) window.open(`profil.html?id=${discordId}&guild=${guildId}`, '_blank');
   });
 
   document.getElementById('nav-inscription')?.addEventListener('click', (e) => {
     e.preventDefault();
-    const guildId = window.WARSTACK_GUILD_ID || sessionStorage.getItem('warstack_guild_id') || '';
-    window.location.href = `/inscription.html?guild=${guildId}`;
+    const isMember = window.WARSTACK_IS_MEMBER === true || window._memberViewActive;
+    if (isMember) {
+      document.querySelector('[data-section="tournament"]')?.click();
+    } else {
+      const guildId = window.WARSTACK_GUILD_ID || sessionStorage.getItem('warstack_guild_id') || '';
+      window.location.href = `/inscription.html?guild=${guildId}`;
+    }
   });
 
   document.getElementById('nav-portail')?.addEventListener('click', (e) => {

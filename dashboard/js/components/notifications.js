@@ -95,11 +95,11 @@ async function loadNotifications() {
 
   const [tickets, suggestions, sanctions, auditLogs, onboardingLogs, events] = await Promise.all([
     fetchSupabase(`tickets?guild_id=eq.${guildId}&status=eq.open&order=created_at.desc&limit=5`).catch(() => []),
-    fetchSupabase(`suggestions?status=eq.pending&order=created_at.desc&limit=3`).catch(() => []),
+    fetchSupabase(`suggestions?guild_id=eq.${guildId}&status=eq.pending&order=created_at.desc&limit=3`).catch(() => []),
     fetchSupabase(`sanctions?guild_id=eq.${guildId}&active=eq.true&created_at=gte.${yesterday}&order=created_at.desc&limit=3`).catch(() => []),
     fetchSupabase(`audit_logs?guild_id=eq.${guildId}&type=eq.moderation&action=in.(automod_ban,automod_kick)&created_at=gte.${oneHour}&order=created_at.desc&limit=3`).catch(() => []),
     fetchSupabase(`onboarding_logs?guild_id=eq.${guildId}&created_at=gte.${yesterday}&order=created_at.desc&limit=5`).catch(() => []),
-    fetchSupabase(`events?date=gte.${now}&status=eq.open&order=date.asc&limit=3`).catch(() => []),
+    fetchSupabase(`events?guild_id=eq.${guildId}&date=gte.${now}&status=eq.open&order=date.asc&limit=3`).catch(() => []),
   ]);
 
   const newNotifs = [];

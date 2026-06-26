@@ -1,3 +1,5 @@
+// dashboard/js/pages/profil.js — FICHIER COMPLET
+
 import { fetchSupabase } from '../api.js';
 
 const params    = new URLSearchParams(window.location.search);
@@ -209,6 +211,32 @@ function renderWARSTACKBlock(xpData, walletData) {
   `;
 }
 
+function renderEquippedItems(items) {
+  const block = document.getElementById('profil-warstack-block');
+  if (!block || !items.length) return;
+
+  const badges = items.filter(i => i.shop_items?.category === 'badge');
+  const titles = items.filter(i => i.shop_items?.category === 'title');
+
+  if (titles.length) {
+    const title = titles[0].shop_items;
+    const platformEl = document.getElementById('p-platform');
+    if (platformEl) platformEl.textContent = `${title.icon || '📛'} ${title.name}`;
+  }
+
+  if (badges.length) {
+    const badgesHtml = `
+      <div class="profil-badges">
+        ${badges.map(b => {
+          const item = b.shop_items;
+          return `<span class="profil-badge rarity-badge-${item.rarity}" title="${item.name}">${item.icon || '🏅'}</span>`;
+        }).join('')}
+      </div>
+    `;
+    block.insertAdjacentHTML('beforeend', badgesHtml);
+  }
+}
+
 async function injectEditLocalisation(player) {
   const { supabase }                   = await import('../supabaseClient.js');
   const { SUPABASE_URL, SUPABASE_KEY } = await import('../config.js');
@@ -351,15 +379,17 @@ async function injectEditLocalisation(player) {
 async function loadProfil() {
   if (!discordId) { showNotFound(); return; }
 
-  const [players, xpRows, walletRows] = await Promise.all([
+  const [players, xpRows, walletRows, itemsRows] = await Promise.all([
     fetchSupabase(`players?discord_id=eq.${discordId}&select=*`),
     fetchSupabase(`warstack_xp?discord_id=eq.${discordId}&select=*`),
     fetchSupabase(`warstack_wallets?discord_id=eq.${discordId}&select=*`),
+    fetchSupabase(`player_items?discord_id=eq.${discordId}&equipped=eq.true&select=*,shop_items(*)`),
   ]);
 
   const player     = players?.[0];
   const xpData     = xpRows?.[0]    || null;
   const walletData = walletRows?.[0] || null;
+  const equippedItems = itemsRows || [];
 
   if (!player) { showNotFound(); return; }
 
@@ -457,6 +487,7 @@ async function loadProfil() {
   document.title = `${player.username || 'Joueur'} — WARSTACK`;
 
   renderWARSTACKBlock(xpData, walletData);
+  renderEquippedItems(equippedItems);
   initTabs();
   await loadTournois(discordId);
   await loadXPHistory(discordId);

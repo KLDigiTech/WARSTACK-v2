@@ -15,6 +15,29 @@
   .dash-header  { margin: -20px -22px 32px -22px; }
 }
 
+/* ─── MEDIUM 768–960px ─── */
+@media (max-width: 960px) {
+  .moderation-layout       { grid-template-columns: 1fr; }
+  .mod-actions             { grid-template-columns: repeat(2, 1fr); }
+  .mod-member-stats        { grid-template-columns: repeat(2, 1fr); }
+  .automod-layout          { grid-template-columns: 1fr; }
+  .settings-layout         { grid-template-columns: 1fr; }
+  .settings-server-stats   { grid-template-columns: repeat(2, 1fr); }
+  .tickets-layout          { grid-template-columns: 1fr; }
+  .ticket-meta-grid        { grid-template-columns: 1fr; }
+  .suggestions-stats       { grid-template-columns: repeat(2, 1fr); }
+  .suggestions-layout      { grid-template-columns: 1fr; }
+  .events-layout           { grid-template-columns: 1fr; }
+  .event-counters          { grid-template-columns: repeat(2, 1fr); }
+  .carte-layout            { grid-template-columns: 1fr; }
+  .onboarding-layout       { grid-template-columns: 1fr; }
+  .tournament-layout       { grid-template-columns: 1fr; }
+  .welcome-layout          { grid-template-columns: 1fr; }
+  .analytics-grid          { grid-template-columns: 1fr; }
+  .analytics-cards         { grid-template-columns: repeat(2, 1fr); }
+  .an-panel--wide          { grid-column: 1; }
+}
+
 /* ─── MOBILE < 768px ─── */
 @media (max-width: 768px) {
   :root {
@@ -174,9 +197,10 @@
     background : var(--primary-glow);
   }
 
-  /* ── GRIDS ── */
+  /* ── GRIDS GÉNÉRIQUES ── */
   .cards-grid { grid-template-columns: 1fr 1fr !important; }
   .form-grid  { grid-template-columns: 1fr !important; }
+  .form-grid-2 { grid-template-columns: 1fr !important; }
 
   /* ── PANELS ── */
   .panel        { border-radius: var(--radius-md); }
@@ -244,7 +268,9 @@
   .event-counters { grid-template-columns: repeat(2, 1fr) !important; }
 
   /* ── TICKETS ── */
-  .tickets-layout { grid-template-columns: 1fr !important; }
+  .tickets-layout   { grid-template-columns: 1fr !important; }
+  .ticket-meta-grid { grid-template-columns: 1fr !important; }
+  .tickets-stats    { grid-template-columns: repeat(2, 1fr) !important; }
 
   /* ── TOURNOI ── */
   .tournament-layout      { grid-template-columns: 1fr !important; }
@@ -294,6 +320,48 @@
   .welcome-layout { grid-template-columns: 1fr !important; }
   .welcome-right  { display: none; }
 
+  /* ── MODÉRATION ── */
+  .moderation-layout  { grid-template-columns: 1fr !important; }
+  .mod-member-stats   { grid-template-columns: repeat(2, 1fr) !important; }
+  .mod-actions        { grid-template-columns: 1fr !important; }
+  .mod-sanction-row   { flex-wrap: wrap; gap: 6px; }
+
+  /* ── AUTO-MOD ── */
+  .automod-layout { grid-template-columns: 1fr !important; }
+
+  /* ── TEAM ── */
+  .role-choices { grid-template-columns: 1fr !important; }
+  .perms-list   { grid-template-columns: 1fr !important; }
+
+  /* ── SETTINGS ── */
+  .settings-layout        { grid-template-columns: 1fr !important; }
+  .settings-server-stats  { grid-template-columns: repeat(2, 1fr) !important; }
+  .theme-colors-grid      { grid-template-columns: repeat(2, 1fr) !important; }
+  .settings-portal-grid   { grid-template-columns: 1fr 1fr !important; }
+
+  /* ── INSCRIPTION ── */
+  .platform-grid  { grid-template-columns: 1fr 1fr !important; }
+  .team-mode-grid { grid-template-columns: 1fr !important; }
+
+  /* ── ACCESS ── */
+  .access-modules-grid { grid-template-columns: 1fr 1fr !important; }
+  .access-modal-footer { flex-wrap: wrap; }
+
+  /* ── ORIGINE / CARTE ── */
+  .carte-layout    { grid-template-columns: 1fr !important; }
+  .carte-hero-stats { flex-direction: column; }
+
+  /* ── BOUTIQUE ── */
+  .boutique-header { flex-direction: column; align-items: flex-start; }
+  .boutique-grid   { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+
+  /* ── NOTIFICATIONS PAGE ── */
+  .notifs-page-header { flex-direction: column; align-items: flex-start; }
+  .notifs-page-stats  { grid-template-columns: repeat(2, 1fr) !important; }
+  .notifs-page-filters { gap: 0.3rem; }
+  .notifs-page-item   { flex-wrap: wrap; gap: 0.5rem; }
+  .notifs-page-item-actions { width: 100%; justify-content: flex-end; }
+
   /* ── BOUTONS ── */
   .btn-group       { flex-wrap: wrap; gap: 6px; }
   .dp-buttons      { flex-wrap: wrap; }
@@ -322,6 +390,9 @@
   .ov-stats-grid     { grid-template-columns: repeat(2, 1fr) !important; gap: 6px; }
   .analytics-cards   { grid-template-columns: 1fr !important; }
   .suggestions-stats { grid-template-columns: 1fr 1fr !important; }
+  .notifs-page-stats { grid-template-columns: 1fr 1fr !important; }
+  .platform-grid     { grid-template-columns: 1fr !important; }
+  .boutique-grid     { grid-template-columns: repeat(2, 1fr) !important; }
   .bottom-nav-item   { padding: 6px 6px; min-width: 44px; font-size: 0.55rem; }
 
   .notif-dropdown {

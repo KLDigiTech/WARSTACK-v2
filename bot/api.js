@@ -1419,4 +1419,62 @@ router.get('/guilds/:discord_id', auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// SUGGESTION — POSTER DEPUIS DASHBOARD MEMBRE
+router.post('/suggestion/post', auth, async (req, res) => {
+  try {
+    const { guild_id, discord_id, username, content, suggestion_id } = req.body;
+    const guild = resolveGuild(req);
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
+
+    const { data: configs } = await supabase.from('config').select('*').eq('guild_id', guild.id);
+    const getConf = (key) => configs?.find(c => c.key === key)?.value;
+
+    const channelId = getConf('suggestions_channel');
+    const logsId    = getConf('suggestions_logs');
+    const reactions = getConf('suggestions_reactions') !== 'false';
+    const threads   = getConf('suggestions_threads') === 'true';
+    const anonymous = getConf('suggestions_anonymous') === 'true';
+
+    const enabled = getConf('suggestions_enabled') === 'true';
+    if (!enabled) return res.status(403).json({ error: 'Suggestions désactivées' });
+    if (!channelId) return res.status(400).json({ error: 'Salon suggestions non configuré' });
+
+    const channel = guild.channels.cache.get(channelId);
+    if (!channel) return res.status(404).json({ error: 'Salon introuvable' });
+
+    const authorLine = anonymous ? '👤 Anonyme' : `👤 ${username}`;
+    const msg = await channel.send(
+      `💡 **Suggestion**\n\n${content}\n\n${authorLine}\n🟡 **En attente**`
+    );
+
+    if (reactions) {
+      await msg.react('👍');
+      await msg.react('👎');
+    }
+
+    if (threads) {
+      await msg.startThread({
+        name: `💬 Discussion — ${content.slice(0, 50)}`,
+        autoArchiveDuration: 1440,
+      }).catch(() => {});
+    }
+
+    if (suggestion_id) {
+      await supabase.from('suggestions').update({ message_id: msg.id }).eq('id', suggestion_id);
+    }
+
+    if (logsId) {
+      const logsCh = guild.channels.cache.get(logsId);
+      if (logsCh) {
+        await logsCh.send(`📋 Nouvelle suggestion de **${username}** :\n> ${content}`);
+      }
+    }
+
+    res.json({ success: true, message_id: msg.id });
+  } catch (err) {
+    console.error('❌ suggestion/post error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
 module.exports = router;

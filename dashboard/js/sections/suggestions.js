@@ -25,15 +25,23 @@ export async function initSuggestions() {
       if (!content || content.length < 10) { showToast('❌ Suggestion trop courte', 'error'); return; }
       const guildId = await getActiveGuildId();
       const discordId = window.WARSTACK_DISCORD_ID;
-      const { data: player } = await fetchSupabase(`players?discord_id=eq.${discordId}&select=username&limit=1`);
-      await fetchSupabase('suggestions', 'POST', {
+      const playerData = await fetchSupabase(`players?discord_id=eq.${discordId}&select=username&limit=1`);
+      const username = playerData?.[0]?.username || 'Membre';
+      const inserted = await fetchSupabase('suggestions', 'POST', {
         guild_id: guildId,
         discord_id: discordId,
-        username: player?.[0]?.username || 'Membre',
+        username,
         content,
         status: 'pending',
         votes_up: 0,
         votes_down: 0,
+      });
+      await callBotAPI('suggestion/post', 'POST', {
+        guild_id: guildId,
+        discord_id: discordId,
+        username,
+        content,
+        suggestion_id: inserted?.[0]?.id || null,
       });
       document.getElementById('suggest-member-input').value = '';
       showToast('✅ Suggestion envoyée !');
@@ -102,7 +110,12 @@ async function loadSuggestions() {
   container.innerHTML = `<div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>`;
 
   const guildId = await getActiveGuildId();
-  let url = `suggestions?guild_id=eq.${guildId}&select=*&order=created_at.desc`;
+  const discordId = window.WARSTACK_DISCORD_ID;
+
+  let url = isMember
+    ? `suggestions?guild_id=eq.${guildId}&discord_id=eq.${discordId}&select=*&order=created_at.desc`
+    : `suggestions?guild_id=eq.${guildId}&select=*&order=created_at.desc`;
+
   if (currentFilter !== 'all') url += `&status=eq.${currentFilter}`;
 
   const data = await fetchSupabase(url);
@@ -188,8 +201,13 @@ async function saveStaffNote() {
 }
 
 async function loadStats() {
+  const isMember = window.WARSTACK_IS_MEMBER === true || window._memberViewActive === true;
   const guildId = await getActiveGuildId();
-  const data = await fetchSupabase(`suggestions?guild_id=eq.${guildId}&select=status`);
+  const discordId = window.WARSTACK_DISCORD_ID;
+  const url = isMember
+    ? `suggestions?guild_id=eq.${guildId}&discord_id=eq.${discordId}&select=status`
+    : `suggestions?guild_id=eq.${guildId}&select=status`;
+  const data = await fetchSupabase(url);
   const list = data || [];
   document.getElementById('stat-total').textContent = list.length;
   document.getElementById('stat-accepted').textContent = list.filter(s => s.status === 'accepted').length;

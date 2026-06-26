@@ -4,10 +4,12 @@ import { showToast }                           from '../ui/toast.js';
 import { fetchSupabase }                       from '../api.js';
 import { getActiveGuildId }                    from '../services/guildService.js';
 import { showSkeleton }                        from '../ui/skeleton.js';
+import { showConfirm }                         from '../ui/confirm.js';
 
-let _teams = [];
-let _games = [];
-let _roles = [];
+let _teams     = [];
+let _games     = [];
+let _questions = [];
+let _roles     = [];
 
 function withTimeout(promise, ms = 8000) {
   return Promise.race([
@@ -40,6 +42,9 @@ export async function initOnboarding() {
     textChannels.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
   document.getElementById('ob-channel').innerHTML = chOpts;
 
+  const staffChEl = document.getElementById('ob-staff-channel');
+  if (staffChEl) staffChEl.innerHTML = chOpts;
+
   const roleOpts = `<option value="">Aucun rôle</option>` +
     _roles.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
 
@@ -63,8 +68,27 @@ export async function initOnboarding() {
   document.getElementById('ob-psn-role').value        = getConfig(configs, 'ob_psn_role')      || '';
   document.getElementById('ob-xbox-role').value       = getConfig(configs, 'ob_xbox_role')     || '';
 
-  try { _teams = JSON.parse(getConfig(configs, 'ob_teams') || '[]'); } catch { _teams = []; }
-  try { _games = JSON.parse(getConfig(configs, 'ob_games') || '[]'); } catch { _games = []; }
+  const manualEl = document.getElementById('ob-manual-validation');
+  if (manualEl) manualEl.checked = getConfig(configs, 'ob_manual_validation') === 'true';
+
+  const staffChVal = document.getElementById('ob-staff-channel');
+  if (staffChVal) staffChVal.value = getConfig(configs, 'ob_staff_channel') || '';
+
+  const ageEl = document.getElementById('ob-age-enabled');
+  if (ageEl) ageEl.checked = getConfig(configs, 'ob_age_enabled') === 'true';
+
+  const welcomeTitleEl = document.getElementById('ob-welcome-title');
+  if (welcomeTitleEl) welcomeTitleEl.value = getConfig(configs, 'ob_welcome_title') || '';
+
+  const welcomeDescEl = document.getElementById('ob-welcome-desc');
+  if (welcomeDescEl) welcomeDescEl.value = getConfig(configs, 'ob_welcome_desc') || '';
+
+  const welcomeImageEl = document.getElementById('ob-welcome-image');
+  if (welcomeImageEl) welcomeImageEl.value = getConfig(configs, 'ob_welcome_image') || '';
+
+  try { _teams     = JSON.parse(getConfig(configs, 'ob_teams')            || '[]'); } catch { _teams = []; }
+  try { _games     = JSON.parse(getConfig(configs, 'ob_games')            || '[]'); } catch { _games = []; }
+  try { _questions = JSON.parse(getConfig(configs, 'ob_custom_questions') || '[]'); } catch { _questions = []; }
 
   if (!_teams.length) {
     _teams = [
@@ -82,6 +106,7 @@ export async function initOnboarding() {
 
   renderTeams();
   renderGames();
+  renderQuestions();
   updatePreviews();
 
   const hasConfig = getConfig(configs, 'ob_channel');
@@ -180,13 +205,35 @@ export async function initOnboarding() {
     document.getElementById('ob-game-add-form').style.display = 'none';
   });
 
+  document.getElementById('ob-add-question')?.addEventListener('click', () => {
+    const form = document.getElementById('ob-question-add-form');
+    if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  });
+
+  document.getElementById('ob-confirm-question')?.addEventListener('click', () => {
+    const label       = document.getElementById('ob-new-q-label').value.trim();
+    const placeholder = document.getElementById('ob-new-q-placeholder').value.trim();
+    const multiline   = document.getElementById('ob-new-q-multiline').checked;
+    const required    = document.getElementById('ob-new-q-required').checked;
+    if (!label) return showToast('❌ Libellé requis', 'error');
+    _questions.push({ label, placeholder, multiline, required });
+    document.getElementById('ob-question-add-form').style.display = 'none';
+    document.getElementById('ob-new-q-label').value = '';
+    document.getElementById('ob-new-q-placeholder').value = '';
+    document.getElementById('ob-new-q-multiline').checked = false;
+    document.getElementById('ob-new-q-required').checked = true;
+    renderQuestions();
+  });
+
+  document.getElementById('ob-cancel-question')?.addEventListener('click', () => {
+    document.getElementById('ob-question-add-form').style.display = 'none';
+  });
+
   document.getElementById('ob-save').addEventListener('click', saveOnboarding);
   document.getElementById('ob-btn-post').addEventListener('click', postPanel);
 
   loadStats();
 }
-
-// ── RENDER LISTES ─────────────────────────────────────────────────────────────
 
 function renderTeams() {
   const container = document.getElementById('ob-teams-list');
@@ -240,7 +287,31 @@ function renderGames() {
   });
 }
 
-// ── PREVIEW LIVE ──────────────────────────────────────────────────────────────
+function renderQuestions() {
+  const container = document.getElementById('ob-questions-list');
+  if (!container) return;
+  if (!_questions.length) {
+    container.innerHTML = '<div class="ob-empty">Aucune question personnalisée</div>';
+    return;
+  }
+  container.innerHTML = _questions.map((q, i) => `
+    <div class="ob-team-item" data-index="${i}">
+      <span class="ob-item-emoji">${q.required ? '❗' : '❓'}</span>
+      <span class="ob-item-name" style="flex:1">${q.label}</span>
+      <span class="ob-item-role">${q.multiline ? 'Paragraphe' : 'Courte'}</span>
+      <button class="ob-item-delete" data-index="${i}" title="Supprimer">
+        <i class="fas fa-trash"></i>
+      </button>
+    </div>
+  `).join('');
+
+  container.querySelectorAll('.ob-item-delete').forEach(btn => {
+    btn.addEventListener('click', () => {
+      _questions.splice(parseInt(btn.dataset.index), 1);
+      renderQuestions();
+    });
+  });
+}
 
 function updatePreviews() {
   const rulesEl   = document.getElementById('ob-rules-text');
@@ -274,8 +345,6 @@ function updatePreviews() {
   }
 }
 
-// ── SAUVEGARDER ───────────────────────────────────────────────────────────────
-
 async function saveOnboarding() {
   const btn = document.getElementById('ob-save');
   btn.disabled = true;
@@ -283,22 +352,29 @@ async function saveOnboarding() {
 
   try {
     await Promise.all([
-      saveConfig('ob_channel',         document.getElementById('ob-channel').value),
-      saveConfig('ob_role_unverified',  document.getElementById('ob-role-unverified').value),
-      saveConfig('ob_role_member',      document.getElementById('ob-role-member').value),
-      saveConfig('ob_rules_enabled',    String(document.getElementById('ob-rules-enabled').checked)),
-      saveConfig('ob_rules_text',       document.getElementById('ob-rules-text').value),
-      saveConfig('ob_confirm_msg',      document.getElementById('ob-confirm-msg').value),
-      saveConfig('ob_dm_enabled',       String(document.getElementById('ob-dm-enabled').checked)),
-      saveConfig('ob_dm_msg',           document.getElementById('ob-dm-msg').value),
-      saveConfig('ob_pc_enabled',       String(document.getElementById('ob-pc-enabled').checked)),
-      saveConfig('ob_psn_enabled',      String(document.getElementById('ob-psn-enabled').checked)),
-      saveConfig('ob_xbox_enabled',     String(document.getElementById('ob-xbox-enabled').checked)),
-      saveConfig('ob_pc_role',          document.getElementById('ob-pc-role').value),
-      saveConfig('ob_psn_role',         document.getElementById('ob-psn-role').value),
-      saveConfig('ob_xbox_role',        document.getElementById('ob-xbox-role').value),
-      saveConfig('ob_teams',            JSON.stringify(_teams)),
-      saveConfig('ob_games',            JSON.stringify(_games)),
+      saveConfig('ob_channel',            document.getElementById('ob-channel').value),
+      saveConfig('ob_role_unverified',    document.getElementById('ob-role-unverified').value),
+      saveConfig('ob_role_member',        document.getElementById('ob-role-member').value),
+      saveConfig('ob_rules_enabled',      String(document.getElementById('ob-rules-enabled').checked)),
+      saveConfig('ob_rules_text',         document.getElementById('ob-rules-text').value),
+      saveConfig('ob_confirm_msg',        document.getElementById('ob-confirm-msg').value),
+      saveConfig('ob_dm_enabled',         String(document.getElementById('ob-dm-enabled').checked)),
+      saveConfig('ob_dm_msg',             document.getElementById('ob-dm-msg').value),
+      saveConfig('ob_pc_enabled',         String(document.getElementById('ob-pc-enabled').checked)),
+      saveConfig('ob_psn_enabled',        String(document.getElementById('ob-psn-enabled').checked)),
+      saveConfig('ob_xbox_enabled',       String(document.getElementById('ob-xbox-enabled').checked)),
+      saveConfig('ob_pc_role',            document.getElementById('ob-pc-role').value),
+      saveConfig('ob_psn_role',           document.getElementById('ob-psn-role').value),
+      saveConfig('ob_xbox_role',          document.getElementById('ob-xbox-role').value),
+      saveConfig('ob_teams',              JSON.stringify(_teams)),
+      saveConfig('ob_games',              JSON.stringify(_games)),
+      saveConfig('ob_custom_questions',   JSON.stringify(_questions)),
+      saveConfig('ob_manual_validation',  String(document.getElementById('ob-manual-validation')?.checked || false)),
+      saveConfig('ob_staff_channel',      document.getElementById('ob-staff-channel')?.value || ''),
+      saveConfig('ob_age_enabled',        String(document.getElementById('ob-age-enabled')?.checked || false)),
+      saveConfig('ob_welcome_title',      document.getElementById('ob-welcome-title')?.value || ''),
+      saveConfig('ob_welcome_desc',       document.getElementById('ob-welcome-desc')?.value || ''),
+      saveConfig('ob_welcome_image',      document.getElementById('ob-welcome-image')?.value || ''),
     ]);
     showToast('✅ Configuration onboarding sauvegardée !');
   } catch (e) {
@@ -309,8 +385,6 @@ async function saveOnboarding() {
   }
 }
 
-// ── POSTER LE PANEL ───────────────────────────────────────────────────────────
-
 async function postPanel() {
   const channelId = document.getElementById('ob-channel').value;
   if (!channelId) return showToast('❌ Choisis un salon d\'abord', 'error');
@@ -320,19 +394,25 @@ async function postPanel() {
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi...';
 
   const payload = {
-    channel_id     : channelId,
-    rules_enabled  : document.getElementById('ob-rules-enabled').checked,
-    rules_text     : document.getElementById('ob-rules-text').value,
-    teams          : _teams,
-    games          : _games,
-    pc_enabled     : document.getElementById('ob-pc-enabled').checked,
-    psn_enabled    : document.getElementById('ob-psn-enabled').checked,
-    xbox_enabled   : document.getElementById('ob-xbox-enabled').checked,
-    role_member    : document.getElementById('ob-role-member').value,
-    role_unverified: document.getElementById('ob-role-unverified').value,
-    confirm_msg    : document.getElementById('ob-confirm-msg').value,
-    dm_enabled     : document.getElementById('ob-dm-enabled').checked,
-    dm_msg         : document.getElementById('ob-dm-msg').value,
+    channel_id        : channelId,
+    rules_enabled     : document.getElementById('ob-rules-enabled').checked,
+    rules_text        : document.getElementById('ob-rules-text').value,
+    teams             : _teams,
+    games             : _games,
+    pc_enabled        : document.getElementById('ob-pc-enabled').checked,
+    psn_enabled       : document.getElementById('ob-psn-enabled').checked,
+    xbox_enabled      : document.getElementById('ob-xbox-enabled').checked,
+    role_member       : document.getElementById('ob-role-member').value,
+    role_unverified   : document.getElementById('ob-role-unverified').value,
+    confirm_msg       : document.getElementById('ob-confirm-msg').value,
+    dm_enabled        : document.getElementById('ob-dm-enabled').checked,
+    dm_msg            : document.getElementById('ob-dm-msg').value,
+    manual_validation : document.getElementById('ob-manual-validation')?.checked || false,
+    staff_channel     : document.getElementById('ob-staff-channel')?.value || '',
+    age_enabled       : document.getElementById('ob-age-enabled')?.checked || false,
+    custom_questions  : _questions,
+    welcome_title     : document.getElementById('ob-welcome-title')?.value || '',
+    welcome_desc      : document.getElementById('ob-welcome-desc')?.value || '',
   };
 
   try {
@@ -350,28 +430,28 @@ async function postPanel() {
   }
 }
 
-// ── STATS ─────────────────────────────────────────────────────────────────────
-
 async function loadStats() {
   try {
     const guildId = await getActiveGuildId();
-    const data = await fetchSupabase(
-      `onboarding_logs?guild_id=eq.${guildId}&order=created_at.desc&limit=50`
-    );
-    const logs = Array.isArray(data) ? data : [];
+    const [logs, pending] = await Promise.all([
+      fetchSupabase(`onboarding_logs?guild_id=eq.${guildId}&order=created_at.desc&limit=50`),
+      fetchSupabase(`onboarding_sessions?guild_id=eq.${guildId}&manual_status=eq.pending&select=*&order=created_at.desc`),
+    ]);
 
+    const list      = Array.isArray(logs) ? logs : [];
+    const pendList  = Array.isArray(pending) ? pending : [];
     const today     = new Date().toISOString().slice(0, 10);
-    const todayLogs = logs.filter(l => l.created_at?.startsWith(today));
+    const todayLogs = list.filter(l => l.created_at?.startsWith(today));
 
     const totalEl = document.getElementById('ob-stat-total');
     const todayEl = document.getElementById('ob-stat-today');
     const pendEl  = document.getElementById('ob-stat-pending');
-    if (totalEl) totalEl.textContent = logs.length;
+    if (totalEl) totalEl.textContent = list.length;
     if (todayEl) todayEl.textContent = todayLogs.length;
-    if (pendEl)  pendEl.textContent  = '0';
+    if (pendEl)  pendEl.textContent  = pendList.length;
 
     const teamCounts = {};
-    logs.forEach(l => {
+    list.forEach(l => {
       if (l.team) teamCounts[l.team] = (teamCounts[l.team] || 0) + 1;
     });
 
@@ -391,13 +471,66 @@ async function loadStats() {
         `).join('');
     }
 
+    const pendingEl = document.getElementById('ob-pending-list');
+    if (pendingEl) {
+      if (!pendList.length) {
+        pendingEl.innerHTML = '<div class="ob-empty">Aucune inscription en attente</div>';
+      } else {
+        pendingEl.innerHTML = pendList.map(s => `
+          <div class="ob-recent-item">
+            <img class="ob-recent-avatar"
+              src="https://cdn.discordapp.com/embed/avatars/0.png"
+              alt="avatar">
+            <div class="ob-recent-info">
+              <div class="ob-recent-name">${s.username || s.discord_id}</div>
+              <div class="ob-recent-meta">
+                ${s.pseudo    ? `🪪 ${s.pseudo}`     : ''}
+                ${s.team      ? `· ⚔️ ${s.team}`     : ''}
+                ${s.platform  ? `· 🎮 ${s.platform}` : ''}
+              </div>
+            </div>
+            <div style="display:flex;gap:0.4rem">
+              <button class="btn btn-sm btn-primary btn-ob-approve" data-id="${s.discord_id}" title="Approuver">✅</button>
+              <button class="btn btn-sm btn-danger btn-ob-reject"   data-id="${s.discord_id}" title="Refuser">❌</button>
+            </div>
+          </div>
+        `).join('');
+
+        pendingEl.querySelectorAll('.btn-ob-approve').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const discordId = btn.dataset.id;
+            await callBotAPI('onboarding/approve', 'POST', { discord_id: discordId });
+            showToast('✅ Inscription approuvée');
+            loadStats();
+          });
+        });
+
+        pendingEl.querySelectorAll('.btn-ob-reject').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const discordId = btn.dataset.id;
+            showConfirm({
+              title: 'Refuser l\'inscription',
+              message: 'Le membre gardera son rôle "En attente" et ne pourra pas accéder au serveur.',
+              confirmText: 'Refuser',
+              cancelText: 'Annuler',
+              onConfirm: async () => {
+                await callBotAPI('onboarding/reject', 'POST', { discord_id: discordId });
+                showToast('❌ Inscription refusée');
+                loadStats();
+              },
+            });
+          });
+        });
+      }
+    }
+
     const recentEl = document.getElementById('ob-recent-list');
     if (recentEl) {
-      if (!logs.length) {
+      if (!list.length) {
         recentEl.innerHTML = '<div class="ob-empty">Aucune vérification enregistrée</div>';
         return;
       }
-      recentEl.innerHTML = logs.slice(0, 10).map(l => `
+      recentEl.innerHTML = list.slice(0, 10).map(l => `
         <div class="ob-recent-item">
           <img class="ob-recent-avatar"
             src="${l.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png'}"
@@ -408,7 +541,7 @@ async function loadStats() {
             <div class="ob-recent-meta">
               ${l.team     ? `⚔️ ${l.team}`       : ''}
               ${l.platform ? `· 🎮 ${l.platform}` : ''}
-              ${l.games?.length ? `· ${l.games.join(', ')}` : ''}
+              ${l.games    ? `· ${l.games}`        : ''}
             </div>
           </div>
           <span class="ob-recent-badge">✅ Vérifié</span>
@@ -425,8 +558,6 @@ async function loadStats() {
     if (recentEl) recentEl.innerHTML = '<div class="ob-empty">Aucune vérification enregistrée</div>';
   }
 }
-
-// ══ WIZARD ════════════════════════════════════════════════════════════════════
 
 function initWizard(channels, roles) {
   const TOTAL   = 6;
@@ -464,21 +595,16 @@ function initWizard(channels, roles) {
 
   function goTo(n) {
     step = Math.max(1, Math.min(TOTAL, n));
-
     document.querySelectorAll('.ob-wz-step').forEach(s => s.classList.remove('active'));
     document.querySelector(`.ob-wz-step[data-step="${step}"]`)?.classList.add('active');
-
     document.querySelectorAll('.ob-wz-dot').forEach(d => {
       d.classList.toggle('active', parseInt(d.dataset.step) === step);
     });
-
     bar.style.width = `${(step / TOTAL) * 100}%`;
-
     btnPrev.style.visibility = step === 1 ? 'hidden' : 'visible';
     btnNext.innerHTML = step === TOTAL
       ? '<i class="fas fa-check"></i> Terminer'
       : `Suivant <i class="fas fa-arrow-right"></i>`;
-
     if (step === TOTAL) buildSummary();
   }
 
@@ -499,51 +625,39 @@ function initWizard(channels, roles) {
         <span class="ob-wz-summary-label">Plateformes</span>
         <span class="ob-wz-summary-val">${platforms.join(', ') || '—'}</span>
       </div>
-      <div class="ob-wz-summary-row">
-        <span class="ob-wz-summary-label">Équipes</span>
-        <span class="ob-wz-summary-val">PÖF · STAFF · VISITEUR</span>
-      </div>
-      <div class="ob-wz-summary-row">
-        <span class="ob-wz-summary-label">Statut</span>
-        <span class="ob-wz-summary-val" style="color:var(--green)">✅ Prêt à poster</span>
-      </div>
     `;
   }
 
-  async function applyAndClose() {
-    const wzChannel = document.getElementById('wz-channel').value;
-    const wzRoleU   = document.getElementById('wz-role-unverified').value;
-    const wzRoleM   = document.getElementById('wz-role-member').value;
-    const wzMsg     = document.getElementById('wz-confirm-msg').value;
+  btnNext.addEventListener('click', async () => {
+    if (step < TOTAL) { goTo(step + 1); return; }
 
-    if (wzChannel) document.getElementById('ob-channel').value          = wzChannel;
-    if (wzRoleU)   document.getElementById('ob-role-unverified').value  = wzRoleU;
-    if (wzRoleM)   document.getElementById('ob-role-member').value      = wzRoleM;
-    if (wzMsg)     document.getElementById('ob-confirm-msg').value      = wzMsg;
+    const channelId       = document.getElementById('wz-channel').value;
+    const roleUnverified  = document.getElementById('wz-role-unverified').value;
+    const roleMember      = document.getElementById('wz-role-member').value;
 
-    document.getElementById('ob-pc-enabled').checked   = document.getElementById('wz-pc').checked;
-    document.getElementById('ob-psn-enabled').checked  = document.getElementById('wz-psn').checked;
-    document.getElementById('ob-xbox-enabled').checked = document.getElementById('wz-xbox').checked;
+    if (!channelId) { showToast('❌ Choisis un salon', 'error'); goTo(2); return; }
+
+    await Promise.all([
+      saveConfig('ob_channel',        channelId),
+      saveConfig('ob_role_unverified', roleUnverified),
+      saveConfig('ob_role_member',     roleMember),
+      saveConfig('ob_pc_enabled',     String(document.getElementById('wz-pc').checked)),
+      saveConfig('ob_psn_enabled',    String(document.getElementById('wz-psn').checked)),
+      saveConfig('ob_xbox_enabled',   String(document.getElementById('wz-xbox').checked)),
+      saveConfig('ob_teams',          JSON.stringify(_teams)),
+    ]);
+
+    document.getElementById('ob-channel').value         = channelId;
+    document.getElementById('ob-role-unverified').value = roleUnverified;
+    document.getElementById('ob-role-member').value     = roleMember;
 
     overlay.style.display = 'none';
-    document.body.style.overflow = '';
-
-    document.getElementById('ob-save').click();
-    showToast('✅ Configuration appliquée ! Tu peux maintenant poster le panel.');
-  }
-
-  btnNext.addEventListener('click', () => {
-    if (step === TOTAL) { applyAndClose(); return; }
-    goTo(step + 1);
+    showToast('✅ Configuration initiale sauvegardée !');
   });
 
   btnPrev.addEventListener('click', () => goTo(step - 1));
-  btnSkip.addEventListener('click', () => {
-    overlay.style.display = 'none';
-    document.body.style.overflow = '';
-  });
+  btnSkip?.addEventListener('click', () => { overlay.style.display = 'none'; });
 
   overlay.style.display = 'flex';
-  document.body.style.overflow = 'hidden';
   goTo(1);
 }

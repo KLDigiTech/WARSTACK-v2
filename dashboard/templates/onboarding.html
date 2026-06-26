@@ -197,7 +197,154 @@
 
       </div>
     </div>
+    <!-- VALIDATION MANUELLE -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2>🛡️ Validation manuelle <span class="tooltip-icon"
+            data-tooltip="Si activé, le staff doit approuver chaque inscription avant que le membre obtienne ses rôles.">ⓘ</span>
+        </h2>
+      </div>
+      <div class="panel-body">
 
+        <div class="form-group">
+          <div class="toggle-row">
+            <label>Activer la validation manuelle <span class="tooltip-icon"
+                data-tooltip="Le membre finit son inscription mais attend l'approbation du staff pour accéder au serveur.">ⓘ</span></label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="ob-manual-validation">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Salon staff (notifications + boutons approuver/refuser) <span class="tooltip-icon"
+              data-tooltip="Le bot envoie dans ce salon un récapitulatif de chaque inscription avec des boutons Approuver/Refuser.">ⓘ</span></label>
+          <select id="ob-staff-channel" class="form-select">
+            <option value="">Aucun</option>
+          </select>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ÂGE -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2>🎂 Âge <span class="tooltip-icon"
+            data-tooltip="Demande optionnelle de l'âge du membre pendant son inscription.">ⓘ</span></h2>
+      </div>
+      <div class="panel-body">
+        <div class="form-group">
+          <div class="toggle-row">
+            <label>Demander l'âge lors de l'inscription</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="ob-age-enabled">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUESTIONS PERSONNALISÉES -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2>❓ Questions personnalisées <span class="tooltip-icon"
+            data-tooltip="Ajoute des questions libres posées au membre pendant son inscription.">ⓘ</span></h2>
+        <button class="btn btn-sm btn-secondary" id="ob-add-question">
+          <i class="fas fa-plus"></i> Ajouter
+        </button>
+      </div>
+      <div class="panel-body">
+        <p class="ob-hint">Ces questions s'affichent après le choix des jeux, avant le tracker. Chaque question peut
+          être obligatoire ou facultative.</p>
+
+        <div id="ob-questions-list" class="ob-teams-list"></div>
+
+        <div class="ob-team-add-form" id="ob-question-add-form" style="display:none">
+          <div class="form-group">
+            <label>Libellé de la question</label>
+            <input type="text" id="ob-new-q-label" class="form-input"
+              placeholder="Ex: Pourquoi veux-tu rejoindre notre communauté ?">
+          </div>
+          <div class="form-group">
+            <label>Placeholder</label>
+            <input type="text" id="ob-new-q-placeholder" class="form-input" placeholder="Ex: Décris ta motivation...">
+          </div>
+          <div class="form-group">
+            <div class="toggle-row">
+              <label>Réponse longue (paragraphe)</label>
+              <label class="toggle-switch">
+                <input type="checkbox" id="ob-new-q-multiline">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="toggle-row">
+              <label>Obligatoire</label>
+              <label class="toggle-switch">
+                <input type="checkbox" id="ob-new-q-required" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+          <div style="display:flex;gap:0.5rem;margin-top:0.5rem">
+            <button class="btn btn-sm btn-primary" id="ob-confirm-question"><i class="fas fa-check"></i>
+              Ajouter</button>
+            <button class="btn btn-sm btn-secondary" id="ob-cancel-question"><i class="fas fa-times"></i>
+              Annuler</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- MESSAGE DE BIENVENUE EMBED -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2>👋 Embed de bienvenue <span class="tooltip-icon"
+            data-tooltip="Message envoyé automatiquement dans le salon d'inscription quand un nouveau membre arrive.">ⓘ</span>
+        </h2>
+      </div>
+      <div class="panel-body">
+        <div class="form-group">
+          <label>Titre de l'embed</label>
+          <input type="text" id="ob-welcome-title" class="form-input" placeholder="👋 Bienvenue sur notre serveur !">
+        </div>
+        <div class="form-group">
+          <label>Description <span class="tooltip-icon"
+              data-tooltip="Variables : {user}, {server}, {mention}">ⓘ</span></label>
+          <div class="variables-bar">
+            <span class="var-label">Insérer :</span>
+            <button class="var-btn" data-var="{mention}" data-target="ob-welcome-desc">{mention}</button>
+            <button class="var-btn" data-var="{user}" data-target="ob-welcome-desc">{user}</button>
+            <button class="var-btn" data-var="{server}" data-target="ob-welcome-desc">{server}</button>
+          </div>
+          <textarea id="ob-welcome-desc" class="form-textarea" rows="3"
+            placeholder="Tu es sur le point de rejoindre notre communauté. Clique sur le bouton pour commencer ton inscription !"></textarea>
+        </div>
+        <div class="form-group">
+          <label>URL de l'image de la bannière (optionnel)</label>
+          <input type="text" id="ob-welcome-image" class="form-input" placeholder="https://...">
+        </div>
+      </div>
+    </div>
+
+    <!-- VALIDATION EN ATTENTE -->
+    <div class="panel" id="ob-pending-panel">
+      <div class="panel-header">
+        <h2>⏳ Inscriptions en attente</h2>
+        <span class="stat-value" id="ob-stat-pending" style="color:var(--warning)">0</span>
+      </div>
+      <div class="panel-body">
+        <div id="ob-pending-list">
+          <div class="ob-empty">Aucune inscription en attente</div>
+        </div>
+      </div>
+    </div>
+    
     <!-- MESSAGE DE CONFIRMATION -->
     <div class="panel">
       <div class="panel-header">

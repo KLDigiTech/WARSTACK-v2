@@ -1160,6 +1160,55 @@ router.post('/onboarding/post', auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+router.post('/onboarding/approve', auth, async (req, res) => {
+  try {
+    const { discord_id } = req.body;
+    const guild = client.guilds.cache.first();
+    const member = await guild.members.fetch(discord_id).catch(() => null);
+    if (!member) return res.json({ success: false, error: 'Membre introuvable' });
+
+    const { data: configs } = await supabase.from('config').select('*').eq('guild_id', guild.id);
+    const getConf = k => configs?.find(c => c.key === k)?.value;
+
+    const unverifiedRoleId = getConf('ob_role_unverified');
+    if (unverifiedRoleId) { const r = guild.roles.cache.get(unverifiedRoleId); if (r) await member.roles.remove(r).catch(() => {}); }
+
+    const memberRoleId = getConf('ob_role_member');
+    if (memberRoleId) { const r = guild.roles.cache.get(memberRoleId); if (r) await member.roles.add(r).catch(() => {}); }
+
+    await supabase.from('onboarding_sessions')
+      .update({ manual_status: 'approved' })
+      .eq('guild_id', guild.id).eq('discord_id', discord_id);
+
+    const { data: session } = await supabase.from('onboarding_sessions').select('*')
+      .eq('guild_id', guild.id).eq('discord_id', discord_id).single().catch(() => ({ data: null }));
+
+    await supabase.from('onboarding_logs').insert({
+      guild_id: guild.id, discord_id, username: member.user.username,
+      avatar_url: member.user.displayAvatarURL({ size: 64 }),
+      pseudo: session?.pseudo || null, team: session?.team || null,
+      platform: session?.platform || null, games: session?.games || null,
+      age: session?.age || null, created_at: new Date().toISOString(),
+    }).catch(() => {});
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+router.post('/onboarding/reject', auth, async (req, res) => {
+  try {
+    const { discord_id } = req.body;
+    const guild = client.guilds.cache.first();
+    await supabase.from('onboarding_sessions')
+      .update({ manual_status: 'rejected' })
+      .eq('guild_id', guild.id).eq('discord_id', discord_id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 // ── TEST ÉVÉNEMENT ────────────────────────────────────────────────────────────
 router.post('/event/test', auth, async (req, res) => {
   try {

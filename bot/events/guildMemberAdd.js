@@ -1,5 +1,6 @@
-const supabase          = require('../services/supabase');
-const { fireRules }     = require('../jobs/rule-engine');
+const supabase      = require('../services/supabase');
+const { fireRules } = require('../jobs/rule-engine');
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 
 function getConfig(configs, key) {
   return configs?.find(c => c.key === key)?.value || null;
@@ -18,7 +19,6 @@ module.exports = {
         .select('*')
         .eq('guild_id', guild.id);
 
-      // ── Audit log ──────────────────────────────────────
       await supabase.from('audit_logs').insert({
         guild_id    : guild.id,
         type        : 'member',
@@ -28,15 +28,13 @@ module.exports = {
         extra       : { account_created: member.user.createdAt },
       }).catch(() => {});
 
-      // ── Rule Engine ────────────────────────────────────
       await fireRules(guild.id, 'member_join', { member, guild });
 
-      // ── Anti Raid ──────────────────────────────────────
       const raidEnabled = getConfig(configs, 'automod_raid_enabled') === 'true';
       if (raidEnabled) {
-        const raidAge      = parseInt(getConfig(configs, 'automod_raid_age')      || '7');
-        const raidNoAvatar = getConfig(configs, 'automod_raid_no_avatar')         === 'true';
-        const raidAction   = getConfig(configs, 'automod_raid_action')            || 'kick';
+        const raidAge      = parseInt(getConfig(configs, 'automod_raid_age') || '7');
+        const raidNoAvatar = getConfig(configs, 'automod_raid_no_avatar') === 'true';
+        const raidAction   = getConfig(configs, 'automod_raid_action') || 'kick';
         const logChannelId = getConfig(configs, 'automod_logs_channel');
 
         const accountAge  = (Date.now() - member.user.createdTimestamp) / (1000 * 60 * 60 * 24);
@@ -82,12 +80,59 @@ module.exports = {
               );
             }
           }
-
           return;
         }
       }
 
-      // ── Message bienvenue ──────────────────────────────
+      const unverifiedRoleId = getConfig(configs, 'ob_role_unverified');
+      if (unverifiedRoleId) {
+        const role = guild.roles.cache.get(unverifiedRoleId);
+        if (role) await member.roles.add(role).catch(() => {});
+      }
+
+      const obChannelId = getConfig(configs, 'ob_channel');
+      if (obChannelId) {
+        const obChannel = guild.channels.cache.get(obChannelId);
+        if (obChannel) {
+          const welcomeTitle = getConfig(configs, 'ob_welcome_title') || `👋 Bienvenue sur ${guild.name} !`;
+          const welcomeDesc  = (getConfig(configs, 'ob_welcome_desc') ||
+            'Tu es sur le point de rejoindre notre communauté.\n\nClique sur le bouton ci-dessous pour commencer ton inscription. Cela ne prend que quelques minutes !')
+            .replace(/{user}/g,   member.user.username)
+            .replace(/{server}/g, guild.name)
+            .replace(/{mention}/g, member.toString());
+
+          const guildIconUrl = guild.iconURL({ extension: 'png', size: 256 }) || null;
+
+          const embed = new EmbedBuilder()
+            .setTitle(welcomeTitle)
+            .setDescription(welcomeDesc)
+            .setColor(0x00ff66)
+            .setThumbnail(member.user.displayAvatarURL({ extension: 'png', size: 256 }))
+            .addFields(
+              { name: '📋 Étapes', value: '1️⃣ Règlement → 2️⃣ Pseudo → 3️⃣ Équipe → 4️⃣ Plateforme → 5️⃣ Jeux → 6️⃣ Tracker', inline: false }
+            )
+            .setFooter({ text: `WARSTACK • ${guild.name}`, iconURL: guildIconUrl || undefined })
+            .setTimestamp();
+
+          const guildId    = guild.id;
+          const registerUrl = getConfig(configs, 'ob_register_url') ||
+            `https://warstack-v2.vercel.app/register-public.html?guild=${guildId}`;
+
+          const row = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+              .setLabel('🚀 Commencer l\'inscription')
+              .setURL(registerUrl)
+              .setStyle(ButtonStyle.Link)
+          );
+
+          await obChannel.send({
+            content : member.toString(),
+            embeds  : [embed],
+            components: [row],
+          }).catch(() => {});
+        }
+      }
+
       const welcomeChannelId = getConfig(configs, 'welcome_channel');
       const welcomeMessage   = getConfig(configs, 'welcome_message');
 
@@ -103,7 +148,6 @@ module.exports = {
         }
       }
 
-      // ── DM bienvenue ───────────────────────────────────
       const dmEnabled = getConfig(configs, 'enable_dm') === 'true';
       const dmMessage = getConfig(configs, 'dm_message');
 
@@ -116,7 +160,6 @@ module.exports = {
         await member.send(filled).catch(() => {});
       }
 
-      // ── Délai autorole ─────────────────────────────────
       const delayMin = parseInt(getConfig(configs, 'autorole_delay') || '0');
       const applyRoles = async () => {
         const savedRoles = getConfig(configs, 'autoroles');
@@ -144,7 +187,6 @@ module.exports = {
         await applyRoles();
       }
 
-      // ── Compteur membres ───────────────────────────────
       const counterOn  = getConfig(configs, 'counter_enabled') === 'true';
       const counterFmt = getConfig(configs, 'counter_format') || '👥 Membres : {count}';
       const counterCh  = getConfig(configs, 'counter_channel');

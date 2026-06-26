@@ -221,7 +221,12 @@ function renderEquippedItems(items) {
   if (titles.length) {
     const title = titles[0].shop_items;
     const platformEl = document.getElementById('p-platform');
-    if (platformEl) platformEl.textContent = `${title.icon || '📛'} ${title.name}`;
+    if (platformEl) {
+      const titleEl = document.createElement('div');
+      titleEl.className = 'profil-equipped-title';
+      titleEl.textContent = `${title.icon || '📛'} ${title.name}`;
+      platformEl.insertAdjacentElement('afterend', titleEl);
+    }
   }
 
   if (badges.length) {
@@ -386,10 +391,10 @@ async function loadProfil() {
     fetchSupabase(`player_items?discord_id=eq.${discordId}&equipped=eq.true&select=*,shop_items(*)`),
   ]);
 
-  const player     = players?.[0];
-  const xpData     = xpRows?.[0]    || null;
-  const walletData = walletRows?.[0] || null;
-  const equippedItems = itemsRows || [];
+  const player        = players?.[0];
+  const xpData        = xpRows?.[0]    || null;
+  const walletData    = walletRows?.[0] || null;
+  const equippedItems = itemsRows       || [];
 
   if (!player) { showNotFound(); return; }
 

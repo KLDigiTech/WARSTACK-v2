@@ -724,3 +724,11 @@
 }
 
 .profil-badge:hover { transform: scale(1.2); }
+.profil-equipped-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #FFD700;
+  margin-top: 4px;
+  text-transform: uppercase;
+}

@@ -1,0 +1,73 @@
+<div class="notifs-page-header">
+  <div>
+    <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:0.25rem">🔔 Notifications</h2>
+    <div style="font-size:0.8rem;color:var(--text-muted)">Historique complet des alertes du serveur</div>
+  </div>
+  <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+    <button class="btn btn-secondary btn-sm" id="notifs-mark-all-read">
+      <i class="fas fa-check-double"></i> Tout marquer lu
+    </button>
+    <button class="btn btn-danger btn-sm" id="notifs-clear-all">
+      <i class="fas fa-trash"></i> Effacer tout
+    </button>
+  </div>
+</div>
+
+<div class="notifs-page-stats">
+  <div class="stat-card">
+    <div class="stat-icon">🔔</div>
+    <div class="stat-info">
+      <div class="stat-value" id="nstat-total">0</div>
+      <div class="stat-label">Total</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="color:var(--danger)">🔴</div>
+    <div class="stat-info">
+      <div class="stat-value" id="nstat-unread">0</div>
+      <div class="stat-label">Non lues</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">🚨</div>
+    <div class="stat-info">
+      <div class="stat-value" id="nstat-security">0</div>
+      <div class="stat-label">Sécurité</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">🎫</div>
+    <div class="stat-info">
+      <div class="stat-value" id="nstat-tickets">0</div>
+      <div class="stat-label">Tickets</div>
+    </div>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-header">
+    <h2>🔔 Toutes les notifications</h2>
+    <div class="notifs-page-filters" id="notifs-page-filters">
+      <button class="notifs-page-filter-btn active" data-filter="all">Tout</button>
+      <button class="notifs-page-filter-btn" data-filter="security">🚨 Sécurité</button>
+      <button class="notifs-page-filter-btn" data-filter="ticket">🎫 Tickets</button>
+      <button class="notifs-page-filter-btn" data-filter="moderation">🛡 Modération</button>
+      <button class="notifs-page-filter-btn" data-filter="suggestion">💡 Suggestions</button>
+      <button class="notifs-page-filter-btn" data-filter="onboarding">✅ Membres</button>
+      <button class="notifs-page-filter-btn" data-filter="event">📅 Events</button>
+    </div>
+  </div>
+  <div class="panel-body">
+    <div class="notifs-page-list" id="notifs-page-list">
+      <div class="notifs-page-empty">
+        <i class="fas fa-bell-slash"></i>
+        <div>Chargement...</div>
+      </div>
+    </div>
+    <div class="notifs-pagination" id="notifs-pagination" style="display:none">
+      <button class="notifs-pagination-btn" id="notifs-prev">← Précédent</button>
+      <span class="notifs-pagination-info" id="notifs-page-info">Page 1</span>
+      <button class="notifs-pagination-btn" id="notifs-next">Suivant →</button>
+    </div>
+  </div>
+</div>

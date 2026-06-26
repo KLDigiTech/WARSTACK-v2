@@ -26,10 +26,10 @@ export async function initNotifications() {
   filterBar.id = 'notif-filters';
   filterBar.innerHTML = `
     <button class="notif-filter-btn active" data-filter="all">Tout</button>
-    <button class="notif-filter-btn" data-filter="security">🚨 Sécurité</button>
+    <button class="notif-filter-btn" data-filter="security">🚨 Sécu</button>
     <button class="notif-filter-btn" data-filter="ticket">🎫 Tickets</button>
-    <button class="notif-filter-btn" data-filter="moderation">🛡 Modération</button>
-    <button class="notif-filter-btn" data-filter="suggestion">💡 Suggestions</button>
+    <button class="notif-filter-btn" data-filter="moderation">🛡 Modo</button>
+    <button class="notif-filter-btn" data-filter="suggestion">💡 Sugges.</button>
     <button class="notif-filter-btn" data-filter="onboarding">✅ Membres</button>
     <button class="notif-filter-btn" data-filter="event">📅 Events</button>
   `;
@@ -37,7 +37,10 @@ export async function initNotifications() {
 
   const footer = document.createElement('div');
   footer.className = 'notif-footer';
-  footer.innerHTML = `<button class="notif-footer-btn" id="notif-clear-all">🗑 Effacer tout l'historique</button>`;
+  footer.innerHTML = `
+    <button class="notif-footer-btn" id="notif-clear-all">🗑 Effacer tout</button>
+    <button class="notif-footer-link" id="notif-see-all">Voir tout →</button>
+  `;
   dropdown.appendChild(footer);
 
   filterBar.querySelectorAll('.notif-filter-btn').forEach(btn => {
@@ -76,10 +79,11 @@ export async function initNotifications() {
       markAllRead();
     }
     if (e.target.id === 'notif-clear-all' || e.target.closest('#notif-clear-all')) {
-      notifications = [];
-      unreadCount = 0;
-      updateBadge();
-      renderNotifications();
+      clearAllNotifs();
+    }
+    if (e.target.id === 'notif-see-all' || e.target.closest('#notif-see-all')) {
+      dropdown.style.display = 'none';
+      document.querySelector('[data-section="notifications"]')?.click();
     }
   });
 
@@ -122,7 +126,7 @@ async function loadNotifications() {
   for (const s of arr(suggestions)) {
     add(`sug_${s.id}`, {
       type: 'suggestion', icon: '💡',
-      color: 'var(--info)', bg: 'rgba(64,196,255,.1)',
+      color: 'var(--info, #40c4ff)', bg: 'rgba(64,196,255,.1)',
       title: 'Nouvelle suggestion',
       text: (s.content || '').slice(0, 60) + (s.content?.length > 60 ? '…' : ''),
       time: s.created_at, section: 'suggestions',
@@ -153,7 +157,7 @@ async function loadNotifications() {
   for (const o of arr(onboardingLogs)) {
     add(`ob_${o.id}`, {
       type: 'onboarding', icon: '✅',
-      color: 'var(--success)', bg: 'var(--success-soft)',
+      color: 'var(--green)', bg: 'rgba(0,255,100,.1)',
       title: 'Nouveau membre vérifié',
       text: `${o.username}${o.team ? ` — ${o.team}` : ''}${o.platform ? ` · ${o.platform}` : ''}`,
       time: o.created_at, section: 'onboarding',
@@ -171,6 +175,7 @@ async function loadNotifications() {
   }
 
   if (newNotifs.length) {
+    await persistNotifs(newNotifs);
     notifications = [...newNotifs, ...notifications].slice(0, 50);
     unreadCount  += newNotifs.length;
     updateBadge();
@@ -180,6 +185,31 @@ async function loadNotifications() {
   } else if (!notifications.length) {
     renderNotifications();
   }
+}
+
+async function persistNotifs(notifs) {
+  const guildId = await getActiveGuildId();
+  for (const n of notifs) {
+    await fetchSupabase('notifications', 'POST', {
+      id         : n.id,
+      guild_id   : guildId,
+      type       : n.type,
+      icon       : n.icon,
+      title      : n.title,
+      body       : n.text,
+      section    : n.section,
+      read       : false,
+    }).catch(() => {});
+  }
+}
+
+async function clearAllNotifs() {
+  const guildId = await getActiveGuildId();
+  await fetchSupabase(`notifications?guild_id=eq.${guildId}`, 'DELETE').catch(() => {});
+  notifications = [];
+  unreadCount = 0;
+  updateBadge();
+  renderNotifications();
 }
 
 function renderNotifications() {
@@ -248,6 +278,7 @@ function renderNotifications() {
         updateBadge();
         item.classList.add('read');
         item.querySelector('.notif-unread-dot')?.remove();
+        fetchSupabase(`notifications?id=eq.${notif.id}`, 'PATCH', { read: true }).catch(() => {});
       }
       document.getElementById('notif-dropdown').style.display = 'none';
       const section = item.dataset.section;
@@ -284,6 +315,9 @@ function markAllRead() {
   unreadCount = 0;
   updateBadge();
   renderNotifications();
+  getActiveGuildId().then(guildId => {
+    fetchSupabase(`notifications?guild_id=eq.${guildId}&read=eq.false`, 'PATCH', { read: true }).catch(() => {});
+  });
 }
 
 function arr(v) { return Array.isArray(v) ? v : []; }

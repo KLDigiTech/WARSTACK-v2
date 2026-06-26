@@ -115,39 +115,40 @@ checkBotStatus();
 setInterval(checkBotStatus, 30000);
 
 const sections = {
-  overview: () => import('./sections/overview.js').then(m => m.initOverview()),
-  players: () => import('./sections/players.js').then(m => m.initPlayers()),
-  analytics: () => import('./sections/analytics.js').then(m => m.initAnalytics()),
-  tournament: () => import('./sections/tournament.js').then(m => m.initTournament()),
-  welcome: () => import('./sections/welcome.js').then(m => m.initWelcome()),
-  onboarding: () => import('./sections/onboarding.js').then(m => m.initOnboarding()),
-  roles: () => import('./sections/roles.js').then(m => m.initRoles()),
-  birthdays: () => import('./sections/birthdays.js').then(m => m.initBirthdays()),
-  suggestions: () => import('./sections/suggestions.js').then(m => m.initSuggestions()),
-  events: () => import('./sections/events.js').then(m => m.initEvents()),
-  moderation: () => import('./sections/moderation.js').then(m => m.initModeration()),
-  automod: () => import('./sections/automod.js').then(m => m.initAutomod()),
-  tickets: () => import('./sections/tickets.js').then(m => m.initTickets()),
-  logs: () => import('./sections/logs.js').then(m => m.initLogs()),
-  messages: () => import('./sections/messages.js').then(m => m.initMessages()),
-  reactions: () => import('./sections/reactions.js').then(m => m.initReactions()),
-  channels: () => import('./sections/channels.js').then(m => m.initChannels()),
-  access: () => import('./sections/access.js').then(m => m.initAccess()),
-  settings: () => import('./sections/settings.js').then(m => m.initSettings()),
-  'ocr-test': () => import('./sections/ocr-test.js').then(m => m.initOcrTest()),
-  origine: () => import('./sections/origine.js').then(m => m.initOrigine()),
-  rulebuilder: () => import('./sections/rulebuilder.js').then(m => m.initRuleBuilder()),
-  team: () => import('./sections/team.js').then(m => m.initTeam()),
-  boutique: () => import('./sections/boutique.js').then(m => m.initBoutique()),
+  overview      : () => import('./sections/overview.js').then(m => m.initOverview()),
+  players       : () => import('./sections/players.js').then(m => m.initPlayers()),
+  analytics     : () => import('./sections/analytics.js').then(m => m.initAnalytics()),
+  tournament    : () => import('./sections/tournament.js').then(m => m.initTournament()),
+  welcome       : () => import('./sections/welcome.js').then(m => m.initWelcome()),
+  onboarding    : () => import('./sections/onboarding.js').then(m => m.initOnboarding()),
+  roles         : () => import('./sections/roles.js').then(m => m.initRoles()),
+  birthdays     : () => import('./sections/birthdays.js').then(m => m.initBirthdays()),
+  suggestions   : () => import('./sections/suggestions.js').then(m => m.initSuggestions()),
+  events        : () => import('./sections/events.js').then(m => m.initEvents()),
+  moderation    : () => import('./sections/moderation.js').then(m => m.initModeration()),
+  automod       : () => import('./sections/automod.js').then(m => m.initAutomod()),
+  tickets       : () => import('./sections/tickets.js').then(m => m.initTickets()),
+  logs          : () => import('./sections/logs.js').then(m => m.initLogs()),
+  messages      : () => import('./sections/messages.js').then(m => m.initMessages()),
+  reactions     : () => import('./sections/reactions.js').then(m => m.initReactions()),
+  channels      : () => import('./sections/channels.js').then(m => m.initChannels()),
+  access        : () => import('./sections/access.js').then(m => m.initAccess()),
+  settings      : () => import('./sections/settings.js').then(m => m.initSettings()),
+  'ocr-test'    : () => import('./sections/ocr-test.js').then(m => m.initOcrTest()),
+  origine       : () => import('./sections/origine.js').then(m => m.initOrigine()),
+  rulebuilder   : () => import('./sections/rulebuilder.js').then(m => m.initRuleBuilder()),
+  team          : () => import('./sections/team.js').then(m => m.initTeam()),
+  boutique      : () => import('./sections/boutique.js').then(m => m.initBoutique()),
+  notifications : () => import('./sections/notifications-page.js').then(m => m.initNotificationsPage()),
 };
 
 const PUBLIC_SECTIONS = [
   'overview', 'players', 'analytics', 'tournament', 'welcome', 'onboarding', 'roles',
   'birthdays', 'suggestions', 'events', 'origine', 'messages', 'reactions', 'channels',
-  'ocr-test', 'rulebuilder', 'team','boutique',
+  'ocr-test', 'rulebuilder', 'team', 'boutique', 'notifications',
 ];
 
-const MEMBER_SECTIONS = ['overview', 'players', 'tournament', 'tickets', 'suggestions', 'events', 'origine','boutique'];
+const MEMBER_SECTIONS = ['overview', 'players', 'tournament', 'tickets', 'suggestions', 'events', 'origine', 'boutique', 'notifications'];
 
 window._memberViewActive = false;
 

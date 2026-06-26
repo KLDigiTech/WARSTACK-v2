@@ -3,35 +3,32 @@
   <!-- ══ COLONNE GAUCHE — Configuration ══ -->
   <div class="onboarding-left">
 
-    <!-- SALON VÉRIFICATION -->
+    <!-- SALON + RÔLES -->
     <div class="panel">
       <div class="panel-header">
-        <h2>🚪 Salon de vérification <span class="tooltip-icon"
-            data-tooltip="Le salon où arrivent les nouveaux membres avant d'avoir accès au reste du serveur.">ⓘ</span>
-        </h2>
-
+        <h2>🚪 Salon & Rôles</h2>
       </div>
       <div class="panel-body">
 
         <div class="form-group">
           <label>Salon de vérification <span class="tooltip-icon"
-              data-tooltip="Le salon où le bot envoie le panel d'onboarding. Les nouveaux membres ne voient que ce salon.">ⓘ</span></label>
+              data-tooltip="Le salon où le bot poste le panel. Les nouveaux membres ne voient que ce salon.">ⓘ</span></label>
           <select id="ob-channel" class="form-select">
             <option value="">Chargement...</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label>Rôle « Non vérifié » <span class="tooltip-icon"
-              data-tooltip="Rôle attribué automatiquement aux nouveaux membres. Il limite l'accès aux salons jusqu'à la vérification.">ⓘ</span></label>
+          <label>Rôle « En attente » <span class="tooltip-icon"
+              data-tooltip="Attribué automatiquement à l'arrivée. Bloque l'accès aux salons jusqu'à la fin de l'inscription.">ⓘ</span></label>
           <select id="ob-role-unverified" class="form-select">
             <option value="">Aucun</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label>Rôle « Membre » (attribué après vérification) <span class="tooltip-icon"
-              data-tooltip="Rôle accordé automatiquement une fois l'onboarding complété. Il débloque l'accès aux salons du serveur.">ⓘ</span></label>
+          <label>Rôle « Membre » <span class="tooltip-icon"
+              data-tooltip="Attribué automatiquement une fois l'inscription terminée.">ⓘ</span></label>
           <select id="ob-role-member" class="form-select">
             <option value="">Aucun</option>
           </select>
@@ -43,16 +40,13 @@
     <!-- RÈGLEMENT -->
     <div class="panel">
       <div class="panel-header">
-        <h2>📜 Règlement <span class="tooltip-icon"
-            data-tooltip="Le membre doit accepter ce texte avant de pouvoir continuer son inscription.">ⓘ</span></h2>
-
+        <h2>📜 Règlement</h2>
       </div>
       <div class="panel-body">
 
         <div class="form-group">
           <div class="toggle-row">
-            <label>Afficher le règlement à l'étape 1 <span class="tooltip-icon"
-                data-tooltip="Le membre doit cocher une case pour confirmer qu'il a lu et accepté le règlement avant de continuer.">ⓘ</span></label>
+            <label>Afficher le règlement à l'étape 1</label>
             <label class="toggle-switch">
               <input type="checkbox" id="ob-rules-enabled" checked>
               <span class="toggle-slider"></span>
@@ -62,7 +56,6 @@
 
         <div id="ob-rules-group">
           <div class="form-group">
-            <label>Texte du règlement</label>
             <textarea id="ob-rules-text" class="form-textarea" rows="5"
               placeholder="1. Respecter tous les membres&#10;2. Pas de spam&#10;3. Contenu approprié uniquement&#10;..."></textarea>
           </div>
@@ -71,29 +64,21 @@
       </div>
     </div>
 
-    <!-- ÉQUIPES / CLANS -->
+    <!-- ÉQUIPES -->
     <div class="panel">
       <div class="panel-header">
-        <h2>⚔️ Équipes <span class="tooltip-icon"
-            data-tooltip="Propose au nouveau membre de choisir un groupe/équipe, qui lui attribuera un rôle Discord automatiquement.">ⓘ</span>
-        </h2>
+        <h2>⚔️ Équipes</h2>
         <button class="btn btn-sm btn-secondary" id="ob-add-team">
           <i class="fas fa-plus"></i> Ajouter
         </button>
       </div>
       <div class="panel-body">
-
-        <p class="ob-hint">Définis les équipes/clans proposés lors de l'onboarding. Chaque équipe peut avoir un rôle
-          Discord associé.</p>
-
-        <div id="ob-teams-list" class="ob-teams-list">
-          <!-- Généré dynamiquement -->
-        </div>
-
+        <p class="ob-hint">Chaque équipe peut attribuer un rôle Discord automatiquement.</p>
+        <div id="ob-teams-list" class="ob-teams-list"></div>
         <div class="ob-team-add-form" id="ob-team-add-form" style="display:none">
           <div class="ob-team-row">
             <input type="text" id="ob-new-team-emoji" class="form-input ob-emoji-input" placeholder="🔥" maxlength="4">
-            <input type="text" id="ob-new-team-label" class="form-input" placeholder="Nom de l'équipe (ex: PÖF)">
+            <input type="text" id="ob-new-team-label" class="form-input" placeholder="Nom de l'équipe">
             <select id="ob-new-team-role" class="form-select">
               <option value="">Aucun rôle</option>
             </select>
@@ -101,21 +86,15 @@
             <button class="btn btn-sm btn-secondary" id="ob-cancel-team"><i class="fas fa-times"></i></button>
           </div>
         </div>
-
       </div>
     </div>
 
     <!-- PLATEFORMES -->
     <div class="panel">
       <div class="panel-header">
-        <h2>🎮 Plateformes <span class="tooltip-icon"
-            data-tooltip="Demande au membre sur quelle console/PC il joue, pour lui donner le rôle correspondant.">ⓘ</span>
-        </h2>
+        <h2>🎮 Plateformes</h2>
       </div>
       <div class="panel-body">
-
-        <p class="ob-hint">Le membre choisit sa plateforme. Chaque plateforme peut attribuer un rôle Discord.</p>
-
         <div class="ob-platforms-grid">
 
           <div class="ob-platform-item">
@@ -127,9 +106,7 @@
                 <span class="toggle-slider"></span>
               </label>
             </div>
-            <select id="ob-pc-role" class="form-select">
-              <option value="">Aucun rôle</option>
-            </select>
+            <select id="ob-pc-role" class="form-select"><option value="">Aucun rôle</option></select>
           </div>
 
           <div class="ob-platform-item">
@@ -141,9 +118,7 @@
                 <span class="toggle-slider"></span>
               </label>
             </div>
-            <select id="ob-psn-role" class="form-select">
-              <option value="">Aucun rôle</option>
-            </select>
+            <select id="ob-psn-role" class="form-select"><option value="">Aucun rôle</option></select>
           </div>
 
           <div class="ob-platform-item">
@@ -155,192 +130,32 @@
                 <span class="toggle-slider"></span>
               </label>
             </div>
-            <select id="ob-xbox-role" class="form-select">
-              <option value="">Aucun rôle</option>
-            </select>
+            <select id="ob-xbox-role" class="form-select"><option value="">Aucun rôle</option></select>
           </div>
 
         </div>
-
       </div>
     </div>
 
     <!-- JEUX -->
     <div class="panel">
       <div class="panel-header">
-        <h2>🎯 Jeux <span class="tooltip-icon"
-            data-tooltip="Demande au membre à quels jeux il joue, pour lui donner les rôles correspondants.">ⓘ</span>
-        </h2>
+        <h2>🎯 Jeux</h2>
         <button class="btn btn-sm btn-secondary" id="ob-add-game">
           <i class="fas fa-plus"></i> Ajouter
         </button>
       </div>
       <div class="panel-body">
-
-        <p class="ob-hint">Le membre choisit ses jeux. Multi-sélection possible. Chaque jeu peut attribuer un rôle.</p>
-
-        <div id="ob-games-list" class="ob-games-list">
-          <!-- Généré dynamiquement -->
-        </div>
-
+        <p class="ob-hint">Multi-sélection possible. Chaque jeu peut attribuer un rôle.</p>
+        <div id="ob-games-list" class="ob-games-list"></div>
         <div class="ob-team-add-form" id="ob-game-add-form" style="display:none">
           <div class="ob-team-row">
             <input type="text" id="ob-new-game-emoji" class="form-input ob-emoji-input" placeholder="🎮" maxlength="4">
-            <input type="text" id="ob-new-game-label" class="form-input" placeholder="Nom du jeu (ex: Battlefield 6)">
-            <select id="ob-new-game-role" class="form-select">
-              <option value="">Aucun rôle</option>
-            </select>
+            <input type="text" id="ob-new-game-label" class="form-input" placeholder="Nom du jeu">
+            <select id="ob-new-game-role" class="form-select"><option value="">Aucun rôle</option></select>
             <button class="btn btn-sm btn-primary" id="ob-confirm-game"><i class="fas fa-check"></i></button>
             <button class="btn btn-sm btn-secondary" id="ob-cancel-game"><i class="fas fa-times"></i></button>
           </div>
-        </div>
-
-      </div>
-    </div>
-    <!-- VALIDATION MANUELLE -->
-    <div class="panel">
-      <div class="panel-header">
-        <h2>🛡️ Validation manuelle <span class="tooltip-icon"
-            data-tooltip="Si activé, le staff doit approuver chaque inscription avant que le membre obtienne ses rôles.">ⓘ</span>
-        </h2>
-      </div>
-      <div class="panel-body">
-
-        <div class="form-group">
-          <div class="toggle-row">
-            <label>Activer la validation manuelle <span class="tooltip-icon"
-                data-tooltip="Le membre finit son inscription mais attend l'approbation du staff pour accéder au serveur.">ⓘ</span></label>
-            <label class="toggle-switch">
-              <input type="checkbox" id="ob-manual-validation">
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>Salon staff (notifications + boutons approuver/refuser) <span class="tooltip-icon"
-              data-tooltip="Le bot envoie dans ce salon un récapitulatif de chaque inscription avec des boutons Approuver/Refuser.">ⓘ</span></label>
-          <select id="ob-staff-channel" class="form-select">
-            <option value="">Aucun</option>
-          </select>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- ÂGE -->
-    <div class="panel">
-      <div class="panel-header">
-        <h2>🎂 Âge <span class="tooltip-icon"
-            data-tooltip="Demande optionnelle de l'âge du membre pendant son inscription.">ⓘ</span></h2>
-      </div>
-      <div class="panel-body">
-        <div class="form-group">
-          <div class="toggle-row">
-            <label>Demander l'âge lors de l'inscription</label>
-            <label class="toggle-switch">
-              <input type="checkbox" id="ob-age-enabled">
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- QUESTIONS PERSONNALISÉES -->
-    <div class="panel">
-      <div class="panel-header">
-        <h2>❓ Questions personnalisées <span class="tooltip-icon"
-            data-tooltip="Ajoute des questions libres posées au membre pendant son inscription.">ⓘ</span></h2>
-        <button class="btn btn-sm btn-secondary" id="ob-add-question">
-          <i class="fas fa-plus"></i> Ajouter
-        </button>
-      </div>
-      <div class="panel-body">
-        <p class="ob-hint">Ces questions s'affichent après le choix des jeux, avant le tracker. Chaque question peut
-          être obligatoire ou facultative.</p>
-
-        <div id="ob-questions-list" class="ob-teams-list"></div>
-
-        <div class="ob-team-add-form" id="ob-question-add-form" style="display:none">
-          <div class="form-group">
-            <label>Libellé de la question</label>
-            <input type="text" id="ob-new-q-label" class="form-input"
-              placeholder="Ex: Pourquoi veux-tu rejoindre notre communauté ?">
-          </div>
-          <div class="form-group">
-            <label>Placeholder</label>
-            <input type="text" id="ob-new-q-placeholder" class="form-input" placeholder="Ex: Décris ta motivation...">
-          </div>
-          <div class="form-group">
-            <div class="toggle-row">
-              <label>Réponse longue (paragraphe)</label>
-              <label class="toggle-switch">
-                <input type="checkbox" id="ob-new-q-multiline">
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-          </div>
-          <div class="form-group">
-            <div class="toggle-row">
-              <label>Obligatoire</label>
-              <label class="toggle-switch">
-                <input type="checkbox" id="ob-new-q-required" checked>
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-          </div>
-          <div style="display:flex;gap:0.5rem;margin-top:0.5rem">
-            <button class="btn btn-sm btn-primary" id="ob-confirm-question"><i class="fas fa-check"></i>
-              Ajouter</button>
-            <button class="btn btn-sm btn-secondary" id="ob-cancel-question"><i class="fas fa-times"></i>
-              Annuler</button>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- MESSAGE DE BIENVENUE EMBED -->
-    <div class="panel">
-      <div class="panel-header">
-        <h2>👋 Embed de bienvenue <span class="tooltip-icon"
-            data-tooltip="Message envoyé automatiquement dans le salon d'inscription quand un nouveau membre arrive.">ⓘ</span>
-        </h2>
-      </div>
-      <div class="panel-body">
-        <div class="form-group">
-          <label>Titre de l'embed</label>
-          <input type="text" id="ob-welcome-title" class="form-input" placeholder="👋 Bienvenue sur notre serveur !">
-        </div>
-        <div class="form-group">
-          <label>Description <span class="tooltip-icon"
-              data-tooltip="Variables : {user}, {server}, {mention}">ⓘ</span></label>
-          <div class="variables-bar">
-            <span class="var-label">Insérer :</span>
-            <button class="var-btn" data-var="{mention}" data-target="ob-welcome-desc">{mention}</button>
-            <button class="var-btn" data-var="{user}" data-target="ob-welcome-desc">{user}</button>
-            <button class="var-btn" data-var="{server}" data-target="ob-welcome-desc">{server}</button>
-          </div>
-          <textarea id="ob-welcome-desc" class="form-textarea" rows="3"
-            placeholder="Tu es sur le point de rejoindre notre communauté. Clique sur le bouton pour commencer ton inscription !"></textarea>
-        </div>
-        <div class="form-group">
-          <label>URL de l'image de la bannière (optionnel)</label>
-          <input type="text" id="ob-welcome-image" class="form-input" placeholder="https://...">
-        </div>
-      </div>
-    </div>
-
-    <!-- VALIDATION EN ATTENTE -->
-    <div class="panel" id="ob-pending-panel">
-      <div class="panel-header">
-        <h2>⏳ Inscriptions en attente</h2>
-        <span class="stat-value" id="ob-stat-pending" style="color:var(--warning)">0</span>
-      </div>
-      <div class="panel-body">
-        <div id="ob-pending-list">
-          <div class="ob-empty">Aucune inscription en attente</div>
         </div>
       </div>
     </div>
@@ -348,14 +163,13 @@
     <!-- MESSAGE DE CONFIRMATION -->
     <div class="panel">
       <div class="panel-header">
-        <h2>✅ Message de confirmation <span class="tooltip-icon"
-            data-tooltip="Le message affiché une fois que le nouveau membre a terminé son inscription.">ⓘ</span></h2>
+        <h2>✅ Message de confirmation</h2>
       </div>
       <div class="panel-body">
 
         <div class="form-group">
-          <label>Message envoyé après vérification (salon) <span class="tooltip-icon"
-              data-tooltip="Variables : {mention} {user} {server}. Affiché dans le salon de vérification une fois terminé.">ⓘ</span></label>
+          <label>Message dans le salon après vérification <span class="tooltip-icon"
+              data-tooltip="Variables : {mention} {user} {server}">ⓘ</span></label>
           <div class="variables-bar">
             <span class="var-label">Insérer :</span>
             <button class="var-btn" data-var="{mention}" data-target="ob-confirm-msg">{mention}</button>
@@ -363,13 +177,12 @@
             <button class="var-btn" data-var="{server}" data-target="ob-confirm-msg">{server}</button>
           </div>
           <textarea id="ob-confirm-msg" class="form-textarea" rows="3"
-            placeholder="✅ Bienvenue {mention} ! Tu es maintenant membre de {server}. Bonne chance soldat. ⚔️"></textarea>
+            placeholder="✅ Bienvenue {mention} ! Tu es maintenant membre de {server}. ⚔️"></textarea>
         </div>
 
         <div class="form-group" style="margin-top:1rem">
           <div class="toggle-row">
-            <label>Envoyer un DM de confirmation <span class="tooltip-icon"
-                data-tooltip="Envoie un message privé au membre pour confirmer son onboarding avec son récapitulatif.">ⓘ</span></label>
+            <label>Envoyer un DM de confirmation</label>
             <label class="toggle-switch">
               <input type="checkbox" id="ob-dm-enabled">
               <span class="toggle-slider"></span>
@@ -386,18 +199,138 @@
               <button class="var-btn" data-var="{team}" data-target="ob-dm-msg">{team}</button>
               <button class="var-btn" data-var="{platform}" data-target="ob-dm-msg">{platform}</button>
             </div>
-            <textarea id="ob-dm-msg" class="form-textarea" rows="4"
-              placeholder="Bienvenue {user} sur {server} !&#10;Équipe : {team} | Plateforme : {platform}&#10;Bonne chance sur le champ de bataille. ⚔️"></textarea>
+            <textarea id="ob-dm-msg" class="form-textarea" rows="3"
+              placeholder="Bienvenue {user} sur {server} !&#10;Équipe : {team} | Plateforme : {platform}"></textarea>
           </div>
         </div>
 
       </div>
+    </div>
+
+    <!-- PARAMÈTRES AVANCÉS (accordéon) -->
+    <div class="panel">
+      <div class="panel-header ob-accordion-header" id="ob-advanced-toggle" style="cursor:pointer">
+        <h2>⚙️ Paramètres avancés</h2>
+        <i class="fas fa-chevron-down" id="ob-advanced-icon"></i>
+      </div>
+      <div id="ob-advanced-body" style="display:none">
+        <div class="panel-body" style="display:flex;flex-direction:column;gap:1.25rem">
+
+          <!-- Validation manuelle -->
+          <div>
+            <div class="welcome-section-title">🛡️ Validation manuelle</div>
+            <div class="form-group">
+              <div class="toggle-row">
+                <label>Activer la validation manuelle <span class="tooltip-icon"
+                    data-tooltip="Le staff doit approuver chaque inscription avant que le membre accède au serveur.">ⓘ</span></label>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="ob-manual-validation">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Salon staff (notifications + boutons Approuver/Refuser)</label>
+              <select id="ob-staff-channel" class="form-select">
+                <option value="">Aucun</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Âge -->
+          <div>
+            <div class="welcome-section-title">🎂 Âge</div>
+            <div class="form-group">
+              <div class="toggle-row">
+                <label>Demander l'âge lors de l'inscription</label>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="ob-age-enabled">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Questions personnalisées -->
+          <div>
+            <div class="welcome-section-title" style="display:flex;align-items:center;justify-content:space-between">
+              <span>❓ Questions personnalisées</span>
+              <button class="btn btn-sm btn-secondary" id="ob-add-question">
+                <i class="fas fa-plus"></i> Ajouter
+              </button>
+            </div>
+            <p class="ob-hint">Posées après les jeux, avant le tracker.</p>
+            <div id="ob-questions-list" class="ob-teams-list"></div>
+            <div class="ob-team-add-form" id="ob-question-add-form" style="display:none">
+              <div class="form-group">
+                <label>Question</label>
+                <input type="text" id="ob-new-q-label" class="form-input" placeholder="Ex: Pourquoi veux-tu nous rejoindre ?">
+              </div>
+              <div class="form-group">
+                <label>Placeholder</label>
+                <input type="text" id="ob-new-q-placeholder" class="form-input" placeholder="Ta réponse...">
+              </div>
+              <div class="form-group">
+                <div class="toggle-row">
+                  <label>Réponse longue</label>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="ob-new-q-multiline">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="toggle-row">
+                  <label>Obligatoire</label>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="ob-new-q-required" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+              <div style="display:flex;gap:.5rem;margin-top:.5rem">
+                <button class="btn btn-sm btn-primary" id="ob-confirm-question"><i class="fas fa-check"></i> Ajouter</button>
+                <button class="btn btn-sm btn-secondary" id="ob-cancel-question"><i class="fas fa-times"></i> Annuler</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Embed bienvenue -->
+          <div>
+            <div class="welcome-section-title">👋 Embed de bienvenue</div>
+            <div class="form-group">
+              <label>Titre</label>
+              <input type="text" id="ob-welcome-title" class="form-input" placeholder="👋 Bienvenue sur notre serveur !">
+            </div>
+            <div class="form-group">
+              <label>Description <span class="tooltip-icon" data-tooltip="Variables : {user}, {server}, {mention}">ⓘ</span></label>
+              <div class="variables-bar">
+                <button class="var-btn" data-var="{mention}" data-target="ob-welcome-desc">{mention}</button>
+                <button class="var-btn" data-var="{user}" data-target="ob-welcome-desc">{user}</button>
+                <button class="var-btn" data-var="{server}" data-target="ob-welcome-desc">{server}</button>
+              </div>
+              <textarea id="ob-welcome-desc" class="form-textarea" rows="2"
+                placeholder="Clique sur le bouton pour commencer ton inscription !"></textarea>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER ACTIONS -->
+    <div class="panel">
       <div class="panel-footer" style="justify-content:space-between">
-        <button class="btn btn-secondary" id="ob-btn-test">
-          <i class="fas fa-flask"></i> Tester
-        </button>
-        <button class="btn btn-primary" id="ob-btn-post">
-          <i class="fas fa-paper-plane"></i> Poster le panel
+        <div style="display:flex;gap:.5rem">
+          <button class="btn btn-secondary" id="ob-btn-test">
+            <i class="fas fa-flask"></i> Tester
+          </button>
+          <button class="btn btn-secondary" id="ob-btn-post">
+            <i class="fas fa-paper-plane"></i> Poster le panel
+          </button>
+        </div>
+        <button class="btn btn-primary" id="ob-save">
+          <i class="fas fa-save"></i> Sauvegarder
         </button>
       </div>
     </div>
@@ -410,9 +343,7 @@
     <!-- APERÇU DISCORD -->
     <div class="panel">
       <div class="panel-header">
-        <h2>👁️ Aperçu du panel <span class="tooltip-icon"
-            data-tooltip="Montre à quoi ressemblera l'écran d'inscription vu par le membre, avant de l'activer.">ⓘ</span>
-        </h2>
+        <h2>👁️ Aperçu du panel</h2>
       </div>
       <div class="panel-body">
 
@@ -427,9 +358,7 @@
                   <span class="ob-mock-badge">APP</span>
                 </div>
                 <div class="ob-mock-body">
-                  <div class="ob-mock-rules-preview" id="prev-rules-text">
-                    <i class="fas fa-scroll"></i> Lis et accepte le règlement pour continuer.
-                  </div>
+                  <div class="ob-mock-rules-preview" id="prev-rules-text">Lis et accepte le règlement pour continuer.</div>
                   <div class="ob-mock-btn-row">
                     <div class="ob-mock-btn-accept">✅ J'ai lu et j'accepte</div>
                   </div>
@@ -451,7 +380,6 @@
                   <div class="ob-mock-btn-row" id="prev-teams-btns">
                     <div class="ob-mock-btn-team">🔥 PÖF</div>
                     <div class="ob-mock-btn-team">👑 STAFF</div>
-                    <div class="ob-mock-btn-team">👁️ VISITEUR</div>
                   </div>
                 </div>
               </div>
@@ -471,7 +399,6 @@
                   <div class="ob-mock-btn-row" id="prev-platforms-btns">
                     <div class="ob-mock-btn-platform"><i class="fas fa-desktop"></i> PC</div>
                     <div class="ob-mock-btn-platform"><i class="fab fa-playstation"></i> PS</div>
-                    <div class="ob-mock-btn-platform"><i class="fab fa-xbox"></i> Xbox</div>
                   </div>
                 </div>
               </div>
@@ -490,9 +417,7 @@
                   <p style="font-size:.78rem;color:#949ba4;margin-bottom:.5rem">Choisis tes jeux :</p>
                   <div class="ob-mock-btn-row" id="prev-games-btns">
                     <div class="ob-mock-btn-game">🎖️ Battlefield 6</div>
-                    <div class="ob-mock-btn-game">💣 Call of Duty</div>
                   </div>
-                  <div class="ob-mock-btn-valid">✅ Valider</div>
                 </div>
               </div>
             </div>
@@ -500,7 +425,6 @@
 
         </div>
 
-        <!-- Indicateurs d'étapes -->
         <div class="ob-preview-nav">
           <button class="ob-prev-nav-btn active" data-step="1">1</button>
           <button class="ob-prev-nav-btn" data-step="2">2</button>
@@ -511,14 +435,12 @@
       </div>
     </div>
 
-    <!-- STATISTIQUES ONBOARDING -->
+    <!-- STATISTIQUES -->
     <div class="panel">
       <div class="panel-header">
-        <h2>📊 Statistiques <span class="tooltip-icon"
-            data-tooltip="Nombre de membres qui ont terminé (ou abandonné) leur inscription.">ⓘ</span></h2>
+        <h2>📊 Statistiques</h2>
       </div>
       <div class="panel-body">
-
         <div class="ob-stats-grid">
           <div class="ob-stat-card">
             <div class="ob-stat-value" id="ob-stat-total">—</div>
@@ -529,23 +451,30 @@
             <div class="ob-stat-label">Aujourd'hui</div>
           </div>
           <div class="ob-stat-card">
-            <div class="ob-stat-value" id="ob-stat-pending">—</div>
+            <div class="ob-stat-value" id="ob-stat-pending" style="color:var(--warning)">—</div>
             <div class="ob-stat-label">En attente</div>
           </div>
         </div>
+        <div class="ob-team-stats" id="ob-team-stats"></div>
+      </div>
+    </div>
 
-        <div class="ob-team-stats" id="ob-team-stats">
-          <!-- Généré dynamiquement -->
+    <!-- EN ATTENTE DE VALIDATION -->
+    <div class="panel" id="ob-pending-panel" style="display:none">
+      <div class="panel-header">
+        <h2>⏳ En attente de validation</h2>
+      </div>
+      <div class="panel-body">
+        <div id="ob-pending-list">
+          <div class="ob-empty">Aucune inscription en attente</div>
         </div>
-
       </div>
     </div>
 
     <!-- DERNIÈRES VÉRIFICATIONS -->
     <div class="panel">
       <div class="panel-header">
-        <h2>🕐 Dernières vérifications <span class="tooltip-icon"
-            data-tooltip="Liste des derniers membres qui ont terminé leur inscription.">ⓘ</span></h2>
+        <h2>🕐 Dernières vérifications</h2>
       </div>
       <div class="panel-body ob-recent-list" id="ob-recent-list">
         <div class="ob-empty">Aucune vérification enregistrée</div>
@@ -553,135 +482,5 @@
     </div>
 
   </div>
-  <!-- ══ WIZARD INSTALLATION ══ -->
-  <div id="ob-wizard-overlay" style="display:none">
-    <div id="ob-wizard">
 
-      <div id="ob-wizard-header">
-        <div id="ob-wizard-logo">⚔️ WARSTACK</div>
-        <button id="ob-wizard-skip" title="Passer le wizard">
-          <i class="fas fa-times"></i> Passer
-        </button>
-      </div>
-
-      <div id="ob-wizard-progress">
-        <div id="ob-wizard-progress-bar"></div>
-      </div>
-
-      <div id="ob-wizard-body">
-
-        <!-- ÉTAPE 1 : Bienvenue -->
-        <div class="ob-wz-step active" data-step="1">
-          <div class="ob-wz-icon">🚀</div>
-          <h2 class="ob-wz-title">Bienvenue sur WARSTACK</h2>
-          <p class="ob-wz-desc">Ce wizard va te guider pour configurer l'onboarding de ton serveur en moins de 2
-            minutes.</p>
-          <div class="ob-wz-checklist">
-            <div class="ob-wz-check"><i class="fas fa-check-circle"></i> Salon de vérification</div>
-            <div class="ob-wz-check"><i class="fas fa-check-circle"></i> Rôles automatiques</div>
-            <div class="ob-wz-check"><i class="fas fa-check-circle"></i> Équipes & plateformes</div>
-            <div class="ob-wz-check"><i class="fas fa-check-circle"></i> Message de bienvenue</div>
-          </div>
-        </div>
-
-        <!-- ÉTAPE 2 : Salon + Rôles -->
-        <div class="ob-wz-step" data-step="2">
-          <div class="ob-wz-icon">🔧</div>
-          <h2 class="ob-wz-title">Salon & Rôles</h2>
-          <p class="ob-wz-desc">Choisis où le bot postera le panel et quels rôles attribuer.</p>
-          <div class="form-group">
-            <label>Salon de vérification</label>
-            <select id="wz-channel" class="form-select"></select>
-          </div>
-          <div class="form-group">
-            <label>Rôle "Non vérifié" <span class="tooltip-icon"
-                data-tooltip="Attribué à l'arrivée. Limite l'accès aux salons.">ⓘ</span></label>
-            <select id="wz-role-unverified" class="form-select"></select>
-          </div>
-          <div class="form-group">
-            <label>Rôle "Membre" <span class="tooltip-icon"
-                data-tooltip="Attribué après vérification complète.">ⓘ</span></label>
-            <select id="wz-role-member" class="form-select"></select>
-          </div>
-        </div>
-
-        <!-- ÉTAPE 3 : Équipes -->
-        <div class="ob-wz-step" data-step="3">
-          <div class="ob-wz-icon">⚔️</div>
-          <h2 class="ob-wz-title">Équipes</h2>
-          <p class="ob-wz-desc">Les équipes proposées lors de l'onboarding. Tu pourras en ajouter d'autres plus tard.
-          </p>
-          <div id="wz-teams-preview" class="ob-wz-chips"></div>
-          <p class="ob-wz-hint">Les équipes PÖF, STAFF et VISITEUR sont préconfigurées. Tu peux les modifier dans la
-            configuration complète.</p>
-        </div>
-
-        <!-- ÉTAPE 4 : Plateformes -->
-        <div class="ob-wz-step" data-step="4">
-          <div class="ob-wz-icon">🎮</div>
-          <h2 class="ob-wz-title">Plateformes</h2>
-          <p class="ob-wz-desc">Quelles plateformes proposes-tu à tes membres ?</p>
-          <div class="ob-wz-platforms">
-            <label class="ob-wz-platform-btn">
-              <input type="checkbox" id="wz-pc" checked>
-              <span><i class="fas fa-desktop"></i> PC</span>
-            </label>
-            <label class="ob-wz-platform-btn">
-              <input type="checkbox" id="wz-psn" checked>
-              <span><i class="fab fa-playstation"></i> PlayStation</span>
-            </label>
-            <label class="ob-wz-platform-btn">
-              <input type="checkbox" id="wz-xbox" checked>
-              <span><i class="fab fa-xbox"></i> Xbox</span>
-            </label>
-          </div>
-        </div>
-
-        <!-- ÉTAPE 5 : Message de bienvenue -->
-        <div class="ob-wz-step" data-step="5">
-          <div class="ob-wz-icon">✉️</div>
-          <h2 class="ob-wz-title">Message de bienvenue</h2>
-          <p class="ob-wz-desc">Message affiché dans le salon après la vérification.</p>
-          <div class="form-group">
-            <div class="variables-bar">
-              <span class="var-label">Insérer :</span>
-              <button class="var-btn" data-var="{mention}" data-target="wz-confirm-msg">{mention}</button>
-              <button class="var-btn" data-var="{user}" data-target="wz-confirm-msg">{user}</button>
-              <button class="var-btn" data-var="{server}" data-target="wz-confirm-msg">{server}</button>
-            </div>
-            <textarea id="wz-confirm-msg" class="form-textarea" rows="3"
-              placeholder="✅ Bienvenue {mention} ! Tu es maintenant membre de {server}. Bonne chance soldat. ⚔️"></textarea>
-          </div>
-        </div>
-
-        <!-- ÉTAPE 6 : Terminé -->
-        <div class="ob-wz-step" data-step="6">
-          <div class="ob-wz-icon">🎉</div>
-          <h2 class="ob-wz-title">Configuration terminée !</h2>
-          <p class="ob-wz-desc">Ton onboarding est prêt. Clique sur "Poster le panel" pour l'envoyer dans le salon
-            Discord.</p>
-          <div class="ob-wz-summary" id="ob-wz-summary"></div>
-        </div>
-
-      </div>
-
-      <div id="ob-wizard-footer">
-        <button class="btn btn-secondary" id="ob-wz-prev" style="visibility:hidden">
-          <i class="fas fa-arrow-left"></i> Précédent
-        </button>
-        <div id="ob-wz-dots">
-          <span class="ob-wz-dot active" data-step="1"></span>
-          <span class="ob-wz-dot" data-step="2"></span>
-          <span class="ob-wz-dot" data-step="3"></span>
-          <span class="ob-wz-dot" data-step="4"></span>
-          <span class="ob-wz-dot" data-step="5"></span>
-          <span class="ob-wz-dot" data-step="6"></span>
-        </div>
-        <button class="btn btn-primary" id="ob-wz-next">
-          Suivant <i class="fas fa-arrow-right"></i>
-        </button>
-      </div>
-
-    </div>
-  </div>
 </div>

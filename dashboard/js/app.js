@@ -326,13 +326,7 @@ async function initDashboard() {
 
   document.getElementById('nav-inscription')?.addEventListener('click', (e) => {
     e.preventDefault();
-    const isMember = window.WARSTACK_IS_MEMBER === true || window._memberViewActive;
-    if (isMember) {
-      document.querySelector('[data-section="tournament"]')?.click();
-    } else {
-      const guildId = window.WARSTACK_GUILD_ID || sessionStorage.getItem('warstack_guild_id') || '';
-      window.location.href = `/inscription.html?guild=${guildId}`;
-    }
+    document.querySelector('[data-section="tournament"]')?.click();
   });
 
   document.getElementById('nav-portail')?.addEventListener('click', (e) => {

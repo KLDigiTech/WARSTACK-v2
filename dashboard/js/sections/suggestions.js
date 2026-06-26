@@ -3,6 +3,7 @@
 import { loadConfigs, saveConfig, getConfig } from '../services/configService.js';
 import { callBotAPI, fetchSupabase } from '../api.js';
 import { showToast } from '../ui/toast.js';
+import { showConfirm } from '../ui/confirm.js';
 import { getActiveGuildId } from '../services/guildService.js';
 
 let currentFilter = 'all';
@@ -163,11 +164,18 @@ async function loadSuggestions() {
 
 async function handleAction(id, action) {
   if (action === 'delete') {
-    if (!confirm('Supprimer cette suggestion ?')) return;
-    await fetchSupabase(`suggestions?id=eq.${id}`, 'DELETE');
-    showToast('✅ Suggestion supprimée');
-    await loadSuggestions();
-    await loadStats();
+    showConfirm({
+      title      : 'Supprimer la suggestion',
+      message    : 'Cette action est irréversible. La suggestion sera définitivement supprimée.',
+      confirmText: 'Supprimer',
+      cancelText : 'Annuler',
+      onConfirm  : async () => {
+        await fetchSupabase(`suggestions?id=eq.${id}`, 'DELETE');
+        showToast('✅ Suggestion supprimée');
+        await loadSuggestions();
+        await loadStats();
+      },
+    });
     return;
   }
 

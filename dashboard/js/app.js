@@ -144,7 +144,7 @@ const sections = {
 const PUBLIC_SECTIONS = [
   'overview', 'players', 'analytics', 'tournament', 'welcome', 'onboarding', 'roles',
   'birthdays', 'suggestions', 'events', 'origine', 'messages', 'reactions', 'channels',
-  'ocr-test', 'rulebuilder', 'team',
+  'ocr-test', 'rulebuilder', 'team','boutique',
 ];
 
 const MEMBER_SECTIONS = ['overview', 'players', 'tournament', 'tickets', 'suggestions', 'events', 'origine','boutique'];

@@ -76,6 +76,7 @@
   padding: 0.9rem;
   margin-bottom: 0.6rem;
   transition: border-color 0.15s;
+  overflow: hidden;
 }
 
 .suggestion-card:hover { border-color: var(--border-hover); }

@@ -11,6 +11,10 @@ body.member-view .data-table td:last-child              { display: none !importa
 
 body.member-view .suggestions-layout > div:first-child  { display: none !important; }
 body.member-view .suggestion-actions                    { display: none !important; }
+body.member-view .suggestions-right                     { display: flex !important; flex-direction: column-reverse !important; }
+
+#member-suggest-form                                    { display: none; }
+body.member-view #member-suggest-form                   { display: block !important; }
 
 body.member-view .events-staff-panel                    { display: none !important; }
 body.member-view #btn-msg-participants                   { display: none !important; }
@@ -22,8 +26,10 @@ body.member-view #participant-search                    { display: none !importa
 body.member-view .tickets-layout > div:first-child      { display: none !important; }
 body.member-view #tickets-list .ticket-card             { cursor: default !important; }
 body.member-view #modal-ticket                          { display: none !important; }
-body.member-view #member-ticket-open                    { display: block !important; }
 body.member-view #stat-card-time                        { display: none !important; }
+
+#member-ticket-open                                     { display: none; }
+body.member-view #member-ticket-open                    { display: block !important; }
 
 body.member-view #locations-delete-btn                  { display: none !important; }
 body.member-view .location-row .btn-danger              { display: none !important; }

@@ -131,8 +131,10 @@ async function loadSuggestions() {
     <div class="suggestion-card" data-id="${s.id}">
       <div class="suggestion-header">
         <div class="suggestion-meta">
-          <span class="suggestion-author">${s.username || 'Anonyme'}</span>
-          <span class="suggestion-date">${new Date(s.created_at).toLocaleDateString('fr-FR')}</span>
+          <div>
+            <span class="suggestion-author">${s.username || 'Anonyme'}</span>
+            <span class="suggestion-date">${new Date(s.created_at).toLocaleDateString('fr-FR')}</span>
+          </div>
         </div>
         <span class="suggestion-status status-${s.status}">${statusLabel(s.status)}</span>
       </div>
@@ -165,11 +167,11 @@ async function loadSuggestions() {
 async function handleAction(id, action) {
   if (action === 'delete') {
     showConfirm({
-      title      : 'Supprimer la suggestion',
-      message    : 'Cette action est irréversible. La suggestion sera définitivement supprimée.',
+      title: 'Supprimer la suggestion',
+      message: 'Cette action est irréversible. La suggestion sera définitivement supprimée.',
       confirmText: 'Supprimer',
-      cancelText : 'Annuler',
-      onConfirm  : async () => {
+      cancelText: 'Annuler',
+      onConfirm: async () => {
         await fetchSupabase(`suggestions?id=eq.${id}`, 'DELETE');
         showToast('✅ Suggestion supprimée');
         await loadSuggestions();

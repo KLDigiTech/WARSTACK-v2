@@ -1,0 +1,114 @@
+<div class="boutique-header">
+  <div class="boutique-coins">
+    <span class="coins-icon">🪙</span>
+    <span class="coins-value" id="boutique-coins">0</span>
+    <span class="coins-label">WAR Coins</span>
+  </div>
+  <div class="boutique-tabs" id="boutique-tabs">
+    <button class="boutique-tab active" data-tab="shop">🏪 Boutique</button>
+    <button class="boutique-tab" data-tab="inventory">🎒 Inventaire</button>
+  </div>
+</div>
+
+<div id="boutique-shop-panel">
+  <div class="boutique-filters">
+    <button class="filter-btn active" data-cat="all">Tous</button>
+    <button class="filter-btn" data-cat="badge">🏅 Badges</button>
+    <button class="filter-btn" data-cat="title">📛 Titres</button>
+    <button class="filter-btn" data-cat="profile_frame">🖼️ Cadres</button>
+    <button class="filter-btn" data-cat="profile_background">🎨 Fonds</button>
+    <button class="filter-btn" data-cat="soldier_skin">🎖️ Soldat</button>
+    <button class="filter-btn" data-cat="discord_role">👑 Rôles</button>
+  </div>
+
+  <div class="boutique-staff-panel" id="boutique-staff-panel">
+    <div class="panel">
+      <div class="panel-header">
+        <h2>➕ Créer un item</h2>
+      </div>
+      <div class="panel-body">
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label>Nom</label>
+            <input type="text" id="item-name" class="form-input" placeholder="Nom de l'item">
+          </div>
+          <div class="form-group">
+            <label>Prix (WAR Coins)</label>
+            <input type="number" id="item-price" class="form-input" placeholder="100" min="0">
+          </div>
+          <div class="form-group">
+            <label>Catégorie</label>
+            <select id="item-category" class="form-select">
+              <option value="badge">🏅 Badge</option>
+              <option value="title">📛 Titre</option>
+              <option value="profile_frame">🖼️ Cadre profil</option>
+              <option value="profile_background">🎨 Fond profil</option>
+              <option value="soldier_skin">🎖️ Skin soldat</option>
+              <option value="discord_role">👑 Rôle Discord</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Rareté</label>
+            <select id="item-rarity" class="form-select">
+              <option value="common">⚪ Commun</option>
+              <option value="rare">🔵 Rare</option>
+              <option value="epic">🟣 Épique</option>
+              <option value="legendary">🟠 Légendaire</option>
+              <option value="mythic">🔴 Mythique</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Icône (emoji)</label>
+            <input type="text" id="item-icon" class="form-input" placeholder="🏅" maxlength="4">
+          </div>
+          <div class="form-group">
+            <label>Stock (-1 = illimité)</label>
+            <input type="number" id="item-stock" class="form-input" value="-1">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="item-description" class="form-textarea" rows="2" placeholder="Description de l'item..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>URL image (optionnel)</label>
+          <input type="text" id="item-image" class="form-input" placeholder="https://...">
+        </div>
+      </div>
+      <div class="panel-footer">
+        <button class="btn btn-primary" id="btn-create-item">
+          <i class="fas fa-plus"></i> Créer l'item
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="boutique-grid" id="boutique-grid">
+    <div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>
+  </div>
+</div>
+
+<div id="boutique-inventory-panel" style="display:none">
+  <div class="boutique-grid" id="inventory-grid">
+    <div style="color:var(--text-muted);font-size:0.85rem">Chargement...</div>
+  </div>
+</div>
+
+<div id="modal-item-detail" class="modal-overlay" style="display:none">
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-header">
+      <h3 id="modal-item-title">Item</h3>
+      <button class="btn btn-secondary btn-sm" id="modal-item-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="modal-item-image-wrap" style="text-align:center;margin-bottom:1rem"></div>
+      <div id="modal-item-desc" style="color:var(--text-dim);font-size:0.88rem;margin-bottom:1rem"></div>
+      <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
+        <span id="modal-item-rarity" class="item-rarity-badge"></span>
+        <span id="modal-item-price" style="font-size:1.1rem;font-weight:700;color:var(--yellow)"></span>
+        <span id="modal-item-stock" style="font-size:0.8rem;color:var(--text-muted)"></span>
+      </div>
+    </div>
+    <div class="modal-footer" id="modal-item-footer"></div>
+  </div>
+</div>

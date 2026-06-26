@@ -138,6 +138,7 @@ const sections = {
   origine: () => import('./sections/origine.js').then(m => m.initOrigine()),
   rulebuilder: () => import('./sections/rulebuilder.js').then(m => m.initRuleBuilder()),
   team: () => import('./sections/team.js').then(m => m.initTeam()),
+  boutique: () => import('./sections/boutique.js').then(m => m.initBoutique()),
 };
 
 const PUBLIC_SECTIONS = [
@@ -146,7 +147,7 @@ const PUBLIC_SECTIONS = [
   'ocr-test', 'rulebuilder', 'team',
 ];
 
-const MEMBER_SECTIONS = ['overview', 'players', 'tournament', 'tickets', 'suggestions', 'events', 'origine'];
+const MEMBER_SECTIONS = ['overview', 'players', 'tournament', 'tickets', 'suggestions', 'events', 'origine','boutique'];
 
 window._memberViewActive = false;
 

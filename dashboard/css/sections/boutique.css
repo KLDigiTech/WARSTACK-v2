@@ -1,0 +1,185 @@
+/* ═══════════════════════════════════════
+   BOUTIQUE
+═══════════════════════════════════════ */
+
+.boutique-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.boutique-coins {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.6rem 1rem;
+}
+
+.coins-icon { font-size: 1.4rem; }
+
+.coins-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--yellow);
+}
+
+.coins-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.boutique-tabs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.boutique-tab {
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 0.5rem 1.2rem;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.boutique-tab.active,
+.boutique-tab:hover {
+  background: var(--green);
+  color: #000;
+  border-color: var(--green);
+}
+
+.boutique-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1.5rem;
+}
+
+.boutique-staff-panel {
+  margin-bottom: 1.5rem;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.boutique-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.boutique-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.boutique-card:hover {
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+}
+
+.boutique-card.equipped {
+  border-color: var(--green);
+  box-shadow: 0 0 12px var(--primary-glow);
+}
+
+.equipped-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.boutique-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 80px;
+  font-size: 3rem;
+}
+
+.boutique-card-icon img {
+  max-height: 80px;
+  border-radius: var(--radius);
+  object-fit: contain;
+}
+
+.boutique-card-info {
+  flex: 1;
+}
+
+.boutique-card-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.2rem;
+}
+
+.boutique-card-cat {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.boutique-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.boutique-card-price {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--yellow);
+}
+
+.item-rarity-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius);
+}
+
+.rarity-badge-common    { background: rgba(200,200,200,.15); color: #ccc; }
+.rarity-badge-rare      { background: rgba(88,101,242,.2);   color: #5865f2; }
+.rarity-badge-epic      { background: rgba(163,53,238,.2);   color: #a335ee; }
+.rarity-badge-legendary { background: rgba(255,140,0,.2);    color: #ff8c00; }
+.rarity-badge-mythic    { background: rgba(255,68,68,.2);    color: var(--red); }
+
+.rarity-common    { border-color: rgba(200,200,200,.3); }
+.rarity-rare      { border-color: rgba(88,101,242,.4); }
+.rarity-epic      { border-color: rgba(163,53,238,.4); }
+.rarity-legendary { border-color: rgba(255,140,0,.4); }
+.rarity-mythic    { border-color: rgba(255,68,68,.4); }
+
+@media (max-width: 768px) {
+  .boutique-header { flex-direction: column; align-items: flex-start; }
+  .boutique-grid   { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .form-grid-2     { grid-template-columns: 1fr; }
+}

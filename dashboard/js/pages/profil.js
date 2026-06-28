@@ -1,4 +1,7 @@
 import { fetchSupabase } from '../api.js';
+import { WARSTACKAvatar } from '../warstack-avatar.js';
+
+let _avatar3d = null;
 
 const params    = new URLSearchParams(window.location.search);
 const discordId = params.get('id');
@@ -432,6 +435,57 @@ async function injectEditLocalisation(player) {
   });
 }
 
+function initAvatar3D(divisionName, equippedItems) {
+  const container = document.getElementById('profil-avatar3d-container');
+  const loading   = document.getElementById('avatar3d-loading');
+  if (!container) return;
+
+  if (_avatar3d) { _avatar3d.destroy(); _avatar3d = null; }
+
+  _avatar3d = new WARSTACKAvatar(container, {
+    division : divisionName,
+    autoRotate: true,
+    mouseLook : true,
+    onLoaded  : () => {
+      if (loading) loading.style.display = 'none';
+      renderLoadoutSlots(equippedItems);
+    },
+    onError   : () => {
+      if (loading) { loading.innerHTML = '<span style="color:#ff4444;font-size:0.75rem">Erreur chargement 3D</span>'; }
+    },
+  });
+}
+
+function renderLoadoutSlots(equippedItems) {
+  const container = document.getElementById('avatar3d-slots');
+  if (!container) return;
+
+  const SLOTS = [
+    { key: 'soldier_helmet',  label: 'Casque',    icon: '⛑️' },
+    { key: 'soldier_vest',    label: 'Gilet',     icon: '🦺' },
+    { key: 'soldier_uniform', label: 'Uniforme',  icon: '👕' },
+    { key: 'soldier_patch',   label: 'Patch',     icon: '🔰' },
+    { key: 'soldier_gloves',  label: 'Gants',     icon: '🧤' },
+    { key: 'soldier_boots',   label: 'Bottes',    icon: '👢' },
+  ];
+
+  const equipped = {};
+  for (const pi of equippedItems || []) {
+    if (pi.shop_items) equipped[pi.shop_items.category] = pi.shop_items;
+  }
+
+  container.innerHTML = SLOTS.map(slot => {
+    const item = equipped[slot.key];
+    return `
+      <div class="avatar3d-slot ${item ? 'equipped' : 'empty'}" title="${slot.label}">
+        <div class="avatar3d-slot-icon">${item ? (item.icon || slot.icon) : slot.icon}</div>
+        <div class="avatar3d-slot-label">${item ? item.name : slot.label}</div>
+        ${item ? `<div class="avatar3d-slot-rarity rarity-badge-${item.rarity}">${item.rarity}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
 async function loadProfil() {
   if (!discordId) { showNotFound(); return; }
 
@@ -548,6 +602,7 @@ async function loadProfil() {
   await loadTournois(discordId);
   await loadXPHistory(discordId);
   await injectEditLocalisation(player);
+  initAvatar3D(division.name, equippedItems);
   showContent();
 }
 

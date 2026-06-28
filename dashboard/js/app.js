@@ -148,7 +148,7 @@ const PUBLIC_SECTIONS = [
   'ocr-test', 'rulebuilder', 'team', 'boutique', 'notifications',
 ];
 
-const MEMBER_SECTIONS = ['overview', 'players', 'tournament', 'tickets', 'suggestions', 'events', 'origine', 'boutique', 'notifications'];
+const MEMBER_SECTIONS = ['overview', 'players', 'tournament', 'tickets', 'suggestions', 'events', 'origine', 'boutique'];
 
 window._memberViewActive = false;
 

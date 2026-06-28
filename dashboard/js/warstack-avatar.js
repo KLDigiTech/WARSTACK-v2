@@ -62,9 +62,9 @@ export class WARSTACKAvatar {
     this.scene.fog = new THREE.FogExp2(0x000000, 0.04);
 
     // Camera
-    this.camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
-    this.camera.position.set(0, 1.4, 3.2);
-    this.camera.lookAt(0, 1.0, 0);
+    this.camera = new THREE.PerspectiveCamera(42, w / h, 0.1, 100);
+    this.camera.position.set(0, 1.0, 2.6);
+    this.camera.lookAt(0, 0.9, 0);
 
     // Renderer
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -207,138 +207,148 @@ export class WARSTACKAvatar {
     const colors  = this._getDivisionColors();
     const group   = new THREE.Group();
     const primary = new THREE.Color(colors.primary);
-    const dark    = new THREE.Color(0x1a1a1a);
-    const olive   = new THREE.Color(0x3d4a2a);
-    const metal   = new THREE.Color(0x2a2a2a);
 
-    const mat = (c, metalness = 0.3, roughness = 0.7) => new THREE.MeshStandardMaterial({
-      color: c, metalness, roughness
-    });
-
-    const add = (geo, m, x, y, z, rx = 0, ry = 0, rz = 0) => {
-      const mesh = new THREE.Mesh(geo, m);
-      mesh.position.set(x, y, z);
-      mesh.rotation.set(rx, ry, rz);
-      mesh.castShadow = true;
-      group.add(mesh);
-      return mesh;
+    // Matériaux
+    const matOf = (hex, metal = 0.3, rough = 0.7, emissive = null, emInt = 0) => {
+      const m = new THREE.MeshStandardMaterial({ color: new THREE.Color(hex), metalness: metal, roughness: rough });
+      if (emissive) { m.emissive = new THREE.Color(emissive); m.emissiveIntensity = emInt; }
+      return m;
     };
 
-    // ── Corps ──
-    add(new THREE.BoxGeometry(0.42, 0.54, 0.22), mat(olive),           0,    1.08,  0);
-    // Gilet tactique
-    add(new THREE.BoxGeometry(0.44, 0.30, 0.26), mat(dark, 0.4, 0.6), 0,    1.22,  0);
-    // Poches gilet
-    add(new THREE.BoxGeometry(0.12, 0.10, 0.14), mat(dark, 0.3, 0.7), -0.16, 1.30, 0.13);
-    add(new THREE.BoxGeometry(0.12, 0.10, 0.14), mat(dark, 0.3, 0.7),  0.16, 1.30, 0.13);
+    const MAT = {
+      skin    : matOf(0x8a6a50),
+      olive   : matOf(0x3a4228, 0.1, 0.85),
+      dark    : matOf(0x1c1c1c, 0.5, 0.5),
+      vest    : matOf(0x2a2e1e, 0.3, 0.7),
+      boot    : matOf(0x141414, 0.6, 0.4),
+      helmet  : matOf(colors.primary, 0.55, 0.4, colors.primary, 0.15),
+      metal   : matOf(0x222222, 0.85, 0.15),
+      glow    : matOf(colors.primary, 0.2, 0.3, colors.primary, 0.8),
+      glove   : matOf(0x111111, 0.4, 0.6),
+    };
 
-    // ── Bassin / Jambes ──
-    add(new THREE.BoxGeometry(0.40, 0.16, 0.20), mat(olive),           0,    0.78,  0);
-    add(new THREE.BoxGeometry(0.17, 0.44, 0.18), mat(olive),          -0.12, 0.44,  0);
-    add(new THREE.BoxGeometry(0.17, 0.44, 0.18), mat(olive),           0.12, 0.44,  0);
-    // Genouillères
-    add(new THREE.BoxGeometry(0.19, 0.10, 0.20), mat(dark, 0.5, 0.5), -0.12, 0.38, 0.01);
-    add(new THREE.BoxGeometry(0.19, 0.10, 0.20), mat(dark, 0.5, 0.5),  0.12, 0.38, 0.01);
-    // Bottes
-    add(new THREE.BoxGeometry(0.18, 0.18, 0.22), mat(dark, 0.6, 0.4), -0.12, 0.12, 0.02);
-    add(new THREE.BoxGeometry(0.18, 0.18, 0.22), mat(dark, 0.6, 0.4),  0.12, 0.12, 0.02);
+    const mesh = (geo, mat, px, py, pz, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) => {
+      const m = new THREE.Mesh(geo, mat);
+      m.position.set(px, py, pz);
+      m.rotation.set(rx, ry, rz);
+      m.scale.set(sx, sy, sz);
+      m.castShadow = true;
+      return m;
+    };
 
-    // ── Bras ──
-    // Bras gauche
-    add(new THREE.BoxGeometry(0.13, 0.38, 0.13), mat(olive),          -0.28, 1.06, 0, 0.15, 0, -0.08);
-    add(new THREE.BoxGeometry(0.11, 0.30, 0.11), mat(dark, 0.3, 0.6), -0.30, 0.72, 0, 0.10, 0, -0.05);
-    // Bras droit
-    add(new THREE.BoxGeometry(0.13, 0.38, 0.13), mat(olive),           0.28, 1.06, 0, 0.15, 0,  0.08);
-    add(new THREE.BoxGeometry(0.11, 0.30, 0.11), mat(dark, 0.3, 0.6),  0.30, 0.72, 0, 0.10, 0,  0.05);
-    // Gants
-    add(new THREE.BoxGeometry(0.11, 0.10, 0.11), mat(dark, 0.5, 0.5), -0.31, 0.56, 0);
-    add(new THREE.BoxGeometry(0.11, 0.10, 0.11), mat(dark, 0.5, 0.5),  0.31, 0.56, 0);
+    // ── TORSO ── (centre à y=1.15, hauteur 0.52)
+    const torso = new THREE.Group();
+    // Corps principal
+    torso.add(mesh(new THREE.BoxGeometry(0.36, 0.50, 0.20), MAT.olive, 0, 0, 0));
+    // Gilet tactique (légèrement plus large + devant)
+    torso.add(mesh(new THREE.BoxGeometry(0.38, 0.34, 0.08), MAT.vest, 0, 0.06, 0.12));
+    // Poches gilet gauche/droite
+    torso.add(mesh(new THREE.BoxGeometry(0.10, 0.09, 0.07), MAT.vest, -0.14, 0.10, 0.16));
+    torso.add(mesh(new THREE.BoxGeometry(0.10, 0.09, 0.07), MAT.vest,  0.14, 0.10, 0.16));
+    // Ceinture
+    torso.add(mesh(new THREE.BoxGeometry(0.37, 0.05, 0.22), MAT.dark, 0, -0.24, 0));
+    torso.position.set(0, 1.15, 0);
+    group.add(torso);
 
-    // ── Cou ──
-    add(new THREE.CylinderGeometry(0.07, 0.09, 0.10, 8), mat(new THREE.Color(0x8a6a50)), 0, 1.37, 0);
+    // ── PELVIS ──
+    group.add(mesh(new THREE.BoxGeometry(0.34, 0.14, 0.20), MAT.olive, 0, 0.82, 0));
 
-    // ── Tête ──
-    const head = new THREE.Group();
-    // Visage
-    const face = new THREE.Mesh(
-      new THREE.BoxGeometry(0.26, 0.28, 0.24),
-      mat(new THREE.Color(0x8a6a50))
-    );
-    face.castShadow = true;
-    head.add(face);
-    // Balaclava / cagoule bas
-    const bala = new THREE.Mesh(
-      new THREE.BoxGeometry(0.28, 0.16, 0.26),
-      mat(dark)
-    );
-    bala.position.y = -0.07;
-    head.add(bala);
+    // ── LEGS ── (pivot en haut de la jambe)
+    const legGeo  = new THREE.BoxGeometry(0.155, 0.40, 0.175);
+    const shinGeo = new THREE.BoxGeometry(0.135, 0.36, 0.155);
+    const bootGeo = new THREE.BoxGeometry(0.155, 0.16, 0.210);
+    const kneeGeo = new THREE.BoxGeometry(0.160, 0.09, 0.185);
 
-    // ── Casque tactique ──
-    const helmet = new THREE.Mesh(
-      new THREE.SphereGeometry(0.165, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.65),
-      mat(primary, 0.5, 0.4)
-    );
-    helmet.position.y = 0.06;
-    head.add(helmet);
-    // Rail casque
-    const rail = new THREE.Mesh(
-      new THREE.BoxGeometry(0.04, 0.04, 0.22),
-      mat(metal, 0.8, 0.2)
-    );
-    rail.position.set(0, 0.12, 0.09);
-    head.add(rail);
-    // Lunettes NVG placeholder
-    const nvg = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.03, 0.03, 0.05, 8),
-      mat(new THREE.Color(0x003300), 0.2, 0.1)
-    );
-    nvg.rotation.x = Math.PI / 2;
-    nvg.position.set(0, 0.06, 0.16);
-    head.add(nvg);
-
-    // Patch division sur casque
-    const patchMat = new THREE.MeshStandardMaterial({
-      color    : primary,
-      emissive : primary,
-      emissiveIntensity: 0.6,
+    [-0.10, 0.10].forEach(x => {
+      group.add(mesh(legGeo,  MAT.olive, x, 0.56, 0));
+      group.add(mesh(kneeGeo, MAT.dark,  x, 0.37, 0.005));
+      group.add(mesh(shinGeo, MAT.olive, x, 0.18, 0));
+      group.add(mesh(bootGeo, MAT.boot,  x, 0.06, 0.018));
     });
-    const patch = new THREE.Mesh(new THREE.CircleGeometry(0.04, 8), patchMat);
-    patch.position.set(0.14, 0.08, 0.10);
-    patch.rotation.y = -0.6;
-    head.add(patch);
 
-    head.position.set(0, 1.50, 0);
-    group.add(head);
+    // ── ARMS ── (légèrement en angle)
+    const upArmGeo  = new THREE.BoxGeometry(0.125, 0.36, 0.125);
+    const foreGeo   = new THREE.BoxGeometry(0.110, 0.30, 0.110);
+    const gloveGeo  = new THREE.BoxGeometry(0.105, 0.10, 0.105);
+
+    // Bras gauche
+    const lArm = new THREE.Group();
+    lArm.add(mesh(upArmGeo, MAT.olive, 0, 0, 0));
+    lArm.add(mesh(foreGeo,  MAT.olive, 0, -0.32, 0));
+    lArm.add(mesh(gloveGeo, MAT.glove, 0, -0.48, 0));
+    lArm.position.set(-0.25, 1.12, 0);
+    lArm.rotation.z =  0.10;
+    lArm.rotation.x =  0.08;
+    group.add(lArm);
+
+    // Bras droit (tient l'arme — légèrement avancé)
+    const rArm = new THREE.Group();
+    rArm.add(mesh(upArmGeo, MAT.olive, 0, 0, 0));
+    rArm.add(mesh(foreGeo,  MAT.olive, 0, -0.32, 0));
+    rArm.add(mesh(gloveGeo, MAT.glove, 0, -0.48, 0));
+    rArm.position.set(0.25, 1.12, 0);
+    rArm.rotation.z = -0.10;
+    rArm.rotation.x =  0.15;
+    group.add(rArm);
+
+    // ── NECK ──
+    group.add(mesh(new THREE.CylinderGeometry(0.065, 0.080, 0.095, 10), MAT.skin, 0, 1.42, 0));
+
+    // ── HEAD ──
+    const head = new THREE.Group();
+
+    // Cagoule / balaclava
+    head.add(mesh(new THREE.BoxGeometry(0.235, 0.145, 0.230), MAT.dark, 0, -0.065, 0));
+    // Visage (zone découverte — yeux)
+    head.add(mesh(new THREE.BoxGeometry(0.200, 0.100, 0.200), MAT.skin, 0, 0.010, 0.025));
+    // Crâne
+    head.add(mesh(new THREE.BoxGeometry(0.230, 0.140, 0.215), MAT.dark, 0, 0.080, 0));
+
+    // Casque tactique — sphère aplatie
+    const helmetGeo = new THREE.SphereGeometry(0.148, 20, 14, 0, Math.PI * 2, 0, Math.PI * 0.62);
+    head.add(mesh(helmetGeo, MAT.helmet, 0, 0.075, 0));
+    // Bord casque
+    head.add(mesh(new THREE.CylinderGeometry(0.155, 0.148, 0.022, 20, 1, true, 0, Math.PI * 1.6), MAT.helmet, 0, 0.022, 0.01));
+    // Rail picatinny casque (dessus)
+    head.add(mesh(new THREE.BoxGeometry(0.030, 0.028, 0.175), MAT.metal, 0, 0.172, 0.005));
+    // NVG mount
+    head.add(mesh(new THREE.BoxGeometry(0.055, 0.035, 0.040), MAT.metal, 0, 0.140, 0.140));
+    // NVG tubes
+    [-0.020, 0.020].forEach(x => {
+      head.add(mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.060, 8), MAT.dark, x, 0.132, 0.172, Math.PI / 2, 0, 0));
+    });
+    // Patch division lumineux (côté casque)
+    head.add(mesh(new THREE.BoxGeometry(0.006, 0.040, 0.040), MAT.glow, -0.152, 0.115, 0.020));
+
+    head.position.set(0, 1.525, 0);
     this.headGroup = head;
+    group.add(head);
 
-    // ── Arme (M4 stylisé) ──
+    // ── WEAPON (M4 stylisé) ──
     const weapon = new THREE.Group();
-    // Corps arme
-    weapon.add(Object.assign(new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 0.50), mat(metal, 0.8, 0.2)), { castShadow: true }));
+    // Receiver / corps
+    weapon.add(mesh(new THREE.BoxGeometry(0.052, 0.055, 0.420), MAT.metal, 0, 0, 0));
+    // Poignée pistolet
+    weapon.add(mesh(new THREE.BoxGeometry(0.035, 0.130, 0.048), MAT.dark, 0.008, -0.085, 0.090, 0.22, 0, 0));
     // Chargeur
-    const mag = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.14, 0.06), mat(dark, 0.6, 0.3));
-    mag.position.set(0, -0.09, 0.06);
-    weapon.add(mag);
+    weapon.add(mesh(new THREE.BoxGeometry(0.034, 0.140, 0.058), MAT.dark, 0, -0.094, 0.040, 0.08, 0, 0));
+    // Rail & garde-main
+    weapon.add(mesh(new THREE.BoxGeometry(0.044, 0.042, 0.190), MAT.metal, 0, 0.010, -0.160));
     // Canon
-    const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.24, 8), mat(metal, 0.9, 0.1));
-    barrel.rotation.x = Math.PI / 2;
-    barrel.position.set(0, 0.015, -0.34);
-    weapon.add(barrel);
-    // Viseur
-    const sight = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 0.08), mat(new THREE.Color(0x1a1a1a), 0.7, 0.2));
-    sight.position.set(0, 0.05, 0.06);
-    weapon.add(sight);
+    weapon.add(mesh(new THREE.CylinderGeometry(0.010, 0.010, 0.220, 8), MAT.metal, 0, 0.010, -0.310, Math.PI / 2, 0, 0));
+    // Suppresseur
+    weapon.add(mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.080, 8), MAT.dark, 0, 0.010, -0.420, Math.PI / 2, 0, 0));
+    // Viseur holographique
+    weapon.add(mesh(new THREE.BoxGeometry(0.038, 0.042, 0.058), MAT.metal, 0, 0.052, 0.010));
+    weapon.add(mesh(new THREE.BoxGeometry(0.002, 0.002, 0.002), MAT.glow,  0, 0.072, -0.012));
 
-    weapon.rotation.set(0.2, 0, 0.2);
-    weapon.position.set(0.28, 0.88, 0.14);
+    weapon.rotation.set(0.18, 0, 0.14);
+    weapon.position.set(0.245, 0.84, 0.145);
     group.add(weapon);
 
-    group.position.y = 0.04;
+    group.position.set(0, 0.04, 0);
     this.scene.add(group);
-    this.model = group;
-
-    // Référence pour animation idle
+    this.model      = group;
     this.bodyGroup  = group;
     this._idlePhase = 0;
 

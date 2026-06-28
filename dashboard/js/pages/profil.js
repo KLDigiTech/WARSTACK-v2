@@ -1,5 +1,3 @@
-// dashboard/js/pages/profil.js — FICHIER COMPLET
-
 import { fetchSupabase } from '../api.js';
 
 const params    = new URLSearchParams(window.location.search);
@@ -46,6 +44,14 @@ const BR_RANK_SCORES = {
   'diamond i': 21, 'diamond ii': 22, 'diamond iii': 23, 'diamond iv': 24, 'diamond v': 25,
   'master i': 26,  'master ii': 27,  'master iii': 28,  'master iv': 29,  'master v': 30,
   'masters': 30,
+};
+
+const RARITY_CONFIG = {
+  common    : { label: 'Commun',     color: '#aaaaaa', glow: 'rgba(170,170,170,.25)' },
+  rare      : { label: 'Rare',       color: '#5865f2', glow: 'rgba(88,101,242,.35)'  },
+  epic      : { label: 'Épique',     color: '#a335ee', glow: 'rgba(163,53,238,.35)'  },
+  legendary : { label: 'Légendaire', color: '#ff8c00', glow: 'rgba(255,140,0,.40)'   },
+  mythic    : { label: 'Mythique',   color: '#ff4444', glow: 'rgba(255,68,68,.40)'   },
 };
 
 const PAYS_LIST = [
@@ -167,7 +173,7 @@ function initTabs() {
   });
 }
 
-function renderWARSTACKBlock(xpData, walletData) {
+function renderWARSTACKBlock(xpData, walletData, equippedItems) {
   const xp        = xpData?.xp      ?? 0;
   const coins     = walletData?.coins ?? 0;
   const grade     = getGrade(xp);
@@ -179,13 +185,36 @@ function renderWARSTACKBlock(xpData, walletData) {
   const block = document.getElementById('profil-warstack-block');
   if (!block) return;
 
+  const badges = (equippedItems || []).filter(i => i.shop_items?.category === 'badge');
+  const titles = (equippedItems || []).filter(i => i.shop_items?.category === 'title');
+  const equippedTitle = titles[0]?.shop_items || null;
+
+  const badgesHtml = badges.length ? `
+    <div class="profil-ws-equipped-badges">
+      ${badges.map(b => {
+        const item = b.shop_items;
+        const rc   = RARITY_CONFIG[item.rarity] || RARITY_CONFIG.common;
+        return `<span class="profil-ws-badge rarity-${item.rarity}" title="${item.name}" style="--rarity-glow:${rc.glow};--rarity-color:${rc.color}">${item.icon || '🏅'}</span>`;
+      }).join('')}
+    </div>` : '';
+
+  const titleBannerHtml = equippedTitle ? `
+    <div class="profil-ws-title-banner rarity-${equippedTitle.rarity}" style="--rarity-color:${(RARITY_CONFIG[equippedTitle.rarity] || RARITY_CONFIG.common).color};--rarity-glow:${(RARITY_CONFIG[equippedTitle.rarity] || RARITY_CONFIG.common).glow}">
+      <span class="profil-ws-title-icon">${equippedTitle.icon || '📛'}</span>
+      <span class="profil-ws-title-text">${equippedTitle.name}</span>
+      <span class="profil-ws-title-rarity">${(RARITY_CONFIG[equippedTitle.rarity] || RARITY_CONFIG.common).label}</span>
+    </div>` : '';
+
   block.innerHTML = `
-    <div class="profil-ws-grade">
-      <div class="profil-ws-grade-icon">${grade.emoji}</div>
-      <div class="profil-ws-grade-info">
-        <div class="profil-ws-grade-name">${grade.name}</div>
-        <div class="profil-ws-grade-level">Niveau ${grade.level}</div>
+    <div class="profil-ws-top">
+      <div class="profil-ws-grade">
+        <div class="profil-ws-grade-icon">${grade.emoji}</div>
+        <div class="profil-ws-grade-info">
+          <div class="profil-ws-grade-name">${grade.name}</div>
+          <div class="profil-ws-grade-level">Niveau ${grade.level}</div>
+        </div>
       </div>
+      ${titleBannerHtml}
     </div>
     <div class="profil-ws-bar-wrap">
       <div class="profil-ws-bar" style="width:${progress}%"></div>
@@ -208,38 +237,60 @@ function renderWARSTACKBlock(xpData, walletData) {
         <div class="profil-ws-counter-label">Total gagné</div>
       </div>
     </div>
+    ${badgesHtml}
   `;
 }
 
-function renderEquippedItems(items) {
-  const block = document.getElementById('profil-warstack-block');
-  if (!block || !items.length) return;
+function renderEquippedItems(equippedItems) {
+  if (!equippedItems.length) return;
 
-  const badges = items.filter(i => i.shop_items?.category === 'badge');
-  const titles = items.filter(i => i.shop_items?.category === 'title');
+  const badges = equippedItems.filter(i => i.shop_items?.category === 'badge');
+  const titles = equippedItems.filter(i => i.shop_items?.category === 'title');
+
+  const heroBadges = document.getElementById('p-hero-badges');
+  if (heroBadges && badges.length) {
+    heroBadges.innerHTML = badges.map(b => {
+      const item = b.shop_items;
+      const rc   = RARITY_CONFIG[item.rarity] || RARITY_CONFIG.common;
+      return `<span class="profil-hero-badge rarity-${item.rarity}" title="${item.name}" style="--rarity-color:${rc.color}">${item.icon || '🏅'}</span>`;
+    }).join('');
+  }
 
   if (titles.length) {
-    const title = titles[0].shop_items;
-    const platformEl = document.getElementById('p-platform');
-    if (platformEl) {
-      const titleEl = document.createElement('div');
-      titleEl.className = 'profil-equipped-title';
-      titleEl.textContent = `${title.icon || '📛'} ${title.name}`;
-      platformEl.insertAdjacentElement('afterend', titleEl);
-    }
+    const item    = titles[0].shop_items;
+    const rc      = RARITY_CONFIG[item.rarity] || RARITY_CONFIG.common;
+    const titleEl = document.createElement('div');
+    titleEl.className = 'profil-equipped-title';
+    titleEl.style.setProperty('--rarity-color', rc.color);
+    titleEl.style.setProperty('--rarity-glow', rc.glow);
+    titleEl.innerHTML = `<span>${item.icon || '📛'}</span> ${item.name}`;
+    const platform = document.getElementById('p-platform');
+    if (platform) platform.insertAdjacentElement('beforebegin', titleEl);
   }
 
-  if (badges.length) {
-    const badgesHtml = `
-      <div class="profil-badges">
-        ${badges.map(b => {
-          const item = b.shop_items;
-          return `<span class="profil-badge rarity-badge-${item.rarity}" title="${item.name}">${item.icon || '🏅'}</span>`;
-        }).join('')}
+  const tabBtn  = document.getElementById('tab-equip-btn');
+  const tabPane = document.getElementById('tab-equip');
+  const grid    = document.getElementById('p-equip-grid');
+  if (!tabBtn || !tabPane || !grid) return;
+
+  tabBtn.style.display = '';
+
+  grid.innerHTML = equippedItems.map(pi => {
+    const item = pi.shop_items;
+    if (!item) return '';
+    const rc = RARITY_CONFIG[item.rarity] || RARITY_CONFIG.common;
+    return `
+      <div class="profil-equip-card rarity-${item.rarity}" style="--rarity-color:${rc.color};--rarity-glow:${rc.glow}">
+        <div class="profil-equip-card-glow"></div>
+        <div class="profil-equip-icon">${item.icon || '🎁'}</div>
+        <div class="profil-equip-name">${item.name}</div>
+        <div class="profil-equip-cat">${item.category === 'badge' ? '🏅 Badge' : '📛 Titre'}</div>
+        <div class="profil-equip-rarity rarity-badge-${item.rarity}">${rc.label}</div>
+        ${item.description ? `<div class="profil-equip-desc">${item.description}</div>` : ''}
+        <div class="profil-equip-equipped-tag"><i class="fas fa-check-circle"></i> Équipé</div>
       </div>
     `;
-    block.insertAdjacentHTML('beforeend', badgesHtml);
-  }
+  }).join('');
 }
 
 async function injectEditLocalisation(player) {
@@ -491,8 +542,8 @@ async function loadProfil() {
 
   document.title = `${player.username || 'Joueur'} — WARSTACK`;
 
-  renderWARSTACKBlock(xpData, walletData);
   renderEquippedItems(equippedItems);
+  renderWARSTACKBlock(xpData, walletData, equippedItems);
   initTabs();
   await loadTournois(discordId);
   await loadXPHistory(discordId);

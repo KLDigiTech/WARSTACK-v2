@@ -40,6 +40,7 @@
         </div>
         <div class="profil-identity">
           <div class="profil-username" id="p-username"></div>
+          <!-- titre équipé injecté ici par renderEquippedItems -->
           <div class="profil-platform" id="p-platform"></div>
           <div class="profil-division" id="p-division"></div>
           <div class="profil-br-rank" id="p-br-rank" style="display:none">
@@ -48,6 +49,8 @@
             <span id="p-br-rank-value"></span>
             <span class="br-rank-label">BR RANK</span>
           </div>
+          <!-- badges équipés inline dans le hero -->
+          <div id="p-hero-badges" class="profil-hero-badges"></div>
         </div>
         <div class="profil-score-block">
           <div class="profil-score-value" id="p-score"></div>
@@ -61,6 +64,7 @@
         <button class="profil-tab active" data-tab="global">🌍 Global</button>
         <button class="profil-tab" data-tab="mp">🎯 Multiplayer</button>
         <button class="profil-tab" data-tab="br">🪂 Battle Royale</button>
+        <button class="profil-tab" data-tab="equip" id="tab-equip-btn" style="display:none">🎒 Équipement</button>
       </div>
 
       <div class="profil-tab-content active" id="tab-global">
@@ -159,6 +163,11 @@
             <div class="profil-stat-label">Win Rate</div>
           </div>
         </div>
+      </div>
+
+      <!-- Onglet Équipement — affiché si items équipés -->
+      <div class="profil-tab-content" id="tab-equip" style="display:none">
+        <div id="p-equip-grid" class="profil-equip-grid"></div>
       </div>
 
       <div class="profil-section-title">🏆 Historique Tournois</div>

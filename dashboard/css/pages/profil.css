@@ -732,3 +732,197 @@
   margin-top: 4px;
   text-transform: uppercase;
 }
+/* ── PROFIL PREMIUM — Items équipés ─────────────────────────── */
+
+.profil-equipped-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--rarity-color, #aaa);
+  background: color-mix(in srgb, var(--rarity-color, #aaa) 10%, transparent);
+  color: var(--rarity-color, #aaa);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  box-shadow: 0 0 10px var(--rarity-glow, transparent);
+  width: fit-content;
+}
+
+.profil-hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.profil-hero-badge {
+  font-size: 1.3rem;
+  padding: 4px 6px;
+  border-radius: 8px;
+  border: 1px solid var(--rarity-color, rgba(255,255,255,.1));
+  background: color-mix(in srgb, var(--rarity-color, #fff) 8%, transparent);
+  cursor: default;
+  transition: transform .15s, box-shadow .15s;
+  line-height: 1;
+}
+
+.profil-hero-badge:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 12px var(--rarity-color, transparent);
+}
+
+.profil-ws-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.profil-ws-title-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--rarity-color, #aaa);
+  background: color-mix(in srgb, var(--rarity-color, #aaa) 10%, transparent);
+  box-shadow: 0 0 14px var(--rarity-glow, transparent);
+  white-space: nowrap;
+}
+
+.profil-ws-title-icon { font-size: 1rem; line-height: 1; }
+
+.profil-ws-title-text {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--rarity-color, #aaa);
+}
+
+.profil-ws-title-rarity {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--rarity-color, #aaa) 70%, #fff);
+  opacity: .7;
+}
+
+.profil-ws-equipped-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(0,255,120,.08);
+}
+
+.profil-ws-badge {
+  font-size: 1.5rem;
+  padding: 6px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--rarity-color, rgba(255,255,255,.08));
+  background: color-mix(in srgb, var(--rarity-color, #fff) 8%, transparent);
+  cursor: default;
+  transition: transform .15s, box-shadow .15s;
+  line-height: 1;
+}
+
+.profil-ws-badge:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 16px var(--rarity-glow, transparent);
+}
+
+.profil-equip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.profil-equip-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 16px 16px;
+  border-radius: 18px;
+  border: 1px solid var(--rarity-color, rgba(255,255,255,.08));
+  background: linear-gradient(180deg, rgba(14,20,17,.98), rgba(8,12,10,.99));
+  text-align: center;
+  overflow: hidden;
+  transition: transform .2s, box-shadow .2s;
+}
+
+.profil-equip-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px var(--rarity-glow, rgba(0,0,0,.3));
+}
+
+.profil-equip-card-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 0%, var(--rarity-glow, transparent), transparent 60%);
+  pointer-events: none;
+}
+
+.profil-equip-icon { font-size: 2.8rem; line-height: 1; margin-bottom: 2px; }
+
+.profil-equip-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 1px;
+  line-height: 1.2;
+}
+
+.profil-equip-cat {
+  font-size: 10px;
+  color: rgba(255,255,255,.35);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.profil-equip-rarity {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.profil-equip-desc {
+  font-size: 11px;
+  color: rgba(255,255,255,.4);
+  line-height: 1.4;
+  letter-spacing: .3px;
+}
+
+.profil-equip-equipped-tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--rarity-color, #7fa38a);
+  margin-top: 2px;
+}
+
+.profil-equip-equipped-tag i { font-size: 9px; }
+
+@media (max-width: 600px) {
+  .profil-equip-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .profil-ws-top { flex-direction: column; align-items: flex-start; }
+  .profil-ws-title-banner { white-space: normal; }
+}

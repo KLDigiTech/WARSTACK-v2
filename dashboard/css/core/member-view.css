@@ -127,3 +127,9 @@ body.member-view #staff-overview {
 body.member-view .carte-delete-btn {
     display: none !important;
 }
+body.member-view #btn-create-season,
+body.member-view #btn-grant-badge-confirm,
+body.member-view #modal-create-season,
+body.member-view #modal-grant-badge {
+  display: none !important;
+}

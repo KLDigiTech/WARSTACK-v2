@@ -436,24 +436,33 @@ async function injectEditLocalisation(player) {
 }
 
 function initAvatar3D(divisionName, equippedItems) {
+  const section   = document.getElementById('profil-avatar3d-section');
   const container = document.getElementById('profil-avatar3d-container');
   const loading   = document.getElementById('avatar3d-loading');
-  if (!container) return;
+  if (!container || !section) return;
 
-  if (_avatar3d) { _avatar3d.destroy(); _avatar3d = null; }
+  const MODEL_URL = '/assets/models/soldier.glb';
 
-  _avatar3d = new WARSTACKAvatar(container, {
-    division : divisionName,
-    autoRotate: true,
-    mouseLook : true,
-    onLoaded  : () => {
-      if (loading) loading.style.display = 'none';
-      renderLoadoutSlots(equippedItems);
-    },
-    onError   : () => {
-      if (loading) { loading.innerHTML = '<span style="color:#ff4444;font-size:0.75rem">Erreur chargement 3D</span>'; }
-    },
-  });
+  fetch(MODEL_URL, { method: 'HEAD' }).then(r => {
+    if (!r.ok) return;
+    section.style.display = '';
+
+    if (_avatar3d) { _avatar3d.destroy(); _avatar3d = null; }
+
+    _avatar3d = new WARSTACKAvatar(container, {
+      division  : divisionName,
+      autoRotate: true,
+      mouseLook : true,
+      onLoaded  : () => {
+        if (loading) loading.style.display = 'none';
+        renderLoadoutSlots(equippedItems);
+      },
+      onError   : () => {
+        section.style.display = 'none';
+      },
+    });
+    _avatar3d.loadModel(MODEL_URL);
+  }).catch(() => {});
 }
 
 function renderLoadoutSlots(equippedItems) {

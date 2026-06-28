@@ -1224,9 +1224,13 @@ router.post('/onboarding/test', auth, async (req, res) => {
 router.post('/onboarding/approve', auth, async (req, res) => {
   try {
     const { discord_id } = req.body;
-    const guild = client.guilds.cache.first();
+    if (!discord_id) return res.status(400).json({ success: false, error: 'discord_id manquant' });
+
+    const guild = resolveGuild(req);
+    if (!guild) return res.status(404).json({ success: false, error: 'Guild introuvable' });
+
     const member = await guild.members.fetch(discord_id).catch(() => null);
-    if (!member) return res.json({ success: false, error: 'Membre introuvable' });
+    if (!member) return res.status(404).json({ success: false, error: 'Membre introuvable' });
 
     const { data: configs } = await supabase.from('config').select('*').eq('guild_id', guild.id);
     const getConf = k => configs?.find(c => c.key === k)?.value;
@@ -1238,18 +1242,57 @@ router.post('/onboarding/approve', auth, async (req, res) => {
     if (memberRoleId) { const r = guild.roles.cache.get(memberRoleId); if (r) await member.roles.add(r).catch(() => {}); }
 
     await supabase.from('onboarding_sessions')
-      .update({ manual_status: 'approved' })
+      .update({ manual_status: 'approved', reviewed_by: 'dashboard' })
       .eq('guild_id', guild.id).eq('discord_id', discord_id);
 
     const { data: session } = await supabase.from('onboarding_sessions').select('*')
       .eq('guild_id', guild.id).eq('discord_id', discord_id).single().catch(() => ({ data: null }));
 
     await supabase.from('onboarding_logs').insert({
-      guild_id: guild.id, discord_id, username: member.user.username,
+      guild_id  : guild.id,
+      discord_id,
+      username  : member.user.username,
       avatar_url: member.user.displayAvatarURL({ size: 64 }),
-      pseudo: session?.pseudo || null, team: session?.team || null,
-      platform: session?.platform || null, games: session?.games || null,
-      age: session?.age || null, created_at: new Date().toISOString(),
+      pseudo    : session?.pseudo   || null,
+      team      : session?.team     || null,
+      platform  : session?.platform || null,
+      games     : session?.games    || null,
+      age       : session?.age      || null,
+      created_at: new Date().toISOString(),
+    }).catch(() => {});
+
+    const obChanId = getConf('ob_channel');
+    if (obChanId) {
+      const obChan = guild.channels.cache.get(obChanId);
+      if (obChan) {
+        const confirmMsg = (getConf('ob_confirm_msg') || 'Bienvenue {mention} ! ⚔️')
+          .replace(/{mention}/g, `<@${discord_id}>`)
+          .replace(/{user}/g,    member.user.username)
+          .replace(/{server}/g,  guild.name);
+        await obChan.send(confirmMsg).catch(() => {});
+      }
+    }
+
+    const dmEnabled = getConf('ob_dm_enabled') === 'true';
+    const dmMsg     = getConf('ob_dm_msg') || '';
+    if (dmEnabled && dmMsg) {
+      const filled = dmMsg
+        .replace(/{user}/g,     member.user.username)
+        .replace(/{server}/g,   guild.name)
+        .replace(/{pseudo}/g,   session?.pseudo   || member.user.username)
+        .replace(/{team}/g,     session?.team     || '—')
+        .replace(/{platform}/g, session?.platform || '—')
+        .replace(/{games}/g,    session?.games    || '—');
+      await member.send(filled).catch(() => {});
+    }
+
+    await supabase.from('audit_logs').insert({
+      guild_id   : guild.id,
+      type       : 'member',
+      action     : 'onboarding_approved',
+      author_id  : 'dashboard',
+      author_name: 'Dashboard',
+      extra      : { discord_id, pseudo: session?.pseudo, team: session?.team },
     }).catch(() => {});
 
     res.json({ success: true });
@@ -1260,11 +1303,30 @@ router.post('/onboarding/approve', auth, async (req, res) => {
 
 router.post('/onboarding/reject', auth, async (req, res) => {
   try {
-    const { discord_id } = req.body;
-    const guild = client.guilds.cache.first();
+    const { discord_id, reason } = req.body;
+    if (!discord_id) return res.status(400).json({ success: false, error: 'discord_id manquant' });
+
+    const guild = resolveGuild(req);
+    if (!guild) return res.status(404).json({ success: false, error: 'Guild introuvable' });
+
     await supabase.from('onboarding_sessions')
-      .update({ manual_status: 'rejected' })
+      .update({ manual_status: 'rejected', reviewed_by: 'dashboard' })
       .eq('guild_id', guild.id).eq('discord_id', discord_id);
+
+    const member = await guild.members.fetch(discord_id).catch(() => null);
+    if (member && reason) {
+      await member.send(`❌ Ta demande d'inscription sur **${guild.name}** a été refusée.\nRaison : ${reason}`).catch(() => {});
+    }
+
+    await supabase.from('audit_logs').insert({
+      guild_id   : guild.id,
+      type       : 'member',
+      action     : 'onboarding_rejected',
+      author_id  : 'dashboard',
+      author_name: 'Dashboard',
+      extra      : { discord_id, reason: reason || null },
+    }).catch(() => {});
+
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

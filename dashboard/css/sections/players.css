@@ -704,3 +704,168 @@
 #tl-stats-bar {
   grid-template-columns: repeat(7, 1fr) !important;
 }
+/* ── Timeline — nouveaux types XP / badge ─────────────────────── */
+.tl-icon.xp {
+  background: rgba(0, 255, 136, .12);
+  color: #00ff88;
+  border-color: rgba(0, 255, 136, .3);
+}
+.tl-icon.badge {
+  background: rgba(255, 189, 46, .12);
+  color: #ffbd2e;
+  border-color: rgba(255, 189, 46, .3);
+}
+
+/* Barre badges timeline */
+.tl-badges-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 20px;
+  background: rgba(0,0,0,.2);
+  border-bottom: 1px solid var(--border);
+}
+.tl-badges-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.tl-badges-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+.tl-badge-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.05);
+  cursor: default;
+}
+.tl-badge-chip.rarity-rare      { border-color: rgba(88,101,242,.4);   color: #5865f2; background: rgba(88,101,242,.08); }
+.tl-badge-chip.rarity-epic      { border-color: rgba(163,53,238,.4);   color: #a335ee; background: rgba(163,53,238,.08); }
+.tl-badge-chip.rarity-legendary { border-color: rgba(255,140,0,.4);    color: #ff8c00; background: rgba(255,140,0,.08); }
+.tl-badge-chip.rarity-mythic    { border-color: rgba(255,68,68,.4);    color: #ff4444; background: rgba(255,68,68,.08); }
+.tl-grant-badge-btn {
+  margin-left: auto;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  height: 28px;
+  white-space: nowrap;
+}
+
+/* Saisons */
+.seasons-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.season-active-card {
+  flex: 1;
+  min-width: 200px;
+  padding: 16px 20px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(0,255,120,.06), rgba(0,255,120,.02));
+  border: 1px solid rgba(0,255,120,.2);
+}
+.season-active-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #00ff88;
+  margin-bottom: 6px;
+}
+.season-active-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.season-active-dates {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.season-active-days {
+  font-size: 0.8rem;
+  color: #FFD700;
+  margin-top: 6px;
+  font-weight: 600;
+}
+.season-active-empty {
+  padding: 20px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  text-align: center;
+  opacity: .5;
+}
+.seasons-ranking-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  opacity: .7;
+}
+.seasons-ranking { margin-bottom: 24px; }
+.seasons-past-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  opacity: .5;
+  margin-bottom: 10px;
+}
+.seasons-past-list { display: flex; flex-direction: column; gap: 8px; }
+.season-past-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.02);
+  border: 1px solid rgba(255,255,255,.04);
+}
+.season-past-name { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+.season-past-dates { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+.season-past-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.06);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Grant badge modal preview */
+.badge-grant-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(0,255,120,.04);
+  border: 1px solid rgba(0,255,120,.1);
+  margin-top: 8px;
+}
+.badge-preview-icon { font-size: 2rem; line-height: 1; }

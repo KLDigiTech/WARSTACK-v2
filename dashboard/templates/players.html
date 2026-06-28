@@ -12,6 +12,7 @@
       <button class="players-tab" data-tab="xp">⭐ WARSTACK XP</button>
       <button class="players-tab" data-tab="coins">💰 WAR Coins</button>
       <button class="players-tab" data-tab="all">👥 Tous les joueurs</button>
+      <button class="players-tab" data-tab="seasons">🏅 Saisons</button>
     </div>
 
     <div class="players-toolbar">
@@ -25,6 +26,19 @@
     </div>
 
     <div id="players-grid"></div>
+
+    <!-- ONGLET SAISONS -->
+    <div id="players-seasons-panel" style="display:none">
+      <div class="seasons-header">
+        <div id="seasons-active-info" class="season-active-card"></div>
+        <button class="btn btn-primary" id="btn-create-season">
+          <i class="fas fa-plus"></i> Nouvelle saison
+        </button>
+      </div>
+      <div id="seasons-ranking" class="seasons-ranking"></div>
+      <div class="seasons-past-title">📦 Saisons passées</div>
+      <div id="seasons-past-list" class="seasons-past-list"></div>
+    </div>
 
   </div>
 </div>
@@ -53,12 +67,20 @@
     <div class="tl-stat"><span>COINS</span><strong id="tl-coins" style="color:#FFD700">—</strong></div>
   </div>
 
+  <!-- Badges du joueur -->
+  <div id="tl-badges-bar" class="tl-badges-bar" style="display:none">
+    <span class="tl-badges-label">🏅 Badges</span>
+    <div id="tl-badges-list" class="tl-badges-list"></div>
+  </div>
+
   <div id="tl-filters">
     <button class="tl-filter active" data-filter="all">Tout</button>
     <button class="tl-filter" data-filter="member">Membre</button>
     <button class="tl-filter" data-filter="moderation">Sanctions</button>
     <button class="tl-filter" data-filter="tournament">Tournois</button>
     <button class="tl-filter" data-filter="rank">Rang</button>
+    <button class="tl-filter" data-filter="xp">XP</button>
+    <button class="tl-filter" data-filter="badge">Badges</button>
   </div>
 
   <div id="tl-body">
@@ -126,6 +148,67 @@
         <i class="fas fa-plus"></i> INSCRIRE LE JOUEUR
       </button>
 
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL CRÉER SAISON ── -->
+<div class="modal-overlay" id="modal-create-season" style="display:none">
+  <div class="modal-add-box">
+    <div class="modal-add-header">
+      <span>🏅 NOUVELLE SAISON</span>
+      <button class="modal-add-close" id="modal-season-close">✕</button>
+    </div>
+    <div class="modal-add-body">
+      <div class="form-group">
+        <label class="form-label">Nom de la saison *</label>
+        <input type="text" class="form-input" id="season-name" placeholder="ex: Saison 1 — Origine">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Numéro</label>
+        <input type="number" class="form-input" id="season-number" min="1" value="1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date de début *</label>
+        <input type="date" class="form-input" id="season-start">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date de fin *</label>
+        <input type="date" class="form-input" id="season-end">
+      </div>
+      <div class="form-group">
+        <label class="form-label">
+          <input type="checkbox" id="season-active" style="margin-right:8px">
+          Définir comme saison active
+        </label>
+      </div>
+      <div id="season-error" class="hint err" style="display:none"></div>
+      <button class="btn btn-primary" id="btn-season-confirm" style="width:100%;margin-top:1rem">
+        <i class="fas fa-plus"></i> CRÉER LA SAISON
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL ATTRIBUER BADGE ── -->
+<div class="modal-overlay" id="modal-grant-badge" style="display:none">
+  <div class="modal-add-box">
+    <div class="modal-add-header">
+      <span>🏅 ATTRIBUER UN BADGE</span>
+      <button class="modal-add-close" id="modal-badge-close">✕</button>
+    </div>
+    <div class="modal-add-body">
+      <div class="form-group">
+        <label class="form-label">Badge *</label>
+        <select class="form-select" id="grant-badge-select">
+          <option value="">— Sélectionner —</option>
+        </select>
+      </div>
+      <div id="grant-badge-preview" class="badge-grant-preview" style="display:none"></div>
+      <div id="grant-badge-error" class="hint err" style="display:none"></div>
+      <button class="btn btn-primary" id="btn-grant-badge-confirm" style="width:100%;margin-top:1rem">
+        <i class="fas fa-award"></i> ATTRIBUER
+      </button>
     </div>
   </div>
 </div>

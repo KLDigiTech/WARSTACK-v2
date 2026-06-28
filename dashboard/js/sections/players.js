@@ -5,6 +5,7 @@ import { getActiveGuildId } from '../services/guildService.js';
 let allPlayers = [];
 let allXP = [];
 let allWallets = [];
+let allBadgeDefs = [];
 let currentTab = 'tracker';
 let currentFilter = 'all';
 let currentDiscordId = null;
@@ -79,15 +80,17 @@ export async function initPlayers() {
   const guildId = await getActiveGuildId();
   activeGuildId = guildId;
 
-  const [players, xpRows, walletRows, guildTournois] = await Promise.all([
+  const [players, xpRows, walletRows, guildTournois, badgeDefs] = await Promise.all([
     fetchSupabase('players?select=*&order=created_at.desc'),
     fetchSupabase(`warstack_xp?guild_id=eq.${guildId}&select=*&order=xp.desc`),
     fetchSupabase(`warstack_wallets?guild_id=eq.${guildId}&select=*&order=total_earned.desc`),
     fetchSupabase(`tournaments?guild_id=eq.${guildId}&select=id`),
+    fetchSupabase(`badge_definitions?guild_id=eq.${guildId}&select=*&order=created_at.desc`),
   ]);
 
   allXP = xpRows || [];
   allWallets = walletRows || [];
+  allBadgeDefs = badgeDefs || [];
   const guildTournoiIds = new Set((guildTournois || []).map(t => t.id));
 
   // Ne garder que les joueurs membres de CE serveur (présents dans warstack_xp pour ce guild_id)
@@ -124,6 +127,8 @@ export async function initPlayers() {
 
   initAddPlayerModal();
   initTimelineFilters();
+  initSeasons();
+  initGrantBadgeModal();
 }
 
 // ─── TABS ─────────────────────────────────────────────────────────────────────
@@ -141,6 +146,19 @@ function initTabs() {
 }
 
 function renderTab(tab, search = '') {
+  const grid = document.getElementById('players-grid');
+  const seasonsPanel = document.getElementById('players-seasons-panel');
+  const toolbar = document.querySelector('.players-toolbar');
+  if (tab === 'seasons') {
+    if (grid) grid.style.display = 'none';
+    if (seasonsPanel) seasonsPanel.style.display = 'block';
+    if (toolbar) toolbar.style.display = 'none';
+    renderSeasons();
+    return;
+  }
+  if (grid) grid.style.display = '';
+  if (seasonsPanel) seasonsPanel.style.display = 'none';
+  if (toolbar) toolbar.style.display = '';
   switch (tab) {
     case 'xp': renderXPLeaderboard(search); break;
     case 'coins': renderCoinsLeaderboard(search); break;
@@ -407,6 +425,38 @@ window.openTimeline = async function (discordId) {
   document.getElementById('tl-grade').textContent = `${grade.emoji} ${grade.name}`;
   document.getElementById('tl-coins').textContent = walletData ? (walletData.coins).toLocaleString('fr-FR') + ' coins' : '0 coins';
 
+  const badgesBar  = document.getElementById('tl-badges-bar');
+  const badgesList = document.getElementById('tl-badges-list');
+  const guildId    = activeGuildId;
+  const playerBadges = await fetchSupabase(
+    `player_badges?guild_id=eq.${guildId}&discord_id=eq.${discordId}&select=*,badge_definitions(*)`
+  );
+  if (playerBadges?.length && badgesBar && badgesList) {
+    badgesBar.style.display = 'flex';
+    badgesList.innerHTML = playerBadges.map(pb => {
+      const bd = pb.badge_definitions;
+      return `<span class="tl-badge-chip rarity-${bd?.rarity || 'common'}" title="${bd?.name || ''}">
+        ${bd?.icon || '🏅'} <span>${bd?.name || '—'}</span>
+      </span>`;
+    }).join('');
+
+    const btnGrant = document.createElement('button');
+    btnGrant.className = 'btn btn-secondary tl-grant-badge-btn';
+    btnGrant.innerHTML = '<i class="fas fa-plus"></i> Badge';
+    btnGrant.title = 'Attribuer un badge';
+    btnGrant.onclick = () => openGrantBadgeModal(discordId);
+    badgesBar.appendChild(btnGrant);
+  } else if (badgesBar) {
+    badgesBar.style.display = 'flex';
+    badgesList.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;opacity:.6">Aucun badge</span>';
+    const btnGrant = document.createElement('button');
+    btnGrant.className = 'btn btn-secondary tl-grant-badge-btn';
+    btnGrant.innerHTML = '<i class="fas fa-plus"></i> Badge';
+    btnGrant.title = 'Attribuer un badge';
+    btnGrant.onclick = () => openGrantBadgeModal(discordId);
+    badgesBar.appendChild(btnGrant);
+  }
+
   document.getElementById('timeline-overlay').style.display = 'block';
   document.getElementById('timeline-panel').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -422,6 +472,8 @@ window.closeTimeline = function () {
   document.getElementById('timeline-panel').classList.remove('open');
   document.body.style.overflow = '';
   currentDiscordId = null;
+  const badgesBar = document.getElementById('tl-badges-bar');
+  if (badgesBar) { badgesBar.style.display = 'none'; badgesBar.innerHTML = '<span class="tl-badges-label">🏅 Badges</span><div id="tl-badges-list" class="tl-badges-list"></div>'; }
 };
 
 function initTimelineFilters() {
@@ -446,11 +498,13 @@ async function loadTimeline(discordId) {
     const guildTournois = await fetchSupabase(`tournaments?guild_id=eq.${guildId}&select=id`);
     const guildTournoiIds = new Set((guildTournois || []).map(t => t.id));
 
-    const [auditLogs, sanctions, tournamentEntriesRaw, ranks] = await Promise.all([
+    const [auditLogs, sanctions, tournamentEntriesRaw, ranks, xpTransactions, playerBadgesRaw] = await Promise.all([
       fetchSupabase(`audit_logs?guild_id=eq.${guildId}&author_id=eq.${discordId}&order=created_at.desc&limit=100`),
       fetchSupabase(`sanctions?guild_id=eq.${guildId}&discord_id=eq.${discordId}&order=created_at.desc`),
       fetchSupabase(`tournament_entries?discord_id=eq.${discordId}&order=created_at.desc`),
       fetchSupabase(`warstack_ranks?discord_id=eq.${discordId}&order=updated_at.desc`),
+      fetchSupabase(`warstack_transactions?discord_id=eq.${discordId}&order=created_at.desc&limit=50`),
+      fetchSupabase(`player_badges?guild_id=eq.${guildId}&discord_id=eq.${discordId}&select=*,badge_definitions(*)&order=granted_at.desc`),
     ]);
 
     const tournamentEntries = (tournamentEntriesRaw || []).filter(e => guildTournoiIds.has(e.tournament_id));
@@ -458,23 +512,23 @@ async function loadTimeline(discordId) {
     const events = [];
 
     for (const log of auditLogs || []) {
-      if (!['member_join', 'member_leave', 'onboarding_complete'].includes(log.action)) continue;
-      events.push({
-        type: 'member',
-        date: log.created_at,
-        label: log.action === 'member_join' ? '👋 A rejoint le serveur'
-          : log.action === 'member_leave' ? '🚪 A quitté le serveur'
-            : '✅ Onboarding complété',
-        detail: null,
-      });
+      if (!['member_join', 'member_leave', 'onboarding_complete', 'onboarding_approved', 'onboarding_rejected'].includes(log.action)) continue;
+      const labelMap = {
+        member_join          : '👋 A rejoint le serveur',
+        member_leave         : '🚪 A quitté le serveur',
+        onboarding_complete  : '✅ Onboarding complété',
+        onboarding_approved  : '✅ Inscription approuvée',
+        onboarding_rejected  : '❌ Inscription refusée',
+      };
+      events.push({ type: 'member', date: log.created_at, label: labelMap[log.action] || log.action, detail: null });
     }
 
     for (const s of sanctions || []) {
-      const labels = { warn: '⚠️ Avertissement', mute: '🔇 Mute', kick: '👢 Kick', ban: '🔨 Ban' };
+      const labels = { warn: '⚠️ Avertissement', mute: '🔇 Mute', kick: '👢 Kick', ban: '🔨 Ban', unban: '✅ Unban' };
       events.push({
-        type: 'sanction',
-        date: s.created_at,
-        label: labels[s.type] || `🛡️ Sanction (${s.type})`,
+        type  : 'sanction',
+        date  : s.created_at,
+        label : labels[s.type] || `🛡️ Sanction (${s.type})`,
         detail: s.reason ? `Raison : ${s.reason}` : null,
       });
     }
@@ -483,20 +537,37 @@ async function loadTimeline(discordId) {
       const tournoi = await fetchSupabase(`tournaments?id=eq.${entry.tournament_id}&select=name`);
       const name = tournoi?.[0]?.name || 'Tournoi inconnu';
       events.push({
-        type: 'tournament',
-        date: entry.created_at,
-        label: `🏆 Inscrit au tournoi : ${name}`,
+        type  : 'tournament',
+        date  : entry.created_at,
+        label : `🏆 Inscrit au tournoi : ${name}`,
         detail: entry.team_name ? `Équipe : ${entry.team_name}` : null,
       });
     }
 
     for (const r of ranks || []) {
       if (!r.previous_division || r.previous_division === r.division) continue;
+      events.push({ type: 'rank', date: r.updated_at, label: `📈 Changement de rang`, detail: `${r.previous_division} → ${r.division}` });
+    }
+
+    for (const tx of xpTransactions || []) {
+      const sign  = tx.amount > 0 ? '+' : '';
+      const color = tx.amount > 0 ? '#00ff88' : '#ff4444';
+      const coinsDetail = tx.coins ? ` | ${tx.coins > 0 ? '+' : ''}${tx.coins} 💰` : '';
       events.push({
-        type: 'rank',
-        date: r.updated_at,
-        label: `📈 Changement de rang`,
-        detail: `${r.previous_division} → ${r.division}`,
+        type  : 'xp',
+        date  : tx.created_at,
+        label : `✨ ${tx.reason || tx.type || 'Transaction XP'}`,
+        detail: `<span style="color:${color};font-weight:700">${sign}${tx.amount} XP</span>${coinsDetail}`,
+      });
+    }
+
+    for (const pb of playerBadgesRaw || []) {
+      const bd = pb.badge_definitions;
+      events.push({
+        type  : 'badge',
+        date  : pb.granted_at,
+        label : `🏅 Badge obtenu : ${bd?.name || '—'}`,
+        detail: bd ? `${bd.icon || '🏅'} ${bd.description || ''} <span class="rarity-badge-${bd.rarity || 'common'}">${bd.rarity || 'common'}</span>` : null,
       });
     }
 
@@ -515,10 +586,12 @@ function renderTimeline(events, filter) {
   const list = document.getElementById('tl-list');
 
   const filtered = filter === 'all' ? events : events.filter(e => {
-    if (filter === 'member') return e.type === 'member';
+    if (filter === 'member')     return e.type === 'member';
     if (filter === 'moderation') return e.type === 'sanction';
     if (filter === 'tournament') return e.type === 'tournament';
-    if (filter === 'rank') return e.type === 'rank';
+    if (filter === 'rank')       return e.type === 'rank';
+    if (filter === 'xp')         return e.type === 'xp';
+    if (filter === 'badge')      return e.type === 'badge';
     return true;
   });
 
@@ -528,11 +601,13 @@ function renderTimeline(events, filter) {
   }
 
   const iconMap = {
-    member: { cls: 'member', icon: 'fa-user' },
-    sanction: { cls: 'sanction', icon: 'fa-gavel' },
-    tournament: { cls: 'tournament', icon: 'fa-trophy' },
-    rank: { cls: 'rank', icon: 'fa-arrow-up' },
-    message: { cls: 'message', icon: 'fa-comment' },
+    member     : { cls: 'member',     icon: 'fa-user'       },
+    sanction   : { cls: 'sanction',   icon: 'fa-gavel'      },
+    tournament : { cls: 'tournament', icon: 'fa-trophy'     },
+    rank       : { cls: 'rank',       icon: 'fa-arrow-up'   },
+    xp         : { cls: 'xp',         icon: 'fa-star'       },
+    badge      : { cls: 'badge',       icon: 'fa-award'      },
+    message    : { cls: 'message',    icon: 'fa-comment'    },
   };
 
   list.innerHTML = filtered.map(ev => {
@@ -730,3 +805,209 @@ window.deletePlayer = async function (discordId, username) {
   showToast('✅ Joueur supprimé');
   initPlayers();
 };
+// ─── SAISONS ─────────────────────────────────────────────────────────────────
+
+async function initSeasons() {
+  const btnCreate = document.getElementById('btn-create-season');
+  if (btnCreate) {
+    btnCreate.addEventListener('click', () => {
+      document.getElementById('modal-create-season').style.display = 'flex';
+    });
+  }
+  document.getElementById('modal-season-close')?.addEventListener('click', () => {
+    document.getElementById('modal-create-season').style.display = 'none';
+  });
+  document.getElementById('btn-season-confirm')?.addEventListener('click', createSeason);
+}
+
+async function renderSeasons() {
+  const guildId = activeGuildId;
+  const [seasons, rankings] = await Promise.all([
+    fetchSupabase(`seasons?guild_id=eq.${guildId}&order=number.desc`),
+    fetchSupabase(`season_rankings?guild_id=eq.${guildId}&order=xp_gained.desc&limit=20`),
+  ]);
+
+  const activeSeason = (seasons || []).find(s => s.is_active);
+  const pastSeasons  = (seasons || []).filter(s => !s.is_active);
+
+  const activeEl = document.getElementById('seasons-active-info');
+  if (activeEl) {
+    if (activeSeason) {
+      const start = new Date(activeSeason.start_date).toLocaleDateString('fr-FR');
+      const end   = new Date(activeSeason.end_date).toLocaleDateString('fr-FR');
+      const daysLeft = Math.ceil((new Date(activeSeason.end_date) - new Date()) / 86400000);
+      activeEl.innerHTML = `
+        <div class="season-active-badge">🟢 SAISON ACTIVE</div>
+        <div class="season-active-name">${activeSeason.name}</div>
+        <div class="season-active-dates">📅 ${start} → ${end}</div>
+        <div class="season-active-days">${daysLeft > 0 ? `⏳ ${daysLeft} jours restants` : '🔴 Terminée'}</div>
+      `;
+    } else {
+      activeEl.innerHTML = `<div class="season-active-empty">Aucune saison active — crée-en une !</div>`;
+    }
+  }
+
+  const rankEl = document.getElementById('seasons-ranking');
+  if (rankEl) {
+    if (!activeSeason) {
+      rankEl.innerHTML = '<div class="tl-empty"><i class="fas fa-trophy"></i> Lance une saison pour voir le classement</div>';
+    } else {
+      const seasonRankings = (rankings || []).filter(r => r.season_id === activeSeason.id);
+      if (!seasonRankings.length) {
+        rankEl.innerHTML = '<div class="tl-empty"><i class="fas fa-trophy"></i> Aucune donnée de classement pour cette saison</div>';
+      } else {
+        const podium = ['🥇', '🥈', '🥉'];
+        rankEl.innerHTML = `
+          <div class="seasons-ranking-title">🏆 Classement — ${activeSeason.name}</div>
+          ${seasonRankings.map((r, i) => `
+            <div class="lb-row ${i < 3 ? 'top' : ''}">
+              <span class="lb-rank">${podium[i] || `#${i + 1}`}</span>
+              <div class="lb-info">
+                <div class="lb-name">${r.username || r.discord_id}</div>
+                <div class="lb-sub">XP gagné cette saison</div>
+              </div>
+              <span class="lb-value" style="color:var(--green)">+${(r.xp_gained || 0).toLocaleString('fr-FR')} XP</span>
+            </div>
+          `).join('')}
+        `;
+      }
+    }
+  }
+
+  const pastEl = document.getElementById('seasons-past-list');
+  if (pastEl) {
+    if (!pastSeasons.length) {
+      pastEl.innerHTML = '<div class="tl-empty" style="opacity:.4">Aucune saison passée</div>';
+    } else {
+      pastEl.innerHTML = pastSeasons.map(s => {
+        const start = new Date(s.start_date).toLocaleDateString('fr-FR');
+        const end   = new Date(s.end_date).toLocaleDateString('fr-FR');
+        return `
+          <div class="season-past-card">
+            <div>
+              <div class="season-past-name">${s.name}</div>
+              <div class="season-past-dates">${start} → ${end}</div>
+            </div>
+            <div class="season-past-badge">Saison ${s.number}</div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+}
+
+async function createSeason() {
+  const guildId = activeGuildId;
+  const name    = document.getElementById('season-name').value.trim();
+  const number  = parseInt(document.getElementById('season-number').value) || 1;
+  const start   = document.getElementById('season-start').value;
+  const end     = document.getElementById('season-end').value;
+  const active  = document.getElementById('season-active').checked;
+  const errEl   = document.getElementById('season-error');
+
+  if (!name || !start || !end) {
+    errEl.style.display = 'block';
+    errEl.textContent = '❌ Nom, date de début et fin sont requis.';
+    return;
+  }
+  errEl.style.display = 'none';
+
+  const btn = document.getElementById('btn-season-confirm');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+  try {
+    if (active) {
+      const { fetchSupabase: sb } = await import('../api.js');
+      await fetchSupabase(`seasons?guild_id=eq.${guildId}`, 'PATCH', { is_active: false });
+    }
+
+    await insertSupabase('seasons', { guild_id: guildId, name, number, start_date: start, end_date: end, is_active: active });
+    document.getElementById('modal-create-season').style.display = 'none';
+    showToast(`✅ Saison "${name}" créée !`);
+    renderSeasons();
+  } catch (err) {
+    errEl.style.display = 'block';
+    errEl.textContent = '❌ Erreur : ' + err.message;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-plus"></i> CRÉER LA SAISON';
+  }
+}
+
+// ─── MODAL ATTRIBUER BADGE ────────────────────────────────────────────────────
+
+function initGrantBadgeModal() {
+  document.getElementById('modal-badge-close')?.addEventListener('click', () => {
+    document.getElementById('modal-grant-badge').style.display = 'none';
+  });
+
+  document.getElementById('grant-badge-select')?.addEventListener('change', (e) => {
+    const bd = allBadgeDefs.find(b => String(b.id) === e.target.value);
+    const preview = document.getElementById('grant-badge-preview');
+    if (bd && preview) {
+      preview.style.display = 'flex';
+      preview.innerHTML = `
+        <span class="badge-preview-icon">${bd.icon || '🏅'}</span>
+        <div>
+          <div style="font-weight:700">${bd.name}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted)">${bd.description || ''}</div>
+          <span class="rarity-badge-${bd.rarity || 'common'}" style="font-size:0.7rem;padding:2px 8px;border-radius:20px;display:inline-block;margin-top:4px">${bd.rarity || 'common'}</span>
+        </div>
+      `;
+    } else if (preview) {
+      preview.style.display = 'none';
+    }
+  });
+
+  document.getElementById('btn-grant-badge-confirm')?.addEventListener('click', grantBadge);
+}
+
+function openGrantBadgeModal(discordId) {
+  const select = document.getElementById('grant-badge-select');
+  if (!select) return;
+  select.innerHTML = '<option value="">— Sélectionner —</option>' +
+    allBadgeDefs.map(bd => `<option value="${bd.id}">${bd.icon || '🏅'} ${bd.name}</option>`).join('');
+  select.dataset.discordId = discordId;
+  document.getElementById('grant-badge-preview').style.display = 'none';
+  document.getElementById('grant-badge-error').style.display = 'none';
+  document.getElementById('modal-grant-badge').style.display = 'flex';
+}
+
+async function grantBadge() {
+  const guildId  = activeGuildId;
+  const select   = document.getElementById('grant-badge-select');
+  const badgeId  = select?.value;
+  const discordId = select?.dataset.discordId;
+  const errEl    = document.getElementById('grant-badge-error');
+  const btn      = document.getElementById('btn-grant-badge-confirm');
+
+  if (!badgeId || !discordId) {
+    errEl.style.display = 'block';
+    errEl.textContent = '❌ Sélectionne un badge.';
+    return;
+  }
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+  try {
+    await insertSupabase('player_badges', {
+      guild_id  : guildId,
+      discord_id: discordId,
+      badge_id  : parseInt(badgeId),
+      granted_by: 'dashboard',
+      granted_at: new Date().toISOString(),
+    });
+    document.getElementById('modal-grant-badge').style.display = 'none';
+    showToast('✅ Badge attribué !');
+    await loadTimeline(discordId);
+    await openTimeline(discordId);
+  } catch (err) {
+    errEl.style.display = 'block';
+    errEl.textContent = '❌ Erreur (badge déjà attribué ?) : ' + err.message;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-award"></i> ATTRIBUER';
+  }
+}

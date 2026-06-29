@@ -434,21 +434,6 @@ async function initDashboard() {
   await loadEmojis();
   initToggleView();
 
-  document.getElementById('nav-mon-profil')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    navigate('profil');
-  });
-
-  document.getElementById('nav-inscription')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    navigate('inscription');
-  });
-
-  document.getElementById('nav-portail')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    navigate('portail');
-  });
-
   const initial = window.location.hash?.replace('#', '') || 'overview';
   // Groupes collapsibles sidebar
   document.querySelectorAll('.nav-group-toggle').forEach(toggle => {

@@ -298,11 +298,18 @@ async function navigate(section) {
   `;
 
   try {
-    const res = await fetch(`/templates/${section}.html`);
-    const html = await res.text();
-    if (_navToken !== myToken) return;
-    content.innerHTML = html;
-    injectModuleHeader(section, content);
+    // Sections embed — pas de template HTML, le JS gère tout
+    const EMBED_SECTIONS = ['profil', 'portail', 'inscription'];
+    if (EMBED_SECTIONS.includes(section)) {
+      if (_navToken !== myToken) return;
+      content.innerHTML = '';
+    } else {
+      const res = await fetch(`/templates/${section}.html`);
+      const html = await res.text();
+      if (_navToken !== myToken) return;
+      content.innerHTML = html;
+      injectModuleHeader(section, content);
+    }
   } catch {
     if (_navToken !== myToken) return;
     content.innerHTML = '';

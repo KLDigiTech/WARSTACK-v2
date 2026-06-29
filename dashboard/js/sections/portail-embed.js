@@ -1,6 +1,6 @@
 export async function initPortailEmbed() {
   const guildId = window.WARSTACK_GUILD_ID || sessionStorage.getItem('warstack_guild_id') || '';
-  const container = document.getElementById('main-content');
+  const container = document.getElementById('section-content');
   if (!container) return;
 
   const url = `/portail.html?guild=${guildId}`;

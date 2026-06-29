@@ -15,15 +15,24 @@ const app = express();
 
 app.use(express.json());
 
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, x-api-key');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+// CORS — restreint aux domaines autorisés
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://warstack-v2.vercel.app').split(',').map(o => o.trim());
 
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  } else if (!origin) {
+    // Requête sans Origin (serveur à serveur, Render health checks, etc.)
+    res.header('Access-Control-Allow-Origin', ALLOWED_ORIGINS[0]);
   }
 
+  res.header('Access-Control-Allow-Headers', 'Content-Type, x-api-key');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Vary', 'Origin');
+
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
   next();
 });
 

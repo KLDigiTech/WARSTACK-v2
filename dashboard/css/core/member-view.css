@@ -133,3 +133,8 @@ body.member-view #modal-create-season,
 body.member-view #modal-grant-badge {
   display: none !important;
 }
+
+body.member-view .module-preview-btn,
+body.member-view .module-advanced-btn {
+  display: none !important;
+}

@@ -15,6 +15,13 @@ export async function initOverview() {
   document.getElementById('staff-overview').style.display = 'block';
   document.getElementById('member-overview').style.display = 'none';
 
+  // Bonjour
+  const username = window.WARSTACK_USERNAME || 'vous';
+  const hour     = new Date().getHours();
+  const greet    = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir';
+  const greetEl  = document.getElementById('ov-greeting-text');
+  if (greetEl) greetEl.textContent = `👋 ${greet}, ${username} !`;
+
   showSkeleton('ov-activity-list', 'activity', 7);
   showSkeleton('ov-tickets-list', 'panel-rows', 4);
   showSkeleton('ov-suggestions-list', 'panel-rows', 4);
@@ -22,9 +29,6 @@ export async function initOverview() {
 
   document.querySelectorAll('.ov-kpi-value').forEach(el => {
     el.innerHTML = `<span class="skeleton sk-title" style="width:52px;display:inline-block"></span>`;
-  });
-  document.querySelectorAll('.ov-kpi-trend').forEach(el => {
-    el.innerHTML = `<span class="skeleton" style="width:36px;height:16px;display:inline-block;border-radius:20px"></span>`;
   });
 
   await Promise.all([
@@ -37,23 +41,24 @@ export async function initOverview() {
   ]);
 
   document.querySelectorAll('.ov-kpi-card[data-section]').forEach(card => {
+    card.style.cursor = 'pointer';
     card.addEventListener('click', () => {
       document.querySelector(`[data-section="${card.dataset.section}"]`)?.click();
     });
   });
 
-  document.querySelectorAll('.ov-link').forEach(link => {
+  document.querySelectorAll('.nav-item-inline').forEach(link => {
     link.addEventListener('click', e => {
       e.preventDefault();
-      const section = link.getAttribute('href').replace('#', '');
-      document.querySelector(`[data-section="${section}"]`)?.click();
+      const section = link.dataset.section;
+      if (section) document.querySelector(`[data-section="${section}"]`)?.click();
     });
   });
 }
 
 async function loadServerStats() {
   const guildId = await getActiveGuildId();
-  const [guildData, tickets, suggestions, events, sanctions, automodLogs, xpRows] = await Promise.all([
+  const [guildData, tickets, suggestions, events, sanctions, automodLogs, xpRows, tournois, configs] = await Promise.all([
     callBotAPI('guild').catch(() => null),
     fetchSupabase(`tickets?guild_id=eq.${guildId}&status=eq.open&select=id`).catch(() => []),
     fetchSupabase(`suggestions?guild_id=eq.${guildId}&select=id`).catch(() => []),
@@ -61,36 +66,72 @@ async function loadServerStats() {
     fetchSupabase(`sanctions?guild_id=eq.${guildId}&created_at=gte.${weekAgo()}&select=id`).catch(() => []),
     fetchSupabase(`audit_logs?guild_id=eq.${guildId}&type=eq.moderation&created_at=gte.${weekAgo()}&select=id`).catch(() => []),
     fetchSupabase(`warstack_xp?guild_id=eq.${guildId}&select=discord_id`).catch(() => []),
+    fetchSupabase(`tournaments?guild_id=eq.${guildId}&status=eq.active&select=id`).catch(() => []),
+    fetchSupabase(`config?guild_id=eq.${guildId}&select=key,value`).catch(() => []),
   ]);
 
   const members     = guildData?.member_count || 0;
-  const joueurs     = xpRows?.length || 0;
+  const joueurs     = xpRows?.length          || 0;
   const ticketCount = Array.isArray(tickets)     ? tickets.length     : 0;
-  const suggCount   = Array.isArray(suggestions) ? suggestions.length : 0;
   const evtCount    = Array.isArray(events)      ? events.length      : 0;
-  const warnCount   = Array.isArray(sanctions)   ? sanctions.length   : 0;
-  const autoCount   = Array.isArray(automodLogs) ? automodLogs.length : 0;
+  const tourCount   = Array.isArray(tournois)    ? tournois.length    : 0;
 
-  setKPI('ov-members',     members,     members > 0     ? 'up'   : 'flat', Math.min(members / 500 * 100, 100));
-  setKPI('ov-joueurs',     joueurs,     joueurs > 0     ? 'up'   : 'flat', members > 0 ? Math.min(joueurs / members * 100, 100) : 0);
-  setKPI('ov-tickets',     ticketCount, ticketCount > 5 ? 'down' : ticketCount > 0 ? 'flat' : 'up', Math.min(ticketCount / 20 * 100, 100));
-  setKPI('ov-suggestions', suggCount,   suggCount > 0   ? 'up'   : 'flat', Math.min(suggCount / 50 * 100, 100));
-  setKPI('ov-events',      evtCount,    evtCount > 0    ? 'up'   : 'flat', Math.min(evtCount / 10 * 100, 100));
-  setKPI('ov-automod',     autoCount,   autoCount > 10  ? 'down' : 'flat', Math.min(autoCount / 30 * 100, 100));
-  setKPI('ov-warns',       warnCount,   warnCount > 5   ? 'down' : 'flat', Math.min(warnCount / 20 * 100, 100));
+  setKPI('ov-members',  members,     members  > 0 ? 'up' : 'flat');
+  setKPI('ov-joueurs',  joueurs,     joueurs  > 0 ? 'up' : 'flat');
+  setKPI('ov-tickets',  ticketCount, ticketCount > 5 ? 'down' : ticketCount > 0 ? 'flat' : 'up');
+  setKPI('ov-tournois', tourCount,   tourCount > 0 ? 'up' : 'flat');
+
+  // Sous-titre dynamique
+  const subEl = document.getElementById('ov-greeting-sub');
+  if (subEl) {
+    const serverName = guildData?.name || 'votre serveur';
+    subEl.textContent = `${serverName} • ${members} membre${members !== 1 ? 's' : ''} • Bot ✅`;
+  }
+
+  // Actions recommandées intelligentes
+  const getConf = k => (configs || []).find(c => c.key === k)?.value;
+  const actions = [];
+
+  if (!getConf('welcome_channel'))
+    actions.push({ icon: '👋', label: 'Configurer le message de bienvenue', section: 'welcome', cta: 'Configurer →' });
+  if (!getConf('ticket_category'))
+    actions.push({ icon: '🎫', label: 'Activer les tickets pour votre équipe', section: 'tickets', cta: 'Activer →' });
+  if (joueurs === 0)
+    actions.push({ icon: '🎮', label: 'Ajouter votre premier joueur', section: 'players', cta: 'Ajouter →' });
+  if (evtCount === 0)
+    actions.push({ icon: '📅', label: 'Créer votre premier événement', section: 'events', cta: 'Créer →' });
+  if (tourCount === 0)
+    actions.push({ icon: '🏆', label: 'Lancer un tournoi communautaire', section: 'tournament', cta: 'Lancer →' });
+
+  const panel   = document.getElementById('ov-actions-panel');
+  const listEl  = document.getElementById('ov-actions-list');
+  if (panel && listEl && actions.length > 0) {
+    panel.style.display = '';
+    listEl.innerHTML = actions.slice(0, 4).map(a => `
+      <div class="ov-action-item" data-section="${a.section}">
+        <span class="ov-action-icon">${a.icon}</span>
+        <span class="ov-action-label">${a.label}</span>
+        <span class="ov-action-cta">${a.cta}</span>
+      </div>
+    `).join('');
+
+    listEl.querySelectorAll('.ov-action-item').forEach(item => {
+      item.addEventListener('click', () => {
+        document.querySelector(`[data-section="${item.dataset.section}"]`)?.click();
+      });
+    });
+  }
 }
 
-function setKPI(id, value, trend, barPct) {
+function setKPI(id, value, trend) {
   const valueEl = document.getElementById(id);
   const trendEl = document.getElementById(`${id}-trend`);
-  const barEl   = document.getElementById(`${id}-bar`);
   if (valueEl) valueEl.textContent = value || '0';
   if (trendEl) {
     const labels = { up: '▲ Actif', down: '▼ Élevé', flat: '— Stable' };
-    trendEl.textContent = labels[trend] || '—';
+    trendEl.textContent = labels[trend] || '';
     trendEl.className   = `ov-kpi-trend ${trend}`;
   }
-  if (barEl) setTimeout(() => { barEl.style.width = `${barPct}%`; }, 100);
 }
 
 async function loadBotHealth() {

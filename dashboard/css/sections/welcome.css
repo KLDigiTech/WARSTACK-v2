@@ -124,3 +124,26 @@
 @media (max-width: 960px) {
   .welcome-layout { grid-template-columns: 1fr; }
 }
+/* ── Réglages avancés toggle ── */
+.advanced-toggle {
+  display        : flex;
+  align-items    : center;
+  gap            : 0.5rem;
+  padding        : 0.75rem 1.25rem;
+  font-size      : 0.82rem;
+  font-weight    : 600;
+  color          : var(--text-muted);
+  cursor         : pointer;
+  border-top     : 1px solid var(--border);
+  letter-spacing : 0.04em;
+  transition     : color 0.2s;
+  user-select    : none;
+}
+.advanced-toggle:hover { color: var(--accent); }
+.advanced-toggle i {
+  transition: transform 0.25s;
+  font-size : 0.75rem;
+}
+.advanced-toggle.open i { transform: rotate(180deg); }
+.advanced-body { animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }

@@ -36,6 +36,25 @@ export async function initWelcome() {
   document.getElementById('enable-dm').checked      = dmEnabled;
   document.getElementById('dm-group').style.display = dmEnabled ? 'block' : 'none';
 
+  // ── Toggle réglages avancés ─────────────────────────────
+  const toggle = document.getElementById('advanced-toggle');
+  const body   = document.getElementById('advanced-body');
+  if (toggle && body) {
+    // Si un réglage avancé est déjà configuré, ouvrir par défaut
+    const hasAdvanced = getConfig(configs, 'leave_channel')
+                     || getConfig(configs, 'autorole')
+                     || getConfig(configs, 'enable_dm') === 'true';
+    if (hasAdvanced) {
+      body.style.display = 'block';
+      toggle.classList.add('open');
+    }
+    toggle.addEventListener('click', () => {
+      const isOpen = body.style.display !== 'none';
+      body.style.display = isOpen ? 'none' : 'block';
+      toggle.classList.toggle('open', !isOpen);
+    });
+  }
+
   // ── Toggle DM ───────────────────────────────────────────
   document.getElementById('enable-dm').addEventListener('change', e => {
     document.getElementById('dm-group').style.display = e.target.checked ? 'block' : 'none';
@@ -44,13 +63,11 @@ export async function initWelcome() {
   // ── Variables cliquables ────────────────────────────────
   document.querySelectorAll('.var-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      const targetId = btn.dataset.target;
-      const textarea = document.getElementById(targetId);
+      const textarea = document.getElementById(btn.dataset.target);
       if (!textarea) return;
       const pos = textarea.selectionStart ?? textarea.value.length;
-      const val = textarea.value;
       const ins = btn.dataset.var;
-      textarea.value = val.slice(0, pos) + ins + val.slice(pos);
+      textarea.value = textarea.value.slice(0, pos) + ins + textarea.value.slice(pos);
       textarea.focus();
       textarea.setSelectionRange(pos + ins.length, pos + ins.length);
       updatePreviews();
@@ -102,20 +119,17 @@ function fillVars(str) {
 }
 
 function updatePreviews() {
-  const welcomeMsg = document.getElementById('welcome-message').value
-    || 'Bienvenue {mention} sur {server} ! 🎉';
-  const leaveMsg = document.getElementById('leave-message').value
-    || '**{user}** a quitté le serveur.';
-
-  document.getElementById('dp-welcome-text').innerHTML = fillVars(welcomeMsg);
-  document.getElementById('dp-leave-text').innerHTML   = fillVars(leaveMsg);
+  const welcomeMsg = document.getElementById('welcome-message')?.value || 'Bienvenue {mention} sur {server} ! 🎉';
+  const leaveMsg   = document.getElementById('leave-message')?.value   || '**{user}** a quitté le serveur.';
+  const wEl = document.getElementById('dp-welcome-text');
+  const lEl = document.getElementById('dp-leave-text');
+  if (wEl) wEl.innerHTML = fillVars(welcomeMsg);
+  if (lEl) lEl.innerHTML = fillVars(leaveMsg);
 }
 
 function updateClock() {
   const now = new Date();
-  const h   = String(now.getHours()).padStart(2, '0');
-  const m   = String(now.getMinutes()).padStart(2, '0');
-  const t   = `${h}:${m}`;
+  const t   = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
   const el1 = document.getElementById('dp-time-val');
   const el2 = document.getElementById('dp-time-val-2');
   if (el1) el1.textContent = t;

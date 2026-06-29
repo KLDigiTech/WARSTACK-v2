@@ -234,3 +234,35 @@
   .module-header-actions { width: 100%; }
   .module-preview-btn, .module-advanced-btn { flex: 1; justify-content: center; }
 }
+
+/* ── Sidebar groupes collapsibles ───────────────────────────── */
+.nav-group-toggle {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+  padding-right: 8px;
+}
+
+.nav-group-chevron {
+  font-size: 9px;
+  opacity: .5;
+  transition: transform .2s;
+  flex-shrink: 0;
+}
+
+.nav-group-collapsible .nav-group-items {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height .25s ease;
+}
+
+.nav-group-collapsible.open .nav-group-items {
+  max-height: 400px;
+}
+
+.nav-group-collapsible.open .nav-group-chevron {
+  transform: rotate(180deg);
+  opacity: .8;
+}

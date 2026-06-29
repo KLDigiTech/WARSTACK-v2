@@ -450,6 +450,14 @@ async function initDashboard() {
   });
 
   const initial = window.location.hash?.replace('#', '') || 'overview';
+  // Groupes collapsibles sidebar
+  document.querySelectorAll('.nav-group-toggle').forEach(toggle => {
+    toggle.addEventListener('click', () => {
+      const group = toggle.closest('.nav-group-collapsible');
+      if (group) group.classList.toggle('open');
+    });
+  });
+
   await navigate(initial);
   initTooltips();
   await initNotifications();

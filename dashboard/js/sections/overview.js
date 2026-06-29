@@ -56,6 +56,10 @@ export async function initOverview() {
   });
 }
 
+// Helper local — lit dans le tableau configs chargé par loadServerStats
+let _overviewConfigs = [];
+const getConf = (key) => _overviewConfigs?.find(c => c.key === key)?.value || null;
+
 async function loadServerStats() {
   const guildId = await getActiveGuildId();
   const [guildData, tickets, suggestions, events, sanctions, automodLogs, xpRows, tournois, configs] = await Promise.all([
@@ -69,6 +73,8 @@ async function loadServerStats() {
     fetchSupabase(`tournaments?guild_id=eq.${guildId}&status=eq.active&select=id`).catch(() => []),
     fetchSupabase(`config?guild_id=eq.${guildId}&select=key,value`).catch(() => []),
   ]);
+
+  _overviewConfigs = Array.isArray(configs) ? configs : [];
 
   const members     = guildData?.member_count || 0;
   const joueurs     = xpRows?.length          || 0;

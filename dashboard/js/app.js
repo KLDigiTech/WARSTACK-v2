@@ -251,6 +251,9 @@ const sections = {
   team          : () => import('./sections/team.js').then(m => m.initTeam()),
   boutique      : () => import('./sections/boutique.js').then(m => m.initBoutique()),
   notifications : () => import('./sections/notifications-page.js').then(m => m.initNotificationsPage()),
+  profil        : () => import('./sections/profil-embed.js').then(m => m.initProfilEmbed()),
+  portail       : () => import('./sections/portail-embed.js').then(m => m.initPortailEmbed()),
+  inscription   : () => import('./sections/inscription-embed.js').then(m => m.initInscriptionEmbed()),
 };
 
 const PUBLIC_SECTIONS = [
@@ -433,20 +436,17 @@ async function initDashboard() {
 
   document.getElementById('nav-mon-profil')?.addEventListener('click', (e) => {
     e.preventDefault();
-    const discordId = window.WARSTACK_DISCORD_ID;
-    const guildId = window.WARSTACK_GUILD_ID;
-    if (discordId) window.open(`profil.html?id=${discordId}&guild=${guildId}`, '_blank');
+    navigate('profil');
   });
 
   document.getElementById('nav-inscription')?.addEventListener('click', (e) => {
     e.preventDefault();
-    document.querySelector('[data-section="tournament"]')?.click();
+    navigate('inscription');
   });
 
   document.getElementById('nav-portail')?.addEventListener('click', (e) => {
     e.preventDefault();
-    const guildId = window.WARSTACK_GUILD_ID || sessionStorage.getItem('warstack_guild_id') || '';
-    window.open(`/portail.html?guild=${guildId}`, '_blank');
+    navigate('portail');
   });
 
   const initial = window.location.hash?.replace('#', '') || 'overview';

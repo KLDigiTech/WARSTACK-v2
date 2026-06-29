@@ -266,3 +266,55 @@
   transform: rotate(180deg);
   opacity: .8;
 }
+
+/* ── Embed pages (profil, portail, inscription) ─────────────── */
+.embed-page-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 80px);
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.06);
+}
+
+.embed-page-topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(0,0,0,.3);
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  flex-wrap: wrap;
+}
+
+.embed-page-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--text);
+  flex: 1;
+}
+
+.embed-page-link-copy {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.embed-page-link-copy .form-input {
+  font-size: 0.75rem;
+  padding: 6px 10px;
+  height: 32px;
+  background: rgba(255,255,255,.04);
+  border-color: rgba(255,255,255,.08);
+  color: var(--text-muted);
+  cursor: text;
+}
+
+.embed-page-iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: transparent;
+}

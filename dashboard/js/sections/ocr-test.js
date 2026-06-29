@@ -111,7 +111,7 @@ export function initOcrTest() {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
       const data = await response.json();
-      console.log('OCR RESPONSE:', data);
+
 
       if (!data || data.success === false) throw new Error('Réponse OCR invalide');
 
@@ -209,7 +209,7 @@ export function initOcrTest() {
 
     } catch (err) {
 
-      console.error(err);
+
       errorDiv.textContent = '❌ Erreur : ' + err.message;
       errorDiv.style.display = 'block';
 

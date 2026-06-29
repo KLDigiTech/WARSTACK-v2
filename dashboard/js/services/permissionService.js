@@ -70,7 +70,7 @@ export async function getUserPermissions() {
     return _cachedPerms;
 
   } catch (err) {
-    console.error('Permission service error:', err);
+    if (typeof DEBUG !== 'undefined' && DEBUG) console.error('Permission service error:', err);
     _cachedPerms = [];
     return [];
   }

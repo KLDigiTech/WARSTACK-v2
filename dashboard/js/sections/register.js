@@ -25,7 +25,7 @@ function initDiscordBtn() {
       provider: 'discord',
       options: { redirectTo: window.location.href }
     });
-    if (error) console.error('OAuth error:', error.message);
+    if (error) { /* OAuth error silenced in prod */ }
   });
 }
 

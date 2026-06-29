@@ -64,7 +64,7 @@ export async function getActiveGuildId() {
     return _cachedGuildId;
 
   } catch (err) {
-    console.error('[guildService] Erreur résolution guild_id:', err);
+    if (typeof DEBUG !== 'undefined' && DEBUG) console.error('[guildService] Erreur résolution guild_id:', err);
     return null;
   }
 }

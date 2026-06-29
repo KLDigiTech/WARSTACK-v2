@@ -260,9 +260,10 @@ const PUBLIC_SECTIONS = [
   'overview', 'players', 'analytics', 'tournament', 'welcome', 'onboarding', 'roles',
   'birthdays', 'suggestions', 'events', 'origine', 'messages', 'reactions', 'channels',
   'ocr-test', 'rulebuilder', 'team', 'boutique', 'notifications',
+  'profil', 'portail', 'inscription',
 ];
 
-const MEMBER_SECTIONS = ['overview', 'players', 'tournament', 'tickets', 'suggestions', 'events', 'origine', 'boutique', 'notifications'];
+const MEMBER_SECTIONS = ['overview', 'players', 'tournament', 'tickets', 'suggestions', 'events', 'origine', 'boutique', 'profil', 'portail', 'inscription'];
 
 window._memberViewActive = false;
 

@@ -1,13 +1,22 @@
 <!-- VUE STAFF -->
 <div id="staff-overview">
 
-  <!-- Bonjour + statut -->
+  <!-- Bonjour + barre de progression -->
   <div class="ov-greeting">
     <div class="ov-greeting-left">
       <div class="ov-greeting-title" id="ov-greeting-text">👋 Bonjour !</div>
       <div class="ov-greeting-sub" id="ov-greeting-sub">Chargement du serveur...</div>
     </div>
-    <div class="ov-greeting-status" id="ov-greeting-status"></div>
+    <div class="ov-greeting-progress" id="ov-greeting-progress" style="display:none">
+      <div class="ov-progress-label">
+        <span>Configuration du serveur</span>
+        <span class="ov-progress-pct" id="ov-progress-pct">0%</span>
+      </div>
+      <div class="ov-progress-bar">
+        <div class="ov-progress-fill" id="ov-progress-fill" style="width:0%"></div>
+      </div>
+      <div class="ov-progress-steps" id="ov-progress-steps"></div>
+    </div>
   </div>
 
   <!-- 4 KPI cartes -->
@@ -45,10 +54,10 @@
     </div>
   </div>
 
-  <!-- Actions recommandées -->
+  <!-- Actions recommandées en cartes -->
   <div class="ov-actions-panel" id="ov-actions-panel" style="display:none">
-    <div class="ov-actions-title">✅ Actions recommandées</div>
-    <div class="ov-actions-list" id="ov-actions-list"></div>
+    <div class="ov-actions-title">🚀 Par où commencer ?</div>
+    <div class="ov-actions-cards" id="ov-actions-list"></div>
   </div>
 
   <div class="ov-main-layout">

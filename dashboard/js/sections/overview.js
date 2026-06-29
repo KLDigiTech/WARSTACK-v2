@@ -88,36 +88,69 @@ async function loadServerStats() {
     subEl.textContent = `${serverName} • ${members} membre${members !== 1 ? 's' : ''} • Bot ✅`;
   }
 
-  // Actions recommandées intelligentes
-  const getConf = k => (configs || []).find(c => c.key === k)?.value;
-  const actions = [];
+  // Barre de progression configuration
+  const SETUP_CHECKS = [
+    { key: 'welcome_channel',  label: 'Message de bienvenue', section: 'welcome'    },
+    { key: 'ticket_category',  label: 'Tickets',              section: 'tickets'    },
+    { key: 'ob_channel',       label: 'Onboarding membres',   section: 'onboarding' },
+    { key: 'automod_enabled',  label: 'Protection auto',      section: 'automod'    },
+    { key: 'log_channel',      label: 'Historique actions',   section: 'logs'       },
+  ];
 
-  if (!getConf('welcome_channel'))
-    actions.push({ icon: '👋', label: 'Configurer le message de bienvenue', section: 'welcome', cta: 'Configurer →' });
-  if (!getConf('ticket_category'))
-    actions.push({ icon: '🎫', label: 'Activer les tickets pour votre équipe', section: 'tickets', cta: 'Activer →' });
-  if (joueurs === 0)
-    actions.push({ icon: '🎮', label: 'Ajouter votre premier joueur', section: 'players', cta: 'Ajouter →' });
-  if (evtCount === 0)
-    actions.push({ icon: '📅', label: 'Créer votre premier événement', section: 'events', cta: 'Créer →' });
-  if (tourCount === 0)
-    actions.push({ icon: '🏆', label: 'Lancer un tournoi communautaire', section: 'tournament', cta: 'Lancer →' });
+  const done    = SETUP_CHECKS.filter(c => getConf(c.key)).length;
+  const total   = SETUP_CHECKS.length;
+  const pct     = Math.round((done / total) * 100);
+  const missing = SETUP_CHECKS.filter(c => !getConf(c.key));
 
+  const progressEl = document.getElementById('ov-greeting-progress');
+  const fillEl     = document.getElementById('ov-progress-fill');
+  const pctEl      = document.getElementById('ov-progress-pct');
+  const stepsEl    = document.getElementById('ov-progress-steps');
+
+  if (progressEl && pct < 100) {
+    progressEl.style.display = '';
+    pctEl.textContent = `${pct}%`;
+    setTimeout(() => { if (fillEl) fillEl.style.width = `${pct}%`; }, 100);
+    if (stepsEl) {
+      stepsEl.innerHTML = missing.slice(0, 3).map(c =>
+        `<span class="ov-progress-step" data-section="${c.section}">☐ ${c.label}</span>`
+      ).join('');
+      stepsEl.querySelectorAll('.ov-progress-step').forEach(el => {
+        el.addEventListener('click', () => document.querySelector(`[data-section="${el.dataset.section}"]`)?.click());
+      });
+    }
+  }
+
+  // Actions recommandées en CARTES
+  const ALL_ACTIONS = [
+    { icon: '👋', label: 'Configurer le message de bienvenue', sub: 'Les nouveaux membres ne reçoivent aucun message.', section: 'welcome',    cta: 'Configurer',  check: !getConf('welcome_channel') },
+    { icon: '🎫', label: 'Activer les tickets',                sub: 'Permettez à vos membres de contacter l\'équipe.', section: 'tickets',    cta: 'Activer',     check: !getConf('ticket_category') },
+    { icon: '🎮', label: 'Ajouter votre premier joueur',       sub: 'Aucun joueur enregistré sur WARSTACK.',           section: 'players',    cta: 'Ajouter',     check: joueurs === 0 },
+    { icon: '📅', label: 'Créer votre premier événement',      sub: 'Aucun événement planifié avec la communauté.',    section: 'events',     cta: 'Créer',       check: evtCount === 0 },
+    { icon: '🏆', label: 'Lancer un tournoi',                  sub: 'Organisez une compétition en 2 minutes.',         section: 'tournament', cta: 'Lancer',      check: tourCount === 0 },
+    { icon: '🛡', label: 'Activer la protection automatique',  sub: 'Le serveur n\'est pas protégé contre le spam.',   section: 'automod',    cta: 'Activer',     check: !getConf('automod_enabled') },
+  ];
+
+  const visibleActions = ALL_ACTIONS.filter(a => a.check).slice(0, 4);
   const panel   = document.getElementById('ov-actions-panel');
   const listEl  = document.getElementById('ov-actions-list');
-  if (panel && listEl && actions.length > 0) {
+
+  if (panel && listEl && visibleActions.length > 0) {
     panel.style.display = '';
-    listEl.innerHTML = actions.slice(0, 4).map(a => `
-      <div class="ov-action-item" data-section="${a.section}">
-        <span class="ov-action-icon">${a.icon}</span>
-        <span class="ov-action-label">${a.label}</span>
-        <span class="ov-action-cta">${a.cta}</span>
+    listEl.innerHTML = visibleActions.map(a => `
+      <div class="ov-action-card" data-section="${a.section}">
+        <div class="ov-action-card-icon">${a.icon}</div>
+        <div class="ov-action-card-body">
+          <div class="ov-action-card-title">${a.label}</div>
+          <div class="ov-action-card-sub">${a.sub}</div>
+        </div>
+        <button class="btn btn-primary btn-sm ov-action-card-btn">${a.cta} →</button>
       </div>
     `).join('');
 
-    listEl.querySelectorAll('.ov-action-item').forEach(item => {
-      item.addEventListener('click', () => {
-        document.querySelector(`[data-section="${item.dataset.section}"]`)?.click();
+    listEl.querySelectorAll('.ov-action-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelector(`[data-section="${card.dataset.section}"]`)?.click();
       });
     });
   }

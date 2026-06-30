@@ -56,6 +56,15 @@ export async function initEvents() {
     form.style.display = form.style.display === 'none' ? 'block' : 'none';
   });
 
+  // ── Réglages avancés ────────────────────────────────────
+  const evToggle = document.getElementById('ev-advanced-toggle');
+  const evBody   = document.getElementById('ev-advanced-body');
+  evToggle?.addEventListener('click', () => {
+    const isOpen = evBody.style.display !== 'none';
+    evBody.style.display = isOpen ? 'none' : 'block';
+    evToggle.classList.toggle('open', !isOpen);
+  });
+
   document.getElementById('btn-preview-event').addEventListener('click', () => {
     updatePreview();
     document.getElementById('event-preview-panel').style.display = 'block';

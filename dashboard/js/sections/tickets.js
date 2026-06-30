@@ -75,6 +75,26 @@ export async function initTickets() {
   document.getElementById('ticket-category-closed').value = getConfig(configs, 'ticket_category_closed') || '';
   document.getElementById('ticket-transcript').checked = getConfig(configs, 'ticket_transcript') !== 'false';
 
+  // ── Réglages avancés ────────────────────────────────────
+  const tkToggle = document.getElementById('tk-advanced-toggle');
+  const tkBody   = document.getElementById('tk-advanced-body');
+  if (tkToggle && tkBody) {
+    const hasAdvanced = getConfig(configs, 'ticket_staff_role')
+                     || getConfig(configs, 'ticket_leader_role')
+                     || getConfig(configs, 'ticket_category_waiting')
+                     || getConfig(configs, 'ticket_category_active')
+                     || getConfig(configs, 'ticket_category_closed');
+    if (hasAdvanced) {
+      tkBody.style.display = 'block';
+      tkToggle.classList.add('open');
+    }
+    tkToggle.addEventListener('click', () => {
+      const isOpen = tkBody.style.display !== 'none';
+      tkBody.style.display = isOpen ? 'none' : 'block';
+      tkToggle.classList.toggle('open', !isOpen);
+    });
+  }
+
   await loadTicketCategories();
 
   document.getElementById('btn-add-ticket-type').addEventListener('click', addTicketCategory);

@@ -1,7 +1,7 @@
 .panel {
   width: 100%;
   position: relative;
-  overflow: visible;
+  overflow: hidden;
   margin-bottom: 22px;
   border-radius: var(--radius-card);
   background: linear-gradient(180deg, rgba(11, 18, 14, .94), rgba(7, 11, 9, .98));
@@ -62,12 +62,13 @@
 }
 
 .panel-footer {
-  padding: 16px 22px;
-  display: flex;
+  padding        : 16px 22px;
+  display        : flex;
   justify-content: flex-end;
-  gap: 10px;
-  border-top: 1px solid rgba(0, 255, 120, .05);
-  background: linear-gradient(180deg, rgba(255, 255, 255, .01), transparent);
+  gap            : 10px;
+  border-top     : 1px solid rgba(0, 255, 120, .05);
+  background     : linear-gradient(180deg, rgba(255, 255, 255, .01), transparent);
+  border-radius  : 0 0 var(--radius-card) var(--radius-card);
 }
 
 .panel-tabs {

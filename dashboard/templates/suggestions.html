@@ -53,8 +53,6 @@
           </div>
         </div>
 
-        <div class="welcome-section-title" style="margin-top:1rem">Salons</div>
-
         <div class="form-group">
           <label>Salon suggestions <span class="tooltip-icon"
               data-tooltip="Salon où le bot poste les suggestions soumises par les membres avec les boutons de vote.">ⓘ</span></label>
@@ -63,44 +61,53 @@
           </select>
         </div>
 
-        <div class="form-group">
-          <label>Salon logs staff</label>
-          <select id="suggestions-logs" class="form-select">
-            <option value="">Aucun</option>
-          </select>
+        <!-- RÉGLAGES AVANCÉS -->
+        <div class="advanced-toggle" id="sug-advanced-toggle">
+          <i class="fas fa-chevron-down"></i> Réglages avancés
         </div>
 
-        <div class="welcome-section-title" style="margin-top:1rem">Options</div>
+        <div class="advanced-body" id="sug-advanced-body" style="display:none">
 
-        <div class="form-group">
-          <div class="toggle-row">
-            <label>Réactions automatiques 👍 👎</label>
-            <label class="toggle-switch">
-              <input type="checkbox" id="suggestions-reactions" checked>
-              <span class="toggle-slider"></span>
-            </label>
+          <div class="form-group">
+            <label>Salon logs staff</label>
+            <select id="suggestions-logs" class="form-select">
+              <option value="">Aucun</option>
+            </select>
           </div>
-        </div>
 
-        <div class="form-group">
-          <div class="toggle-row">
-            <label>Thread automatique par suggestion</label>
-            <label class="toggle-switch">
-              <input type="checkbox" id="suggestions-threads">
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-        </div>
+          <div class="welcome-section-title" style="margin-top:1rem">Options</div>
 
-        <div class="form-group">
-          <div class="toggle-row">
-            <label>Votes anonymes <span class="tooltip-icon"
-                data-tooltip="Quand activé, les membres votent sans que les autres puissent voir leur choix.">ⓘ</span></label>
-            <label class="toggle-switch">
-              <input type="checkbox" id="suggestions-anonymous">
-              <span class="toggle-slider"></span>
-            </label>
+          <div class="form-group">
+            <div class="toggle-row">
+              <label>Réactions automatiques 👍 👎</label>
+              <label class="toggle-switch">
+                <input type="checkbox" id="suggestions-reactions" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
           </div>
+
+          <div class="form-group">
+            <div class="toggle-row">
+              <label>Thread automatique par suggestion</label>
+              <label class="toggle-switch">
+                <input type="checkbox" id="suggestions-threads">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="toggle-row">
+              <label>Votes anonymes <span class="tooltip-icon"
+                  data-tooltip="Quand activé, les membres votent sans que les autres puissent voir leur choix.">ⓘ</span></label>
+              <label class="toggle-switch">
+                <input type="checkbox" id="suggestions-anonymous">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
         </div>
 
       </div>

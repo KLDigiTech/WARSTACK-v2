@@ -74,6 +74,25 @@ export async function initSuggestions() {
   document.getElementById('suggestions-threads').checked = getConfig(configs, 'suggestions_threads') === 'true';
   document.getElementById('suggestions-anonymous').checked = getConfig(configs, 'suggestions_anonymous') === 'true';
 
+  // ── Réglages avancés ────────────────────────────────────
+  const sugToggle = document.getElementById('sug-advanced-toggle');
+  const sugBody   = document.getElementById('sug-advanced-body');
+  if (sugToggle && sugBody) {
+    const hasAdvanced = getConfig(configs, 'suggestions_logs')
+                     || getConfig(configs, 'suggestions_threads') === 'true'
+                     || getConfig(configs, 'suggestions_anonymous') === 'true'
+                     || getConfig(configs, 'suggestions_reactions') === 'false';
+    if (hasAdvanced) {
+      sugBody.style.display = 'block';
+      sugToggle.classList.add('open');
+    }
+    sugToggle.addEventListener('click', () => {
+      const isOpen = sugBody.style.display !== 'none';
+      sugBody.style.display = isOpen ? 'none' : 'block';
+      sugToggle.classList.toggle('open', !isOpen);
+    });
+  }
+
   document.getElementById('btn-save-suggestions').addEventListener('click', async () => {
     await Promise.all([
       saveConfig('suggestions_enabled', String(document.getElementById('suggestions-enabled').checked)),

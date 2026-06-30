@@ -40,6 +40,22 @@ export async function initRoles() {
   document.getElementById('enable-counter').checked  = counterOn;
   document.getElementById('counter-group').style.display = counterOn ? 'block' : 'none';
   document.getElementById('counter-format').value    = counterFmt;
+
+  // ── Réglages avancés ────────────────────────────────────
+  const rolesToggle = document.getElementById('roles-advanced-toggle');
+  const rolesBody   = document.getElementById('roles-advanced-body');
+  if (rolesToggle && rolesBody) {
+    const hasAdvanced = !ignoreBots || dmEnabled || getConfig(configs, 'autorole_delay');
+    if (hasAdvanced) {
+      rolesBody.style.display = 'block';
+      rolesToggle.classList.add('open');
+    }
+    rolesToggle.addEventListener('click', () => {
+      const isOpen = rolesBody.style.display !== 'none';
+      rolesBody.style.display = isOpen ? 'none' : 'block';
+      rolesToggle.classList.toggle('open', !isOpen);
+    });
+  }
   document.getElementById('counter-channel').value   = counterCh;
 
   // Délai radio

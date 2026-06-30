@@ -69,6 +69,19 @@ export async function initAutomod() {
   Array.from(exceptChannels.options).forEach(o => { if (savedExceptChannels.includes(o.value)) o.selected = true; });
   Array.from(exceptRoles.options).forEach(o   => { if (savedExceptRoles.includes(o.value))    o.selected = true; });
 
+  // ── Accordéon ────────────────────────────────────────────
+  // Ouvre automatiquement les protections déjà activées
+  document.querySelectorAll('.amd-item').forEach(item => {
+    const key     = item.dataset.amd;
+    const toggle  = item.querySelector('input[type="checkbox"][id$="-enabled"]');
+    const isOnByDefault = ['exceptions', 'journal'].includes(key);
+    if ((toggle && toggle.checked) || isOnByDefault) item.classList.add('open');
+
+    item.querySelector('.amd-head').addEventListener('click', () => {
+      item.classList.toggle('open');
+    });
+  });
+
   // ── Score protection ─────────────────────────────────────
   updateScore();
   document.querySelectorAll('input[type="checkbox"]').forEach(cb => {

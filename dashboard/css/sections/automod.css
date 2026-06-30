@@ -153,3 +153,59 @@
   .automod-layout { grid-template-columns: 1fr; }
   .automod-score-bar { flex-direction: column; align-items: flex-start; }
 }
+/* ── Accordéon AutoMod ── */
+.page-hint {
+  font-size : 0.82rem;
+  color     : var(--text-muted);
+  margin    : 0.5rem 0 1rem;
+}
+
+.automod-accordion {
+  display       : flex;
+  flex-direction: column;
+  gap           : 0.6rem;
+}
+
+.amd-item {
+  background   : var(--panel-bg, #11161c);
+  border       : 1px solid var(--border);
+  border-radius: 10px;
+  overflow     : hidden;
+}
+
+.amd-head {
+  display        : flex;
+  align-items    : center;
+  justify-content: space-between;
+  padding        : 0.85rem 1.1rem;
+  cursor         : pointer;
+  user-select    : none;
+}
+.amd-head:hover { background: rgba(255,255,255,0.02); }
+
+.amd-head-left {
+  display    : flex;
+  align-items: center;
+  gap        : 0.6rem;
+}
+
+.amd-chevron {
+  font-size : 0.7rem;
+  color     : var(--text-muted);
+  transition: transform 0.2s;
+}
+.amd-item.open .amd-chevron { transform: rotate(90deg); }
+
+.amd-icon  { font-size: 1.05rem; }
+.amd-title { font-weight: 600; font-size: 0.92rem; }
+
+.amd-body {
+  max-height: 0;
+  overflow  : hidden;
+  transition: max-height 0.25s ease;
+  padding   : 0 1.1rem;
+}
+.amd-item.open .amd-body {
+  max-height: 900px;
+  padding   : 0 1.1rem 1.1rem;
+}

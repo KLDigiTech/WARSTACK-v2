@@ -218,3 +218,10 @@
   align-items: center;
   gap: .4rem;
 }
+@media (max-width: 960px) {
+  .team-layout { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .team-member-row { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+  .team-actions    { width: 100%; justify-content: flex-end; }
+}

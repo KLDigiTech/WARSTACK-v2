@@ -293,3 +293,7 @@
   text-transform: uppercase;
   margin-bottom: 0.75rem;
 }
+@media (max-width: 768px) {
+  .ocr-layout { grid-template-columns: 1fr; }
+  .ocr-result { font-size: 0.78rem; }
+}

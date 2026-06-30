@@ -152,7 +152,7 @@
 .team-choice-btn.selected { border-color: var(--green); color: var(--green); background: var(--green-glow); }
 
 .btn-discord {
-  background: #5865F2;
+  background: var(--discord);
   border: none;
   color: #fff;
   font-family: 'Rajdhani', sans-serif;
@@ -269,7 +269,7 @@
 }
 .btn-full { width: 100%; margin-top: 0.75rem; }
 .btn-discord {
-  background: #5865F2;
+  background: var(--discord);
   border: none;
   color: #fff;
   font-family: 'Rajdhani', sans-serif;
@@ -302,7 +302,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: #5865F2;
+  background: var(--discord);
   color: #fff;
   padding: 0.6rem 1.2rem;
   border-radius: var(--radius);
@@ -332,3 +332,7 @@
 .tracker-help   { font-size: 0.72rem; color: var(--text-muted); line-height: 1.8; margin: 0.75rem 0; }
 .tracker-help a { color: var(--green); }
 .tracker-help strong { color: var(--text); }
+@media (max-width: 768px) {
+  .platform-grid   { grid-template-columns: 1fr 1fr; }
+  .team-mode-grid  { grid-template-columns: 1fr; }
+}

@@ -54,6 +54,9 @@
   --orange:        #FF6B35;
   --orange-glow:   rgba(255,107,53,.08);
 
+  --discord:       #5865F2;
+  --discord-hover: #4752c4;
+
   /* ── TEXTE ── */
   --text:          #f2fff2;
   --text-dim:      #b8d8bf;

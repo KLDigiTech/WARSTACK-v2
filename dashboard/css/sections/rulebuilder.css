@@ -72,12 +72,12 @@
 }
 .rb-chip.trigger {
   background: rgba(91,200,255,.1);
-  color: #5bc8ff;
+  color: var(--info);
   border: 1px solid rgba(91,200,255,.2);
 }
 .rb-chip.action {
   background: rgba(0,255,120,.1);
-  color: #7dffb3;
+  color: var(--primary-bright);
   border: 1px solid rgba(0,255,120,.2);
 }
 
@@ -145,7 +145,7 @@
   border-radius: 10px;
   border: 1px solid rgba(255,80,80,.1);
   background: rgba(255,80,80,.05);
-  color: #ff7b7b;
+  color: var(--danger);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -179,7 +179,7 @@
   width: 560px;
   max-width: 95vw;
   max-height: 90vh;
-  background: linear-gradient(180deg, #0b1610 0%, #080d0a 100%);
+  background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
   border: 1px solid rgba(0,255,120,.15);
   border-radius: 16px;
   z-index: 901;
@@ -217,7 +217,7 @@
   font-size: 16px;
   transition: .15s;
 }
-#rb-modal-header button:hover { color: #ff7b7b; }
+#rb-modal-header button:hover { color: var(--danger); }
 
 #rb-modal-body {
   padding: 20px;
@@ -247,8 +247,8 @@
   align-items: center;
   gap: 8px;
 }
-.rb-block--trigger .rb-block-header { background: rgba(91,200,255,.06); color: #5bc8ff; }
-.rb-block--action  .rb-block-header { background: rgba(0,255,120,.06);  color: #7dffb3; }
+.rb-block--trigger .rb-block-header { background: rgba(91,200,255,.06); color: var(--info); }
+.rb-block--action  .rb-block-header { background: rgba(0,255,120,.06);  color: var(--primary-bright); }
 
 .rb-block-body { padding: 16px; }
 
@@ -278,11 +278,15 @@
 
 #rb-modal select.form-input option {
   background: #0e1411;
-  color: #e0e0e0;
+  color: var(--text);
 }
 
 #rb-modal select.form-input optgroup {
   background: #0a0f0c;
-  color: #7dffb3;
+  color: var(--primary-bright);
   font-weight: 700;
+}
+@media (max-width: 768px) {
+  .rule-builder-layout { grid-template-columns: 1fr; }
+  .rule-conditions     { flex-direction: column; }
 }

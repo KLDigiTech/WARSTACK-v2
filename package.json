@@ -1,8 +1,11 @@
 {
   "name": "warstack",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "WARSTACK - Bot Discord BF6 PöF",
   "main": "bot/index.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "start": "node bot/index.js",
     "dev": "nodemon bot/index.js"

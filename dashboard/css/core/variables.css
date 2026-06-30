@@ -57,6 +57,10 @@
   --discord:       #5865F2;
   --discord-hover: #4752c4;
 
+  /* Aliases utilitaires */
+  --bg-card  : var(--surface-2);
+  --kpi-color: var(--primary);
+
   /* ── TEXTE ── */
   --text:          #f2fff2;
   --text-dim:      #b8d8bf;

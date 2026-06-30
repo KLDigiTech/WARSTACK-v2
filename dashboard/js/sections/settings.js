@@ -33,7 +33,6 @@ export async function initSettings() {
 
   const configs = await loadConfigs();
   document.getElementById('settings-language').value = getConfig(configs, 'settings_language') || 'fr';
-  document.getElementById('settings-prefix').value   = getConfig(configs, 'settings_prefix')   || '!';
   document.getElementById('settings-timezone').value = getConfig(configs, 'settings_timezone')  || 'Europe/Paris';
 
   await loadGuildInfo();
@@ -46,7 +45,6 @@ export async function initSettings() {
   document.getElementById('btn-save-settings').addEventListener('click', async () => {
     await Promise.all([
       saveConfig('settings_language', document.getElementById('settings-language').value),
-      saveConfig('settings_prefix',   document.getElementById('settings-prefix').value),
       saveConfig('settings_timezone', document.getElementById('settings-timezone').value),
     ]);
     showToast('✅ Paramètres sauvegardés');

@@ -733,3 +733,53 @@
   width: 20px;
   border-radius: 4px;
 }
+/* ── Accordéon Onboarding ── */
+.ob-accordion {
+  display       : flex;
+  flex-direction: column;
+  gap           : 0.6rem;
+}
+
+.ob-item {
+  background   : var(--surface, #0a0f0a);
+  border       : 1px solid var(--border);
+  border-radius: 10px;
+  overflow     : hidden;
+}
+
+.ob-head {
+  display        : flex;
+  align-items    : center;
+  justify-content: space-between;
+  padding        : 0.85rem 1.1rem;
+  cursor         : pointer;
+  user-select    : none;
+}
+.ob-head:hover { background: rgba(255,255,255,0.02); }
+
+.ob-head-left {
+  display    : flex;
+  align-items: center;
+  gap        : 0.6rem;
+}
+
+.ob-chevron {
+  font-size : 0.7rem;
+  color     : var(--text-muted);
+  transition: transform 0.2s;
+}
+.ob-item.open .ob-chevron { transform: rotate(90deg); }
+
+.ob-icon  { font-size: 1.05rem; }
+.ob-title { font-weight: 600; font-size: 0.92rem; }
+
+.ob-body {
+  max-height: 0;
+  overflow  : hidden;
+  transition: max-height 0.3s ease;
+  padding   : 0 1.1rem;
+}
+.ob-item.open .ob-body {
+  max-height: 2000px;
+  padding   : 0 1.1rem 1.1rem;
+}

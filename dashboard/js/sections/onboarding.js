@@ -122,13 +122,20 @@ export async function initOnboarding() {
     });
   });
 
-  document.getElementById('ob-advanced-toggle').addEventListener('click', () => {
-    const body = document.getElementById('ob-advanced-body');
-    const icon = document.getElementById('ob-advanced-icon');
-    const open = body.style.display === 'none';
-    body.style.display = open ? 'block' : 'none';
-    icon.className = open ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
+  // ── Accordéon onboarding ────────────────────────────────
+  document.querySelectorAll('.ob-item').forEach(item => {
+    const head = item.querySelector('.ob-head');
+    if (!head) return;
+    head.addEventListener('click', () => item.classList.toggle('open'));
   });
+
+  // Ouvrir automatiquement les sections déjà configurées
+  if (getConfig(configs, 'ob_rules_text'))      document.querySelector('[data-ob="rules"]')?.classList.add('open');
+  if (getConfig(configs, 'ob_confirm_msg'))     document.querySelector('[data-ob="confirm"]')?.classList.add('open');
+  if (getConfig(configs, 'ob_manual_validation') === 'true' ||
+      getConfig(configs, 'ob_age_enabled') === 'true') {
+    document.querySelector('[data-ob="advanced"]')?.classList.add('open');
+  }
 
   document.getElementById('ob-add-team').addEventListener('click', () => {
     const form = document.getElementById('ob-team-add-form');

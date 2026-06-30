@@ -1,13 +1,12 @@
 <div class="settings-layout">
 
-  <!-- ══ COLONNE GAUCHE ══ -->
+  <!-- ══ COLONNE GAUCHE : ESSENTIEL ══ -->
   <div>
 
     <!-- INFOS SERVEUR -->
     <div class="panel">
       <div class="panel-header">
-        <h2>🏠 Serveur <span class="tooltip-icon"
-            data-tooltip="Informations générales sur ton serveur Discord (nom, icône, nombre de membres).">ⓘ</span></h2>
+        <h2>🏠 Serveur</h2>
       </div>
       <div class="panel-body">
         <div class="settings-server-header">
@@ -39,77 +38,20 @@
       </div>
     </div>
 
-    <!-- SANTÉ WARSTACK -->
-    <div class="panel">
-      <div class="panel-header">
-        <h2>💚 Santé WARSTACK <span class="tooltip-icon"
-            data-tooltip="Vérifie que le bot et le dashboard fonctionnent correctement et sont à jour.">ⓘ</span></h2>
-      </div>
-      <div class="panel-body">
-        <div class="settings-health-row">
-          <span>🤖 Bot</span>
-          <span class="settings-health-badge" id="health-bot">—</span>
-        </div>
-        <div class="settings-health-row">
-          <span>⏱ Uptime</span>
-          <span id="health-uptime" style="font-size:0.82rem;color:var(--text-dim)">—</span>
-        </div>
-        <div class="settings-health-row">
-          <span>🔄 Dernière synchro</span>
-          <span id="health-sync" style="font-size:0.82rem;color:var(--text-dim)">—</span>
-        </div>
-        <div class="settings-health-row">
-          <span>📦 Version</span>
-          <span style="font-size:0.82rem;color:var(--text-dim)">v2.0.0</span>
-        </div>
-        <div style="border-top:1px solid var(--border);margin:0.75rem 0"></div>
-        <div class="settings-health-row">
-          <span>🎫 Tickets</span>
-          <span class="settings-health-badge green">OK</span>
-        </div>
-        <div class="settings-health-row">
-          <span>📅 Events</span>
-          <span class="settings-health-badge green">OK</span>
-        </div>
-        <div class="settings-health-row">
-          <span>🛡 AutoMod</span>
-          <span class="settings-health-badge green">OK</span>
-        </div>
-        <div class="settings-health-row">
-          <span>📋 Logs</span>
-          <span class="settings-health-badge green">OK</span>
-        </div>
-        <div class="settings-health-row">
-          <span>⏰ Cron Jobs</span>
-          <span class="settings-health-badge green">OK</span>
-        </div>
-      </div>
-    </div>
-
     <!-- MODULES ACTIFS -->
     <div class="panel">
       <div class="panel-header">
-        <h2>🧩 Modules <span class="tooltip-icon"
-            data-tooltip="Active ou désactive les grandes fonctionnalités de WARSTACK sur ton serveur.">ⓘ</span></h2>
+        <h2>🧩 Modules actifs</h2>
       </div>
-      <div class="panel-body" id="settings-modules">
-        <!-- généré par JS -->
-      </div>
+      <div class="panel-body" id="settings-modules"></div>
     </div>
 
-  </div>
-
-  <!-- ══ COLONNE DROITE ══ -->
-  <div>
-
-    <!-- CONFIGURATION -->
+    <!-- CONFIGURATION DE BASE -->
     <div class="panel">
       <div class="panel-header">
-        <h2>⚙️ Configuration <span class="tooltip-icon" data-tooltip="Réglages avancés du bot pour ce serveur.">ⓘ</span>
-        </h2>
+        <h2>⚙️ Réglages généraux</h2>
       </div>
       <div class="panel-body">
-
         <div class="form-group">
           <label>Langue</label>
           <select id="settings-language" class="form-select">
@@ -117,7 +59,6 @@
             <option value="en">🇬🇧 English</option>
           </select>
         </div>
-
         <div class="form-group">
           <label>Fuseau horaire</label>
           <select id="settings-timezone" class="form-select">
@@ -130,12 +71,6 @@
             <option value="America/Montreal">🇨🇦 America/Montreal (UTC-5/-4)</option>
           </select>
         </div>
-
-        <div class="form-group">
-          <label>Préfixe commandes</label>
-          <input type="text" id="settings-prefix" class="form-input" placeholder="!" style="width:80px">
-        </div>
-
       </div>
       <div class="panel-footer">
         <button class="btn btn-primary" id="btn-save-settings">
@@ -144,237 +79,233 @@
       </div>
     </div>
 
-    <!-- SAUVEGARDE -->
-    <div class="panel">
-      <div class="panel-header">
-        <h2>💾 Sauvegarde <span class="tooltip-icon"
-            data-tooltip="Exporte une copie de la configuration de ton serveur, utile avant une grosse modification.">ⓘ</span>
-        </h2>
-      </div>
-      <div class="panel-body">
-        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem">
-          Exporte ou importe toute ta configuration WARSTACK. Utile pour copier un serveur vers un autre.
-        </p>
-        <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
-          <button class="btn btn-secondary" id="btn-export-config">
-            <i class="fas fa-download"></i> Exporter JSON
-          </button>
-          <button class="btn btn-secondary" id="btn-import-config">
-            <i class="fas fa-upload"></i> Importer JSON
-          </button>
-          <input type="file" id="import-file-input" accept=".json" style="display:none">
+  </div>
+
+  <!-- ══ COLONNE DROITE : SECTIONS REPLIABLES ══ -->
+  <div>
+
+    <div class="settings-accordion">
+
+      <!-- SANTÉ -->
+      <div class="set-item" data-set="health">
+        <div class="set-head">
+          <div class="set-head-left">
+            <i class="fas fa-chevron-right set-chevron"></i>
+            <span class="set-icon">💚</span>
+            <span class="set-title">Santé WARSTACK</span>
+          </div>
         </div>
-        <div id="import-status" style="margin-top:0.5rem;font-size:0.8rem;color:var(--green);display:none"></div>
-      </div>
-    </div>
-
-    <!-- MAINTENANCE -->
-    <div class="panel">
-      <div class="panel-header">
-        <h2>🔧 Maintenance <span class="tooltip-icon"
-            data-tooltip="Actions techniques ponctuelles (resynchronisation, nettoyage de données).">ⓘ</span></h2>
-      </div>
-      <div class="panel-body">
-        <div style="display:flex;flex-direction:column;gap:0.5rem">
-          <button class="btn btn-secondary" id="btn-test-connection">
-            <i class="fas fa-plug"></i> Tester la connexion bot
-          </button>
-          <button class="btn btn-secondary" id="btn-resync">
-            <i class="fas fa-sync"></i> Resynchroniser Discord
-          </button>
+        <div class="set-body">
+          <div class="settings-health-row">
+            <span>🤖 Bot</span>
+            <span class="settings-health-badge" id="health-bot">—</span>
+          </div>
+          <div class="settings-health-row">
+            <span>⏱ Uptime</span>
+            <span id="health-uptime" style="font-size:0.82rem;color:var(--text-dim)">—</span>
+          </div>
+          <div class="settings-health-row">
+            <span>🔄 Dernière synchro</span>
+            <span id="health-sync" style="font-size:0.82rem;color:var(--text-dim)">—</span>
+          </div>
+          <div class="settings-health-row">
+            <span>📦 Version</span>
+            <span style="font-size:0.82rem;color:var(--text-dim)">v2.0.0</span>
+          </div>
         </div>
-        <div id="maintenance-status" style="margin-top:0.75rem;font-size:0.82rem;display:none"></div>
       </div>
-    </div>
-    <!-- THEME EDITOR -->
-    <div class="panel">
-      <div class="panel-header">
-        <h2><i class="fas fa-palette" style="color:var(--primary);margin-right:6px"></i>Thème <span class="tooltip-icon"
-            data-tooltip="Personnalise les couleurs et l'apparence visuelle de ton dashboard.">ⓘ</span></h2>
-        <button class="btn btn-sm btn-secondary" id="btn-reset-theme">
-          <i class="fas fa-undo"></i> Défaut
-        </button>
-      </div>
-      <div class="panel-body">
 
-        <p class="ob-hint">Personnalise les couleurs du dashboard en temps réel.</p>
-
-        <div class="theme-grid">
-
-          <div class="theme-row">
-            <label class="theme-label">
-              <span class="theme-dot" id="dot-primary"></span>
-              Couleur principale
-            </label>
-            <div class="theme-input-wrap">
-              <input type="color" id="theme-primary" class="theme-color-input" value="#00ff66">
-              <span class="theme-hex" id="hex-primary">#00ff66</span>
-            </div>
+      <!-- SAUVEGARDE & MAINTENANCE -->
+      <div class="set-item" data-set="backup">
+        <div class="set-head">
+          <div class="set-head-left">
+            <i class="fas fa-chevron-right set-chevron"></i>
+            <span class="set-icon">💾</span>
+            <span class="set-title">Sauvegarde & Maintenance</span>
           </div>
-
-          <div class="theme-row">
-            <label class="theme-label">
-              <span class="theme-dot" id="dot-danger"></span>
-              Danger / Erreur
-            </label>
-            <div class="theme-input-wrap">
-              <input type="color" id="theme-danger" class="theme-color-input" value="#ff4444">
-              <span class="theme-hex" id="hex-danger">#ff4444</span>
-            </div>
-          </div>
-
-          <div class="theme-row">
-            <label class="theme-label">
-              <span class="theme-dot" id="dot-warning"></span>
-              Warning
-            </label>
-            <div class="theme-input-wrap">
-              <input type="color" id="theme-warning" class="theme-color-input" value="#ffbd2e">
-              <span class="theme-hex" id="hex-warning">#ffbd2e</span>
-            </div>
-          </div>
-
-          <div class="theme-row">
-            <label class="theme-label">
-              <span class="theme-dot" id="dot-bg"></span>
-              Fond principal
-            </label>
-            <div class="theme-input-wrap">
-              <input type="color" id="theme-bg" class="theme-color-input" value="#050805">
-              <span class="theme-hex" id="hex-bg">#050805</span>
-            </div>
-          </div>
-
-          <div class="theme-row">
-            <label class="theme-label">
-              <span class="theme-dot" id="dot-surface"></span>
-              Surface (panels)
-            </label>
-            <div class="theme-input-wrap">
-              <input type="color" id="theme-surface" class="theme-color-input" value="#0a0f0a">
-              <span class="theme-hex" id="hex-surface">#0a0f0a</span>
-            </div>
-          </div>
-
-          <div class="theme-row">
-            <label class="theme-label">
-              <span class="theme-dot" id="dot-text"></span>
-              Texte principal
-            </label>
-            <div class="theme-input-wrap">
-              <input type="color" id="theme-text" class="theme-color-input" value="#f2fff2">
-              <span class="theme-hex" id="hex-text">#f2fff2</span>
-            </div>
-          </div>
-
-          <div class="theme-row">
-            <label class="theme-label">
-              <i class="fas fa-font" style="width:14px;text-align:center;color:var(--text-muted)"></i>
-              Police
-            </label>
-            <div class="theme-input-wrap">
-              <select id="theme-font" class="form-select" style="width:160px;font-size:0.8rem">
-                <option value="'Rajdhani', sans-serif">Rajdhani (défaut)</option>
-                <option value="'Orbitron', sans-serif">Orbitron</option>
-                <option value="'Exo 2', sans-serif">Exo 2</option>
-                <option value="'Share Tech Mono', monospace">Share Tech Mono</option>
-                <option value="'Inter', sans-serif">Inter</option>
-                <option value="'Syne', sans-serif">Syne</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="theme-row">
-            <label class="theme-label">
-              <i class="fas fa-border-all" style="width:14px;text-align:center;color:var(--text-muted)"></i>
-              Radius cards
-            </label>
-            <div class="theme-input-wrap" style="gap:10px">
-              <input type="range" id="theme-radius" min="0" max="40" value="20"
-                style="width:100px;accent-color:var(--primary)">
-              <span class="theme-hex" id="val-radius">20px</span>
-            </div>
-          </div>
-
         </div>
+        <div class="set-body">
+          <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem">
+            Exporte ta configuration ou vérifie la connexion au bot.
+          </p>
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem">
+            <button class="btn btn-secondary btn-sm" id="btn-export-config">
+              <i class="fas fa-download"></i> Exporter
+            </button>
+            <button class="btn btn-secondary btn-sm" id="btn-import-config">
+              <i class="fas fa-upload"></i> Importer
+            </button>
+            <input type="file" id="import-file-input" accept=".json" style="display:none">
+          </div>
+          <div id="import-status" style="margin-bottom:0.75rem;font-size:0.8rem;color:var(--green);display:none"></div>
 
-        <!-- PREVIEW -->
-        <div class="theme-preview">
-          <div class="theme-preview-label">Aperçu</div>
-          <div class="theme-preview-box">
-            <div class="theme-preview-card">
-              <div class="theme-preview-title">KPI Card</div>
-              <div class="theme-preview-value">1,337</div>
-              <div class="theme-preview-badge">▲ Actif</div>
-            </div>
-            <div class="theme-preview-card">
-              <div class="theme-preview-title">Membres</div>
-              <div class="theme-preview-value" style="color:var(--warning)">42</div>
-              <div class="theme-preview-badge" style="background:var(--warning-soft);color:var(--warning)">— Stable
+          <div style="display:flex;flex-direction:column;gap:0.5rem">
+            <button class="btn btn-secondary btn-sm" id="btn-test-connection">
+              <i class="fas fa-plug"></i> Tester la connexion bot
+            </button>
+            <button class="btn btn-secondary btn-sm" id="btn-resync">
+              <i class="fas fa-sync"></i> Resynchroniser Discord
+            </button>
+          </div>
+          <div id="maintenance-status" style="margin-top:0.75rem;font-size:0.82rem;display:none"></div>
+        </div>
+      </div>
+
+      <!-- THEME -->
+      <div class="set-item" data-set="theme">
+        <div class="set-head">
+          <div class="set-head-left">
+            <i class="fas fa-chevron-right set-chevron"></i>
+            <span class="set-icon">🎨</span>
+            <span class="set-title">Personnaliser le thème</span>
+          </div>
+        </div>
+        <div class="set-body">
+          <p class="ob-hint">Personnalise les couleurs du dashboard en temps réel.</p>
+
+          <div class="theme-grid">
+            <div class="theme-row">
+              <label class="theme-label"><span class="theme-dot" id="dot-primary"></span>Couleur principale</label>
+              <div class="theme-input-wrap">
+                <input type="color" id="theme-primary" class="theme-color-input" value="#00ff66">
+                <span class="theme-hex" id="hex-primary">#00ff66</span>
               </div>
             </div>
-            <div class="theme-preview-card">
-              <div class="theme-preview-title">Tickets</div>
-              <div class="theme-preview-value" style="color:var(--danger)">3</div>
-              <div class="theme-preview-badge" style="background:var(--danger-soft);color:var(--danger)">▼ Élevé</div>
+            <div class="theme-row">
+              <label class="theme-label"><span class="theme-dot" id="dot-danger"></span>Danger / Erreur</label>
+              <div class="theme-input-wrap">
+                <input type="color" id="theme-danger" class="theme-color-input" value="#ff4444">
+                <span class="theme-hex" id="hex-danger">#ff4444</span>
+              </div>
+            </div>
+            <div class="theme-row">
+              <label class="theme-label"><span class="theme-dot" id="dot-warning"></span>Warning</label>
+              <div class="theme-input-wrap">
+                <input type="color" id="theme-warning" class="theme-color-input" value="#ffbd2e">
+                <span class="theme-hex" id="hex-warning">#ffbd2e</span>
+              </div>
+            </div>
+            <div class="theme-row">
+              <label class="theme-label"><span class="theme-dot" id="dot-bg"></span>Fond principal</label>
+              <div class="theme-input-wrap">
+                <input type="color" id="theme-bg" class="theme-color-input" value="#050805">
+                <span class="theme-hex" id="hex-bg">#050805</span>
+              </div>
+            </div>
+            <div class="theme-row">
+              <label class="theme-label"><span class="theme-dot" id="dot-surface"></span>Surface (panels)</label>
+              <div class="theme-input-wrap">
+                <input type="color" id="theme-surface" class="theme-color-input" value="#0a0f0a">
+                <span class="theme-hex" id="hex-surface">#0a0f0a</span>
+              </div>
+            </div>
+            <div class="theme-row">
+              <label class="theme-label"><span class="theme-dot" id="dot-text"></span>Texte principal</label>
+              <div class="theme-input-wrap">
+                <input type="color" id="theme-text" class="theme-color-input" value="#f2fff2">
+                <span class="theme-hex" id="hex-text">#f2fff2</span>
+              </div>
+            </div>
+            <div class="theme-row">
+              <label class="theme-label"><i class="fas fa-font" style="width:14px;text-align:center;color:var(--text-muted)"></i>Police</label>
+              <div class="theme-input-wrap">
+                <select id="theme-font" class="form-select" style="width:160px;font-size:0.8rem">
+                  <option value="'Rajdhani', sans-serif">Rajdhani (défaut)</option>
+                  <option value="'Orbitron', sans-serif">Orbitron</option>
+                  <option value="'Exo 2', sans-serif">Exo 2</option>
+                  <option value="'Share Tech Mono', monospace">Share Tech Mono</option>
+                  <option value="'Inter', sans-serif">Inter</option>
+                  <option value="'Syne', sans-serif">Syne</option>
+                </select>
+              </div>
+            </div>
+            <div class="theme-row">
+              <label class="theme-label"><i class="fas fa-border-all" style="width:14px;text-align:center;color:var(--text-muted)"></i>Radius cards</label>
+              <div class="theme-input-wrap" style="gap:10px">
+                <input type="range" id="theme-radius" min="0" max="40" value="20" style="width:100px;accent-color:var(--primary)">
+                <span class="theme-hex" id="val-radius">20px</span>
+              </div>
             </div>
           </div>
+
+          <div class="theme-preview">
+            <div class="theme-preview-label">Aperçu</div>
+            <div class="theme-preview-box">
+              <div class="theme-preview-card">
+                <div class="theme-preview-title">KPI Card</div>
+                <div class="theme-preview-value">1,337</div>
+                <div class="theme-preview-badge">▲ Actif</div>
+              </div>
+              <div class="theme-preview-card">
+                <div class="theme-preview-title">Membres</div>
+                <div class="theme-preview-value" style="color:var(--warning)">42</div>
+                <div class="theme-preview-badge" style="background:var(--warning-soft);color:var(--warning)">— Stable</div>
+              </div>
+              <div class="theme-preview-card">
+                <div class="theme-preview-title">Tickets</div>
+                <div class="theme-preview-value" style="color:var(--danger)">3</div>
+                <div class="theme-preview-badge" style="background:var(--danger-soft);color:var(--danger)">▼ Élevé</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;margin-top:1rem">
+            <button class="btn btn-secondary btn-sm" id="btn-reset-theme">
+              <i class="fas fa-undo"></i> Réinitialiser
+            </button>
+            <button class="btn btn-primary btn-sm" id="btn-save-theme">
+              <i class="fas fa-save"></i> Sauvegarder le thème
+            </button>
+          </div>
         </div>
+      </div>
 
-      </div>
-      <div class="panel-footer">
-        <button class="btn btn-primary" id="btn-save-theme">
-          <i class="fas fa-save"></i> Sauvegarder le thème
-        </button>
-      </div>
-    </div>
-    <!-- PORTAIL MEMBRE -->
-    <div class="panel">
-      <div class="panel-header">
-        <h2>🌐 Portail Membre <span class="tooltip-icon"
-            data-tooltip="Choisis les sections visibles par les membres sur le portail public (lecture seule). Les sections sensibles (modération, tickets, logs, paramètres...) ne sont jamais accessibles aux membres.">ⓘ</span>
-        </h2>
-      </div>
-      <div class="panel-body">
-
-        <div class="form-group" style="margin-bottom:1.25rem">
-          <label class="form-label">🔗 Lien d'invitation Discord</label>
-          <input type="url" id="settings-discord-invite" class="form-control" placeholder="https://discord.gg/xxxxx"
-            style="max-width:420px">
-          <p style="font-size:0.78rem;color:var(--text-muted);margin-top:.3rem">
-            Affiché sur le bouton "Rejoindre la communauté" du portail public.
+      <!-- PORTAIL MEMBRE -->
+      <div class="set-item" data-set="portal">
+        <div class="set-head">
+          <div class="set-head-left">
+            <i class="fas fa-chevron-right set-chevron"></i>
+            <span class="set-icon">🌐</span>
+            <span class="set-title">Portail Membre</span>
+            <span class="tooltip-icon" data-tooltip="Choisis les sections visibles par les membres sur le portail public. Les sections sensibles ne sont jamais accessibles.">ⓘ</span>
+          </div>
+        </div>
+        <div class="set-body">
+          <div class="form-group" style="margin-bottom:1.25rem">
+            <label class="form-label">🔗 Lien d'invitation Discord</label>
+            <input type="url" id="settings-discord-invite" class="form-control" placeholder="https://discord.gg/xxxxx" style="max-width:420px">
+          </div>
+          <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem">
+            Sections visibles par tes membres sur le portail public (lecture seule).
           </p>
+          <div id="settings-portal-sections" class="settings-portal-grid"></div>
+          <div style="margin-top:1rem">
+            <button class="btn btn-primary btn-sm" id="btn-save-portal">
+              <i class="fas fa-save"></i> Sauvegarder le portail
+            </button>
+          </div>
         </div>
+      </div>
 
-        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem">
-          Active les sections que tes membres pourront voir sur le portail public (lecture seule, aucune action admin).
-        </p>
-        <div id="settings-portal-sections" class="settings-portal-grid">
-          <!-- généré par JS -->
+      <!-- ZONE DANGER -->
+      <div class="set-item set-danger" data-set="danger">
+        <div class="set-head">
+          <div class="set-head-left">
+            <i class="fas fa-chevron-right set-chevron"></i>
+            <span class="set-icon">⚠️</span>
+            <span class="set-title" style="color:var(--red)">Zone de danger</span>
+          </div>
+        </div>
+        <div class="set-body">
+          <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem">
+            Ces actions sont irréversibles. Procède avec précaution.
+          </p>
+          <button class="btn btn-danger btn-sm" id="btn-reset-config">
+            <i class="fas fa-trash"></i> Réinitialiser toute la configuration
+          </button>
         </div>
       </div>
-      <div class="panel-footer">
-        <button class="btn btn-primary" id="btn-save-portal">
-          <i class="fas fa-save"></i> Sauvegarder le portail
-        </button>
-      </div>
-    </div>
 
-    <!-- ZONE DANGER -->
-    <div class="panel" style="border-color:rgba(255,68,68,0.3)">
-      <div class="panel-header" style="border-color:rgba(255,68,68,0.2)">
-        <h2 style="color:var(--red)">⚠️ Zone de danger <span class="tooltip-icon"
-            data-tooltip="Actions irréversibles : suppression de données ou désinstallation du bot. À utiliser avec précaution.">ⓘ</span>
-        </h2>
-      </div>
-      <div class="panel-body">
-        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem">
-          Ces actions sont irréversibles. Procède avec précaution.
-        </p>
-        <button class="btn btn-danger" id="btn-reset-config">
-          <i class="fas fa-trash"></i> Réinitialiser toute la configuration
-        </button>
-      </div>
     </div>
 
   </div>

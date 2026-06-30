@@ -41,6 +41,7 @@ export async function initSettings() {
   renderModules();
   await renderPortalSections();
   initThemeEditor(configs);
+  initAccordion();
 
   document.getElementById('btn-save-settings').addEventListener('click', async () => {
     await Promise.all([
@@ -402,5 +403,15 @@ async function renderPortalSections() {
       saveConfig('discord_invite', inviteUrl),
     ]);
     showToast('✅ Portail membre sauvegardé');
+  });
+}
+
+// ── ACCORDÉON ─────────────────────────────────────────────────────────────────
+
+function initAccordion() {
+  document.querySelectorAll('.set-item').forEach(item => {
+    item.querySelector('.set-head').addEventListener('click', () => {
+      item.classList.toggle('open');
+    });
   });
 }

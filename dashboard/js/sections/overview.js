@@ -5,15 +5,19 @@ import { getActiveGuildId } from '../services/guildService.js';
 export async function initOverview() {
   const isMember = window.WARSTACK_IS_MEMBER === true || window._memberViewActive === true;
 
+  const staffOv  = document.getElementById('staff-overview');
+  const memberOv = document.getElementById('member-overview');
+  if (!staffOv || !memberOv) return;
+
   if (isMember) {
-    document.getElementById('staff-overview').style.display = 'none';
-    document.getElementById('member-overview').style.display = 'block';
+    staffOv.style.display  = 'none';
+    memberOv.style.display = 'block';
     await initMemberOverview();
     return;
   }
 
-  document.getElementById('staff-overview').style.display = 'block';
-  document.getElementById('member-overview').style.display = 'none';
+  staffOv.style.display  = 'block';
+  memberOv.style.display = 'none';
 
   // Bonjour
   const username = window.WARSTACK_USERNAME || 'vous';

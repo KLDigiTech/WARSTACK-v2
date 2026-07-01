@@ -74,6 +74,18 @@ export async function initWelcome() {
     });
   });
 
+  // ── Switch preview bienvenue / départ ────────────────────
+  const previewTabs = document.querySelectorAll('.panel-tabs .tab-btn[data-preview]');
+  previewTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      previewTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const target = tab.dataset.preview;
+      document.getElementById('preview-content-welcome').classList.toggle('hidden', target !== 'welcome');
+      document.getElementById('preview-content-leave').classList.toggle('hidden', target !== 'leave');
+    });
+  });
+
   // ── Preview live ────────────────────────────────────────
   document.getElementById('welcome-message').addEventListener('input', updatePreviews);
   document.getElementById('leave-message').addEventListener('input', updatePreviews);

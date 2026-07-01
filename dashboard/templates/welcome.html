@@ -95,38 +95,44 @@
     <div class="panel">
       <div class="panel-header">
         <h2>👁️ Aperçu en direct</h2>
+        <div class="panel-tabs">
+          <button class="tab-btn active" id="preview-tab-welcome" data-preview="welcome">Bienvenue</button>
+          <button class="tab-btn" id="preview-tab-leave" data-preview="leave">Départ</button>
+        </div>
       </div>
       <div class="panel-body">
         <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:1rem">
           Mise à jour en temps réel pendant que tu rédiges.
         </p>
 
-        <div class="welcome-section-title">Message de bienvenue</div>
-        <div class="discord-preview-box" style="margin-bottom:1rem">
-          <div class="discord-preview">
-            <div class="dp-avatar"><img src="https://cdn.discordapp.com/embed/avatars/0.png" alt="bot"></div>
-            <div class="dp-content">
-              <div class="dp-header">
-                <span class="dp-botname">WARSTACK</span>
-                <span class="dp-badge">APP</span>
-                <span class="dp-time">Aujourd'hui à <span id="dp-time-val">--:--</span></span>
+        <div class="tab-content" id="preview-content-welcome">
+          <div class="discord-preview-box">
+            <div class="discord-preview">
+              <div class="dp-avatar"><img src="https://cdn.discordapp.com/embed/avatars/0.png" alt="bot"></div>
+              <div class="dp-content">
+                <div class="dp-header">
+                  <span class="dp-botname">WARSTACK</span>
+                  <span class="dp-badge">APP</span>
+                  <span class="dp-time">Aujourd'hui à <span id="dp-time-val">--:--</span></span>
+                </div>
+                <div class="dp-message" id="dp-welcome-text">Bienvenue @Kevin sur WARSTACK ! 🎉</div>
               </div>
-              <div class="dp-message" id="dp-welcome-text">Bienvenue @Kevin sur WARSTACK ! 🎉</div>
             </div>
           </div>
         </div>
 
-        <div class="welcome-section-title">Message de départ</div>
-        <div class="discord-preview-box">
-          <div class="discord-preview">
-            <div class="dp-avatar"><img src="https://cdn.discordapp.com/embed/avatars/0.png" alt="bot"></div>
-            <div class="dp-content">
-              <div class="dp-header">
-                <span class="dp-botname">WARSTACK</span>
-                <span class="dp-badge">APP</span>
-                <span class="dp-time">Aujourd'hui à <span id="dp-time-val-2">--:--</span></span>
+        <div class="tab-content hidden" id="preview-content-leave">
+          <div class="discord-preview-box">
+            <div class="discord-preview">
+              <div class="dp-avatar"><img src="https://cdn.discordapp.com/embed/avatars/0.png" alt="bot"></div>
+              <div class="dp-content">
+                <div class="dp-header">
+                  <span class="dp-botname">WARSTACK</span>
+                  <span class="dp-badge">APP</span>
+                  <span class="dp-time">Aujourd'hui à <span id="dp-time-val-2">--:--</span></span>
+                </div>
+                <div class="dp-message" id="dp-leave-text">Kevin a quitté le serveur.</div>
               </div>
-              <div class="dp-message" id="dp-leave-text">Kevin a quitté le serveur.</div>
             </div>
           </div>
         </div>

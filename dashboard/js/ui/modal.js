@@ -8,6 +8,12 @@ export function closeModal() {
   document.getElementById('modal').classList.remove('open');
 }
 
+// Exposées en global car de nombreux blocs HTML injectés via innerHTML
+// utilisent onclick="closeModal()" / onclick="showModal(...)" en inline —
+// ces attributs cherchent une fonction sur window, pas l'export du module.
+window.showModal  = showModal;
+window.closeModal = closeModal;
+
 export function initModal() {
   const modal = document.getElementById('modal');
   const close = document.getElementById('modal-close');

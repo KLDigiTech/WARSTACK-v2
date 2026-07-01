@@ -45,10 +45,15 @@ function renderStats() {
   const active     = menus.filter(m => m.enabled).length;
   const totalRoles = menus.reduce((acc, m) => acc + (m._roles?.length || 0), 0);
   const sent       = menus.filter(m => m.message_id).length;
-  document.getElementById('stat-rx-menus').textContent  = menus.length;
-  document.getElementById('stat-rx-active').textContent = active;
-  document.getElementById('stat-rx-roles').textContent  = totalRoles;
-  document.getElementById('stat-rx-sent').textContent   = sent;
+  setText('stat-rx-menus', menus.length);
+  setText('stat-rx-active', active);
+  setText('stat-rx-roles', totalRoles);
+  setText('stat-rx-sent', sent);
+}
+
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
 }
 
 function renderList() {

@@ -381,14 +381,17 @@ export async function initMemberOverview() {
     fetchSupabase(`players?discord_id=eq.${discordId}&select=*&limit=1`),
   ]);
 
-  document.getElementById('mov-members').textContent = discordData?.member_count || '—';
-  document.getElementById('mov-joueurs').textContent = xpRows?.length || '0';
-  document.getElementById('mov-tournois').textContent = tournois?.length || '0';
-  document.getElementById('mov-events').textContent = events?.length || '0';
-  document.getElementById('mov-suggestions').textContent = suggestions?.length || '0';
+  const movMembers = document.getElementById('mov-members');
+  if (!movMembers) return;
+
+  movMembers.textContent = discordData?.member_count || '—';
+  setText('mov-joueurs', xpRows?.length || '0');
+  setText('mov-tournois', tournois?.length || '0');
+  setText('mov-events', events?.length || '0');
+  setText('mov-suggestions', suggestions?.length || '0');
 
   const p = myPlayer?.[0];
-  document.getElementById('mov-profile').innerHTML = p ? `
+  setHtml('mov-profile', p ? `
     <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem">
       <img src="${p.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png'}" style="width:48px;height:48px;border-radius:50%;border:2px solid var(--primary)">
       <div>
@@ -402,29 +405,39 @@ export async function initMemberOverview() {
       <div><span style="color:var(--text-muted)">XP</span> <strong style="color:var(--primary)">${p.xp || '0'}</strong></div>
       <div><span style="color:var(--text-muted)">Coins</span> <strong style="color:#FFD700">${p.coins || '0'}</strong></div>
     </div>
-  ` : `<div style="color:var(--text-muted);font-size:0.85rem">Profil non trouvé.</div>`;
+  ` : `<div style="color:var(--text-muted);font-size:0.85rem">Profil non trouvé.</div>`);
 
-  document.getElementById('mov-tickets').innerHTML = myTickets?.length ? myTickets.map(t => `
+  setHtml('mov-tickets', myTickets?.length ? myTickets.map(t => `
     <div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem 0;border-bottom:1px solid var(--border)">
       <span style="font-size:0.85rem">${t.subject || t.type}</span>
       <span class="ticket-status-badge status-${t.status}" style="font-size:0.75rem">${t.status}</span>
-    </div>`).join('') : `<div style="color:var(--text-muted);font-size:0.85rem">Aucun ticket.</div>`;
+    </div>`).join('') : `<div style="color:var(--text-muted);font-size:0.85rem">Aucun ticket.</div>`);
 
-  document.getElementById('mov-events-list').innerHTML = events?.length ? events.map(e => `
+  setHtml('mov-events-list', events?.length ? events.map(e => `
     <div style="padding:.4rem 0;border-bottom:1px solid var(--border)">
       <div style="font-weight:600;font-size:0.9rem">${e.title}</div>
       <div style="color:var(--text-muted);font-size:0.78rem">📅 ${new Date(e.date).toLocaleDateString('fr-FR')} à ${e.time}</div>
-    </div>`).join('') : `<div style="color:var(--text-muted);font-size:0.85rem">Aucun événement.</div>`;
+    </div>`).join('') : `<div style="color:var(--text-muted);font-size:0.85rem">Aucun événement.</div>`);
 
-  document.getElementById('mov-tournois-list').innerHTML = tournois?.length ? tournois.map(t => `
+  setHtml('mov-tournois-list', tournois?.length ? tournois.map(t => `
     <div style="padding:.4rem 0;border-bottom:1px solid var(--border)">
       <div style="font-weight:600;font-size:0.9rem">🏆 ${t.name}</div>
       <div style="color:var(--text-muted);font-size:0.78rem">Du ${new Date(t.start_date).toLocaleDateString('fr-FR')} au ${new Date(t.end_date).toLocaleDateString('fr-FR')}</div>
-    </div>`).join('') : `<div style="color:var(--text-muted);font-size:0.85rem">Aucun tournoi actif.</div>`;
+    </div>`).join('') : `<div style="color:var(--text-muted);font-size:0.85rem">Aucun tournoi actif.</div>`);
 
-  document.getElementById('mov-suggestions-list').innerHTML = suggestions?.length ? suggestions.map(s => `
+  setHtml('mov-suggestions-list', suggestions?.length ? suggestions.map(s => `
     <div style="padding:.4rem 0;border-bottom:1px solid var(--border)">
       <div style="font-size:0.85rem">${s.content?.slice(0, 80)}${s.content?.length > 80 ? '...' : ''}</div>
       <div style="color:var(--text-muted);font-size:0.75rem">${s.username} · ${new Date(s.created_at).toLocaleDateString('fr-FR')}</div>
-    </div>`).join('') : `<div style="color:var(--text-muted);font-size:0.85rem">Aucune suggestion.</div>`;
+    </div>`).join('') : `<div style="color:var(--text-muted);font-size:0.85rem">Aucune suggestion.</div>`);
+}
+
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function setHtml(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = val;
 }

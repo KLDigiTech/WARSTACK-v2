@@ -71,17 +71,6 @@
 .btn-icon:hover { border-color: var(--primary); }
 .btn-icon-danger:hover { border-color: var(--danger); }
 
-.btn-danger {
-  background: var(--danger);
-  color: #fff;
-  border: none;
-  padding: .75rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 700;
-  cursor: pointer;
-  font-size: .9rem;
-}
-
 /* ROLE CHOICES */
 .role-choices {
   display: grid;

@@ -5,26 +5,26 @@ import { getActiveGuildId } from '../services/guildService.js';
 export async function initOverview() {
   const isMember = window.WARSTACK_IS_MEMBER === true || window._memberViewActive === true;
 
-  const staffOv  = document.getElementById('staff-overview');
+  const staffOv = document.getElementById('staff-overview');
   const memberOv = document.getElementById('member-overview');
   if (!staffOv || !memberOv) return;
 
   if (isMember) {
-    staffOv.style.display  = 'none';
+    staffOv.style.display = 'none';
     memberOv.style.display = 'block';
     await initMemberOverview();
     return;
   }
 
-  staffOv.style.display  = 'block';
+  staffOv.style.display = 'block';
   memberOv.style.display = 'none';
 
   // Bonjour
-  const username = window.WARSTACK_USERNAME || 'vous';
-  const hour     = new Date().getHours();
-  const greet    = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir';
-  const greetEl  = document.getElementById('ov-greeting-text');
-  if (greetEl) greetEl.textContent = `👋 ${greet}, ${username} !`;
+  const username = window.WARSTACK_USERNAME || '';
+  const hour = new Date().getHours();
+  const greet = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir';
+  const greetEl = document.getElementById('ov-greeting-text');
+  if (greetEl) greetEl.textContent = username ? `👋 ${greet}, ${username} !` : `👋 ${greet} !`;
 
   showSkeleton('ov-activity-list', 'activity', 7);
   showSkeleton('ov-tickets-list', 'panel-rows', 4);
@@ -80,16 +80,16 @@ async function loadServerStats() {
 
   _overviewConfigs = Array.isArray(configs) ? configs : [];
 
-  const members     = guildData?.member_count || 0;
-  const joueurs     = xpRows?.length          || 0;
-  const ticketCount = Array.isArray(tickets)     ? tickets.length     : 0;
-  const evtCount    = Array.isArray(events)      ? events.length      : 0;
-  const tourCount   = Array.isArray(tournois)    ? tournois.length    : 0;
+  const members = guildData?.member_count || 0;
+  const joueurs = xpRows?.length || 0;
+  const ticketCount = Array.isArray(tickets) ? tickets.length : 0;
+  const evtCount = Array.isArray(events) ? events.length : 0;
+  const tourCount = Array.isArray(tournois) ? tournois.length : 0;
 
-  setKPI('ov-members',  members,     members  > 0 ? 'up' : 'flat');
-  setKPI('ov-joueurs',  joueurs,     joueurs  > 0 ? 'up' : 'flat');
-  setKPI('ov-tickets',  ticketCount, ticketCount > 5 ? 'down' : ticketCount > 0 ? 'flat' : 'up');
-  setKPI('ov-tournois', tourCount,   tourCount > 0 ? 'up' : 'flat');
+  setKPI('ov-members', members, members > 0 ? 'up' : 'flat');
+  setKPI('ov-joueurs', joueurs, joueurs > 0 ? 'up' : 'flat');
+  setKPI('ov-tickets', ticketCount, ticketCount > 5 ? 'down' : ticketCount > 0 ? 'flat' : 'up');
+  setKPI('ov-tournois', tourCount, tourCount > 0 ? 'up' : 'flat');
 
   // Sous-titre dynamique
   const subEl = document.getElementById('ov-greeting-sub');
@@ -100,22 +100,22 @@ async function loadServerStats() {
 
   // Barre de progression configuration
   const SETUP_CHECKS = [
-    { key: 'welcome_channel',  label: 'Message de bienvenue', section: 'welcome'    },
-    { key: 'ticket_category',  label: 'Tickets',              section: 'tickets'    },
-    { key: 'ob_channel',       label: 'Onboarding membres',   section: 'onboarding' },
-    { key: 'automod_enabled',  label: 'Protection auto',      section: 'automod'    },
-    { key: 'log_channel',      label: 'Historique actions',   section: 'logs'       },
+    { key: 'welcome_channel', label: 'Message de bienvenue', section: 'welcome' },
+    { key: 'ticket_category', label: 'Tickets', section: 'tickets' },
+    { key: 'ob_channel', label: 'Onboarding membres', section: 'onboarding' },
+    { key: 'automod_enabled', label: 'Protection auto', section: 'automod' },
+    { key: 'log_channel', label: 'Historique actions', section: 'logs' },
   ];
 
-  const done    = SETUP_CHECKS.filter(c => getConf(c.key)).length;
-  const total   = SETUP_CHECKS.length;
-  const pct     = Math.round((done / total) * 100);
+  const done = SETUP_CHECKS.filter(c => getConf(c.key)).length;
+  const total = SETUP_CHECKS.length;
+  const pct = Math.round((done / total) * 100);
   const missing = SETUP_CHECKS.filter(c => !getConf(c.key));
 
   const progressEl = document.getElementById('ov-greeting-progress');
-  const fillEl     = document.getElementById('ov-progress-fill');
-  const pctEl      = document.getElementById('ov-progress-pct');
-  const stepsEl    = document.getElementById('ov-progress-steps');
+  const fillEl = document.getElementById('ov-progress-fill');
+  const pctEl = document.getElementById('ov-progress-pct');
+  const stepsEl = document.getElementById('ov-progress-steps');
 
   if (progressEl && pct < 100) {
     progressEl.style.display = '';
@@ -133,17 +133,17 @@ async function loadServerStats() {
 
   // Actions recommandées en CARTES
   const ALL_ACTIONS = [
-    { icon: '👋', label: 'Configurer le message de bienvenue', sub: 'Les nouveaux membres ne reçoivent aucun message.', section: 'welcome',    cta: 'Configurer',  check: !getConf('welcome_channel') },
-    { icon: '🎫', label: 'Activer les tickets',                sub: 'Permettez à vos membres de contacter l\'équipe.', section: 'tickets',    cta: 'Activer',     check: !getConf('ticket_category') },
-    { icon: '🎮', label: 'Ajouter votre premier joueur',       sub: 'Aucun joueur enregistré sur WARSTACK.',           section: 'players',    cta: 'Ajouter',     check: joueurs === 0 },
-    { icon: '📅', label: 'Créer votre premier événement',      sub: 'Aucun événement planifié avec la communauté.',    section: 'events',     cta: 'Créer',       check: evtCount === 0 },
-    { icon: '🏆', label: 'Lancer un tournoi',                  sub: 'Organisez une compétition en 2 minutes.',         section: 'tournament', cta: 'Lancer',      check: tourCount === 0 },
-    { icon: '🛡', label: 'Activer la protection automatique',  sub: 'Le serveur n\'est pas protégé contre le spam.',   section: 'automod',    cta: 'Activer',     check: !getConf('automod_enabled') },
+    { icon: '👋', label: 'Configurer le message de bienvenue', sub: 'Les nouveaux membres ne reçoivent aucun message.', section: 'welcome', cta: 'Configurer', check: !getConf('welcome_channel') },
+    { icon: '🎫', label: 'Activer les tickets', sub: 'Permettez à vos membres de contacter l\'équipe.', section: 'tickets', cta: 'Activer', check: !getConf('ticket_category') },
+    { icon: '🎮', label: 'Ajouter votre premier joueur', sub: 'Aucun joueur enregistré sur WARSTACK.', section: 'players', cta: 'Ajouter', check: joueurs === 0 },
+    { icon: '📅', label: 'Créer votre premier événement', sub: 'Aucun événement planifié avec la communauté.', section: 'events', cta: 'Créer', check: evtCount === 0 },
+    { icon: '🏆', label: 'Lancer un tournoi', sub: 'Organisez une compétition en 2 minutes.', section: 'tournament', cta: 'Lancer', check: tourCount === 0 },
+    { icon: '🛡', label: 'Activer la protection automatique', sub: 'Le serveur n\'est pas protégé contre le spam.', section: 'automod', cta: 'Activer', check: !getConf('automod_enabled') },
   ];
 
   const visibleActions = ALL_ACTIONS.filter(a => a.check).slice(0, 4);
-  const panel   = document.getElementById('ov-actions-panel');
-  const listEl  = document.getElementById('ov-actions-list');
+  const panel = document.getElementById('ov-actions-panel');
+  const listEl = document.getElementById('ov-actions-list');
 
   if (panel && listEl && visibleActions.length > 0) {
     panel.style.display = '';
@@ -173,25 +173,25 @@ function setKPI(id, value, trend) {
   if (trendEl) {
     const labels = { up: '▲ Actif', down: '▼ Élevé', flat: '— Stable' };
     trendEl.textContent = labels[trend] || '';
-    trendEl.className   = `ov-kpi-trend ${trend}`;
+    trendEl.className = `ov-kpi-trend ${trend}`;
   }
 }
 
 async function loadBotHealth() {
-  const data   = await callBotAPI('status').catch(() => null);
-  const badge  = document.getElementById('ov-bot-status');
+  const data = await callBotAPI('status').catch(() => null);
+  const badge = document.getElementById('ov-bot-status');
   const uptime = document.getElementById('ov-uptime');
   if (!badge) return;
   if (data?.status === 'online') {
     badge.textContent = '🟢 Online';
-    badge.className   = 'ov-health-badge green';
+    badge.className = 'ov-health-badge green';
   } else {
     badge.textContent = '🔴 Offline';
-    badge.className   = 'ov-health-badge red';
+    badge.className = 'ov-health-badge red';
   }
   if (uptime && data?.uptime) {
     const mins = Math.floor(data.uptime / 60);
-    const hrs  = Math.floor(mins / 60);
+    const hrs = Math.floor(mins / 60);
     uptime.textContent = hrs > 0 ? `${hrs}h ${mins % 60}min` : `${mins}min`;
   }
 }
@@ -211,19 +211,19 @@ async function loadActivity() {
   }
 
   const iconMap = {
-    message_delete  : { i: '🗑',  bg: 'rgba(255,68,68,.1)' },
-    message_edit    : { i: '✏️',  bg: 'rgba(255,255,255,.06)' },
-    member_join     : { i: '➕',  bg: 'rgba(0,230,118,.1)' },
-    member_leave    : { i: '➖',  bg: 'rgba(255,107,53,.1)' },
-    ticket_open     : { i: '🎫',  bg: 'rgba(255,189,46,.1)' },
-    ticket_close    : { i: '🔒',  bg: 'rgba(255,255,255,.06)' },
-    suggestion_post : { i: '💡',  bg: 'rgba(64,196,255,.1)' },
-    ban             : { i: '🔨',  bg: 'rgba(255,68,68,.15)' },
-    kick            : { i: '👢',  bg: 'rgba(255,68,68,.12)' },
-    warn            : { i: '⚠️',  bg: 'rgba(255,189,46,.12)' },
-    mute            : { i: '🔇',  bg: 'rgba(255,107,53,.1)' },
-    automod_kick    : { i: '🤖',  bg: 'rgba(0,255,100,.08)' },
-    automod_ban     : { i: '🤖',  bg: 'rgba(255,68,68,.1)' },
+    message_delete: { i: '🗑', bg: 'rgba(255,68,68,.1)' },
+    message_edit: { i: '✏️', bg: 'rgba(255,255,255,.06)' },
+    member_join: { i: '➕', bg: 'rgba(0,230,118,.1)' },
+    member_leave: { i: '➖', bg: 'rgba(255,107,53,.1)' },
+    ticket_open: { i: '🎫', bg: 'rgba(255,189,46,.1)' },
+    ticket_close: { i: '🔒', bg: 'rgba(255,255,255,.06)' },
+    suggestion_post: { i: '💡', bg: 'rgba(64,196,255,.1)' },
+    ban: { i: '🔨', bg: 'rgba(255,68,68,.15)' },
+    kick: { i: '👢', bg: 'rgba(255,68,68,.12)' },
+    warn: { i: '⚠️', bg: 'rgba(255,189,46,.12)' },
+    mute: { i: '🔇', bg: 'rgba(255,107,53,.1)' },
+    automod_kick: { i: '🤖', bg: 'rgba(0,255,100,.08)' },
+    automod_ban: { i: '🤖', bg: 'rgba(255,68,68,.1)' },
   };
 
   el.innerHTML = logs.map(l => {
@@ -283,11 +283,11 @@ async function loadSuggestions() {
     return;
   }
   const statusMap = {
-    pending    : { cls: 'ov-status-pending',  label: 'En attente' },
-    reviewing  : { cls: 'ov-status-progress', label: 'En cours' },
-    accepted   : { cls: 'ov-status-accepted', label: 'Acceptée' },
-    refused    : { cls: 'ov-status-refused',  label: 'Refusée' },
-    implemented: { cls: 'ov-status-past',     label: 'Implémentée' },
+    pending: { cls: 'ov-status-pending', label: 'En attente' },
+    reviewing: { cls: 'ov-status-progress', label: 'En cours' },
+    accepted: { cls: 'ov-status-accepted', label: 'Acceptée' },
+    refused: { cls: 'ov-status-refused', label: 'Refusée' },
+    implemented: { cls: 'ov-status-past', label: 'Implémentée' },
   };
   el.innerHTML = suggestions.map(s => {
     const st = statusMap[s.status] || { cls: 'ov-status-pending', label: s.status || '—' };
@@ -313,7 +313,7 @@ async function loadEvents() {
     return;
   }
   el.innerHTML = events.map(e => {
-    const d    = new Date(e.date);
+    const d = new Date(e.date);
     const past = d < new Date();
     return `
       <div class="ov-ticket-row">
@@ -339,28 +339,28 @@ function timeAgo(iso) {
   if (!iso) return '—';
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1)  return 'À l\'instant';
+  if (mins < 1) return 'À l\'instant';
   if (mins < 60) return `${mins}min`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24)  return `${hrs}h`;
+  if (hrs < 24) return `${hrs}h`;
   return `${Math.floor(hrs / 24)}j`;
 }
 
 function actionLabel(a) {
   return ({
-    message_delete  : 'a supprimé un message',
-    message_edit    : 'a modifié un message',
-    member_join     : 'a rejoint le serveur',
-    member_leave    : 'a quitté le serveur',
-    ticket_open     : 'a ouvert un ticket',
-    ticket_close    : 'a fermé un ticket',
-    suggestion_post : 'a posté une suggestion',
-    ban             : 'a été banni',
-    kick            : 'a été kick',
-    warn            : 'a reçu un warn',
-    mute            : 'a été mute',
-    automod_kick    : 'AutoMod — kick auto',
-    automod_ban     : 'AutoMod — ban auto',
+    message_delete: 'a supprimé un message',
+    message_edit: 'a modifié un message',
+    member_join: 'a rejoint le serveur',
+    member_leave: 'a quitté le serveur',
+    ticket_open: 'a ouvert un ticket',
+    ticket_close: 'a fermé un ticket',
+    suggestion_post: 'a posté une suggestion',
+    ban: 'a été banni',
+    kick: 'a été kick',
+    warn: 'a reçu un warn',
+    mute: 'a été mute',
+    automod_kick: 'AutoMod — kick auto',
+    automod_ban: 'AutoMod — ban auto',
   })[a] || a;
 }
 
@@ -368,7 +368,7 @@ export async function initMemberOverview() {
   const isMember = window.WARSTACK_IS_MEMBER === true || window._memberViewActive === true;
   if (!isMember) return;
 
-  const guildId   = await getActiveGuildId();
+  const guildId = await getActiveGuildId();
   const discordId = window.WARSTACK_DISCORD_ID;
 
   const [discordData, xpRows, tournois, events, suggestions, myTickets, myPlayer] = await Promise.all([
@@ -381,10 +381,10 @@ export async function initMemberOverview() {
     fetchSupabase(`players?discord_id=eq.${discordId}&select=*&limit=1`),
   ]);
 
-  document.getElementById('mov-members').textContent  = discordData?.member_count || '—';
-  document.getElementById('mov-joueurs').textContent  = xpRows?.length || '0';
+  document.getElementById('mov-members').textContent = discordData?.member_count || '—';
+  document.getElementById('mov-joueurs').textContent = xpRows?.length || '0';
   document.getElementById('mov-tournois').textContent = tournois?.length || '0';
-  document.getElementById('mov-events').textContent   = events?.length || '0';
+  document.getElementById('mov-events').textContent = events?.length || '0';
   document.getElementById('mov-suggestions').textContent = suggestions?.length || '0';
 
   const p = myPlayer?.[0];

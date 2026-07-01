@@ -1,5 +1,6 @@
 import { callBotAPI } from '../api.js';
 import { showToast }  from '../ui/toast.js';
+import { showModal, closeModal } from '../ui/modal.js';
 
 const EMOJIS = [
   '🏆','⚔️','🎮','🔱','👻','💎','🎖️','🪖','🔥','💀',
@@ -150,8 +151,23 @@ async function createChannel() {
   }
 }
 
-window.deleteChannel = async function(id, name) {
-  if (!confirm(`Supprimer #${name} ?`)) return;
+window.deleteChannel = function(id, name) {
+  showModal({
+    title: 'Supprimer ce salon ?',
+    body: `
+      <p style="color:var(--text-muted)">
+        Le salon <strong style="color:var(--text)">#${name}</strong> sera définitivement supprimé.
+      </p>
+      <div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:1.5rem">
+        <button class="btn-secondary" onclick="closeModal()">Annuler</button>
+        <button class="btn-danger" onclick="confirmDeleteChannel('${id}','${name}')">Supprimer</button>
+      </div>
+    `
+  });
+};
+
+window.confirmDeleteChannel = async function(id, name) {
+  closeModal();
   const result = await callBotAPI('channel/delete', 'POST', { channel_id: id });
   if (result?.success) {
     showToast(`✅ Salon supprimé`);
@@ -161,9 +177,24 @@ window.deleteChannel = async function(id, name) {
   }
 };
 
-async function deleteAll() {
-  if (!confirm('⚠️ Supprimer TOUS les salons et catégories ? Cette action est irréversible.')) return;
+function deleteAll() {
+  showModal({
+    title: '⚠️ Supprimer tous les salons ?',
+    body: `
+      <p style="color:var(--text-muted)">
+        Tous les salons et catégories seront supprimés. Cette action est
+        <strong style="color:var(--text)">irréversible</strong>.
+      </p>
+      <div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:1.5rem">
+        <button class="btn-secondary" onclick="closeModal()">Annuler</button>
+        <button class="btn-danger" onclick="confirmDeleteAll()">Tout supprimer</button>
+      </div>
+    `
+  });
+}
 
+window.confirmDeleteAll = async function() {
+  closeModal();
   const data = await callBotAPI('channels');
   if (!data?.channels?.length) return showToast('Aucun salon à supprimer', 'error');
 
@@ -176,4 +207,4 @@ async function deleteAll() {
 
   showToast('✅ Tous les salons supprimés');
   await loadChannels();
-}
+};

@@ -11,7 +11,9 @@ export async function initMessages() {
   channels = (channelsData?.channels || []).filter(c => c.type === 'text');
   const chOpts = `<option value="">Choisir un salon...</option>` +
     channels.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-  document.getElementById('campaign-channel').innerHTML = chOpts;
+  const campaignChannel = document.getElementById('campaign-channel');
+  if (!campaignChannel) return;
+  campaignChannel.innerHTML = chOpts;
 
   document.querySelectorAll('.var-btn').forEach(btn => {
     btn.addEventListener('click', () => {

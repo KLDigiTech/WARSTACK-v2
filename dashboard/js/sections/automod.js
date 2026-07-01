@@ -16,6 +16,7 @@ export async function initAutomod() {
 
   // ── Exceptions salons ────────────────────────────────────
   const exceptChannels = document.getElementById('except-channels');
+  if (!exceptChannels) return;
   exceptChannels.innerHTML = textChannels.map(c =>
     `<option value="${c.id}">${c.name}</option>`
   ).join('');
@@ -174,6 +175,7 @@ async function loadViolations() {
   ) || [];
 
   const el = document.getElementById('violations-list');
+  if (!el) return;
 
   if (!data.length) {
     el.innerHTML = `<div style="color:var(--text-muted);font-size:0.85rem">Aucune violation récente.</div>`;

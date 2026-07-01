@@ -390,7 +390,7 @@ async function loadStats() {
     const guildId = await getActiveGuildId();
     const [logs, pending] = await Promise.all([
       fetchSupabase(`onboarding_logs?guild_id=eq.${guildId}&order=created_at.desc&limit=50`),
-      fetchSupabase(`onboarding_sessions?guild_id=eq.${guildId}&manual_status=eq.pending&select=*&order=id.desc`),
+      fetchSupabase(`onboarding_sessions?guild_id=eq.${guildId}&manual_status=eq.pending&select=*&order=updated_at.desc`),
     ]);
 
     const list     = Array.isArray(logs)    ? logs    : [];

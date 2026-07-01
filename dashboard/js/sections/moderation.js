@@ -19,7 +19,9 @@ export async function initModeration() {
   const textChannels = (channelsData?.channels || []).filter(c => c.type === 'text');
   const chOpts = `<option value="">Aucun</option>` +
     textChannels.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-  document.getElementById('mod-logs-channel').innerHTML      = chOpts;
+  const modLogsChannel = document.getElementById('mod-logs-channel');
+  if (!modLogsChannel) return;
+  modLogsChannel.innerHTML      = chOpts;
   document.getElementById('mod-sanctions-channel').innerHTML = chOpts;
 
   const roles = rolesData?.roles || [];
@@ -301,7 +303,9 @@ async function loadSanctions() {
 async function loadStats() {
   const guildId = await getActiveGuildId();
   const data = await fetchSupabase(`sanctions?guild_id=eq.${guildId}&select=type,active`) || [];
-  document.getElementById('stat-warns').textContent = data.filter(s => s.type === 'warn').length;
+  const statWarns = document.getElementById('stat-warns');
+  if (!statWarns) return;
+  statWarns.textContent = data.filter(s => s.type === 'warn').length;
   document.getElementById('stat-mutes').textContent = data.filter(s => s.type === 'mute' && s.active).length;
   document.getElementById('stat-kicks').textContent = data.filter(s => s.type === 'kick').length;
   document.getElementById('stat-bans').textContent  = data.filter(s => s.type === 'ban'  && s.active).length;

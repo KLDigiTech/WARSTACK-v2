@@ -141,10 +141,27 @@ function roleChoicesHTML(selected = null) {
   `;
 }
 
-function extraPermsHTML(checked = []) {
+function extraPermsHTML(checked = [], roleName = null) {
+  const protectedRole = isProtectedRole(roleName);
+
+  if (protectedRole) {
+    return `
+      <div class="perms-list" id="modal-extra-perms">
+        <p style="color:var(--text-muted);font-size:.85rem;margin:0">
+          👑 Le Fondateur a accès à 100% du dashboard — non modifiable.
+        </p>
+      </div>
+    `;
+  }
+
+  const assignable = ALL_MODULES.filter(p => p !== 'team');
   return `
+    <div style="display:flex;gap:.5rem;margin-bottom:.5rem">
+      <button type="button" class="btn-secondary btn-sm" onclick="toggleAllPerms('modal-extra-perms', true)">Tout cocher</button>
+      <button type="button" class="btn-secondary btn-sm" onclick="toggleAllPerms('modal-extra-perms', false)">Tout décocher</button>
+    </div>
     <div class="perms-list" id="modal-extra-perms">
-      ${ALL_MODULES.map(p => `
+      ${assignable.map(p => `
         <label class="perm-item">
           <input type="checkbox" value="${p}" ${checked.includes(p) ? 'checked' : ''}>
           ${MODULE_LABELS[p]}
@@ -153,6 +170,14 @@ function extraPermsHTML(checked = []) {
     </div>
   `;
 }
+
+function isProtectedRole(roleName) {
+  return _roles.find(r => r.role_name === roleName)?.is_protected === true;
+}
+
+window.toggleAllPerms = function(containerId, checkedState) {
+  document.querySelectorAll(`#${containerId} input[type="checkbox"]`).forEach(cb => { cb.checked = checkedState; });
+};
 
 function modalFooter() {
   return `
@@ -192,7 +217,7 @@ window.openEditModal = function(discordId) {
       </div>
       <div class="form-group">
         <label class="form-label">Permissions supplémentaires</label>
-        ${extraPermsHTML(extra)}
+        <div id="modal-perms-wrapper">${extraPermsHTML(extra, m.role)}</div>
       </div>
       ${modalFooter()}
     `
@@ -223,7 +248,7 @@ window.openAddModal = function() {
       </div>
       <div class="form-group">
         <label class="form-label">Permissions supplémentaires</label>
-        ${extraPermsHTML()}
+        <div id="modal-perms-wrapper">${extraPermsHTML()}</div>
       </div>
       ${modalFooter()}
     `
@@ -253,6 +278,12 @@ window.selectRole = function(card) {
   document.querySelectorAll('#modal-role-choices .role-choice').forEach(c => c.classList.remove('active'));
   card.classList.add('active');
   _selectedRole = card.dataset.role;
+
+  const wrapper = document.getElementById('modal-perms-wrapper');
+  if (wrapper) {
+    const currentChecked = [...document.querySelectorAll('#modal-extra-perms input:checked')].map(cb => cb.value);
+    wrapper.innerHTML = extraPermsHTML(currentChecked, _selectedRole);
+  }
 };
 
 window.confirmDelete = async function() {
@@ -381,22 +412,33 @@ window.openManageRolesModal = function() {
 function roleFormHTML(role = null) {
   _editingRoleId      = role?.id || null;
   _editingRoleModules = role?.modules || [];
+  const protectedRole = role?.is_protected === true;
 
   return `
     <div class="form-group">
       <label class="form-label">Emoji</label>
-      <input type="text" class="form-input" id="role-form-emoji" maxlength="2" value="${role?.emoji || '🔰'}" style="width:70px">
+      <input type="text" class="form-input" id="role-form-emoji" maxlength="2" value="${role?.emoji || '🔰'}" style="width:70px" ${protectedRole ? 'disabled' : ''}>
     </div>
     <div class="form-group">
       <label class="form-label">Nom du rôle</label>
-      <input type="text" class="form-input" id="role-form-name" value="${role?.role_name?.replace(/^\S+\s/, '') || ''}" placeholder="Ex : Recruteur">
+      <input type="text" class="form-input" id="role-form-name" value="${role?.role_name?.replace(/^\S+\s/, '') || ''}" placeholder="Ex : Recruteur" ${protectedRole ? 'disabled' : ''}>
     </div>
     <div class="form-group">
       <label class="form-label">Modules accessibles</label>
+      ${protectedRole ? `
+        <p style="color:var(--text-muted);font-size:.85rem;margin-bottom:.5rem">
+          👑 Rôle protégé — accès à 100% du dashboard, non modifiable.
+        </p>
+      ` : `
+        <div style="display:flex;gap:.5rem;margin-bottom:.5rem">
+          <button type="button" class="btn-secondary btn-sm" onclick="toggleAllPerms('role-form-modules', true)">Tout cocher</button>
+          <button type="button" class="btn-secondary btn-sm" onclick="toggleAllPerms('role-form-modules', false)">Tout décocher</button>
+        </div>
+      `}
       <div class="perms-list" id="role-form-modules">
-        ${ALL_MODULES.map(m => `
+        ${(protectedRole ? ALL_MODULES : ALL_MODULES.filter(m => m !== 'team')).map(m => `
           <label class="perm-item">
-            <input type="checkbox" value="${m}" ${_editingRoleModules.includes(m) ? 'checked' : ''}>
+            <input type="checkbox" value="${m}" ${protectedRole ? 'checked disabled' : (_editingRoleModules.includes(m) ? 'checked' : '')}>
             ${MODULE_LABELS[m]}
           </label>
         `).join('')}
@@ -404,7 +446,7 @@ function roleFormHTML(role = null) {
     </div>
     <div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:1.5rem">
       <button class="btn-secondary" onclick="openManageRolesModal()">Retour</button>
-      <button class="btn-primary" onclick="saveRole()">Enregistrer le rôle</button>
+      ${protectedRole ? '' : '<button class="btn-primary" onclick="saveRole()">Enregistrer le rôle</button>'}
     </div>
   `;
 }
@@ -422,7 +464,7 @@ window.openEditRole = function(roleId) {
 window.saveRole = async function() {
   const emoji   = document.getElementById('role-form-emoji').value.trim() || '🔰';
   const name    = document.getElementById('role-form-name').value.trim();
-  const modules = [...document.querySelectorAll('#role-form-modules input:checked')].map(cb => cb.value);
+  const modules = [...document.querySelectorAll('#role-form-modules input:checked')].map(cb => cb.value).filter(m => m !== 'team');
 
   if (!name) { showToast('Donne un nom au rôle', 'error'); return; }
   if (!modules.length) { showToast('Sélectionne au moins un module', 'error'); return; }

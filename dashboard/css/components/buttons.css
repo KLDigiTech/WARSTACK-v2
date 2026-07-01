@@ -1,4 +1,8 @@
-.btn {
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-danger,
+.btn-orange {
   display: inline-flex;
   align-items: center;
   justify-content: center;

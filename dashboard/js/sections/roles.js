@@ -4,6 +4,7 @@ import { showToast }                           from '../ui/toast.js';
 
 let allRoles      = [];
 let selectedRoles = [];
+let lastConfigs   = [];
 
 export async function initRoles() {
 
@@ -24,6 +25,10 @@ export async function initRoles() {
   // ── Config sauvegardée ──────────────────────────────────
   const savedRoles = getConfig(configs, 'autoroles');
   selectedRoles    = savedRoles ? JSON.parse(savedRoles) : [];
+
+  // ── Vue d'ensemble — toutes les attributions du serveur ──
+  lastConfigs = configs;
+  renderOverview(configs, allRoles);
 
   const ignoreBots    = getConfig(configs, 'autorole_ignore_bots') !== 'false';
   const delay         = getConfig(configs, 'autorole_delay') || '0';
@@ -83,6 +88,7 @@ export async function initRoles() {
       selectedRoles.push({ id: role.id, name: role.name, color: role.color });
       renderSelectedRoles();
       updatePreview();
+      renderOverview(lastConfigs, allRoles);
     });
 
     document.getElementById('autoroles-list').appendChild(select);
@@ -132,7 +138,102 @@ export async function initRoles() {
   });
 }
 
-// ── Render rôles sélectionnés ───────────────────────────────────────────────
+// ── Vue d'ensemble ────────────────────────────────────────────────────────
+
+function roleById(id) {
+  return allRoles.find(r => r.id === id) || null;
+}
+
+function roleChip(id, fallbackName) {
+  const role = roleById(id);
+  if (!role && !fallbackName) return `<span class="ro-empty">Aucun rôle</span>`;
+  const name  = role?.name || fallbackName;
+  const color = role?.color || '#888';
+  return `<span class="ro-role"><span class="ro-role-dot" style="background:${color}"></span>@${name}</span>`;
+}
+
+function renderOverview(configs, roles) {
+  const container = document.getElementById('roles-overview-list');
+  if (!container) return;
+
+  const getConf = (key) => configs?.find(c => c.key === key)?.value || null;
+
+  let teams = [];
+  let games = [];
+  try { teams = JSON.parse(getConf('ob_teams') || '[]'); } catch { teams = []; }
+  try { games = JSON.parse(getConf('ob_games') || '[]'); } catch { games = []; }
+
+  const unverifiedId = getConf('ob_role_unverified');
+  const memberId      = getConf('ob_role_member');
+  const pcId          = getConf('ob_pc_role');
+  const psnId         = getConf('ob_psn_role');
+  const xboxId        = getConf('ob_xbox_role');
+
+  const groups = [];
+
+  // Vérification (inscription)
+  groups.push({
+    title: 'Vérification',
+    link: 'onboarding',
+    rows: [
+      { when: 'À l\'arrivée', role: roleChip(unverifiedId) },
+      { when: 'Inscription terminée', role: roleChip(memberId) },
+    ],
+  });
+
+  // Équipes
+  groups.push({
+    title: 'Équipes',
+    link: 'onboarding',
+    rows: teams.length
+      ? teams.map(t => ({ when: `${t.emoji || '⚔️'} ${t.label}`, role: roleChip(t.role_id, t.role_name) }))
+      : [{ when: null, role: `<span class="ro-empty">Aucune équipe configurée</span>` }],
+  });
+
+  // Plateformes
+  groups.push({
+    title: 'Plateformes',
+    link: 'onboarding',
+    rows: [
+      { when: '🖥️ PC',          role: roleChip(pcId) },
+      { when: '🎮 PlayStation', role: roleChip(psnId) },
+      { when: '🎮 Xbox',        role: roleChip(xboxId) },
+    ],
+  });
+
+  // Jeux
+  groups.push({
+    title: 'Jeux',
+    link: 'onboarding',
+    rows: games.length
+      ? games.map(g => ({ when: `${g.emoji || '🎯'} ${g.label}`, role: roleChip(g.role_id, g.role_name) }))
+      : [{ when: null, role: `<span class="ro-empty">Aucun jeu configuré</span>` }],
+  });
+
+  // Rôles automatiques à l'arrivée (cette page)
+  groups.push({
+    title: 'Rôles automatiques à l\'arrivée',
+    link: null,
+    rows: selectedRoles.length
+      ? selectedRoles.map(r => ({ when: null, role: roleChip(r.id, r.name) }))
+      : [{ when: null, role: `<span class="ro-empty">Aucun rôle configuré ci-dessous</span>` }],
+  });
+
+  container.innerHTML = groups.map(g => `
+    <div class="ro-group">
+      <div class="ro-group-title">
+        <span>${g.title}</span>
+        ${g.link ? `<a href="#" data-section="${g.link}" class="nav-item-inline">Configurer →</a>` : ''}
+      </div>
+      ${g.rows.map(r => `
+        <div class="ro-row">
+          ${r.when ? `<span class="ro-when">${r.when}</span><span class="ro-arrow">→</span>` : ''}
+          ${r.role}
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
 
 function renderSelectedRoles() {
   const container = document.getElementById('autoroles-list');
@@ -157,6 +258,7 @@ function renderSelectedRoles() {
       selectedRoles.splice(i, 1);
       renderSelectedRoles();
       updatePreview();
+      renderOverview(lastConfigs, allRoles);
     });
     container.appendChild(row);
   });

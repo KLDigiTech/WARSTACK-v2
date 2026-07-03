@@ -4,10 +4,9 @@ import { showToast }                           from '../ui/toast.js';
 
 export async function initWelcome() {
 
-  const [configs, channelsData, rolesData] = await Promise.all([
+  const [configs, channelsData] = await Promise.all([
     loadConfigs(),
     callBotAPI('channels'),
-    callBotAPI('roles'),
   ]);
 
   // ── Salons ──────────────────────────────────────────────
@@ -18,18 +17,11 @@ export async function initWelcome() {
   document.getElementById('welcome-channel').innerHTML = chOpts;
   document.getElementById('leave-channel').innerHTML   = chOpts;
 
-  // ── Rôles ───────────────────────────────────────────────
-  const roles = rolesData?.roles || [];
-  document.getElementById('autorole').innerHTML =
-    `<option value="">Aucun</option>` +
-    roles.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
-
   // ── Config sauvegardée ──────────────────────────────────
   document.getElementById('welcome-channel').value = getConfig(configs, 'welcome_channel') || '';
   document.getElementById('leave-channel').value   = getConfig(configs, 'leave_channel')   || '';
   document.getElementById('welcome-message').value = getConfig(configs, 'welcome_message') || '';
   document.getElementById('leave-message').value   = getConfig(configs, 'leave_message')   || '';
-  document.getElementById('autorole').value        = getConfig(configs, 'autorole')        || '';
   document.getElementById('dm-message').value      = getConfig(configs, 'dm_message')      || '';
 
   const dmEnabled = getConfig(configs, 'enable_dm') === 'true';
@@ -42,7 +34,6 @@ export async function initWelcome() {
   if (toggle && body) {
     // Si un réglage avancé est déjà configuré, ouvrir par défaut
     const hasAdvanced = getConfig(configs, 'leave_channel')
-                     || getConfig(configs, 'autorole')
                      || getConfig(configs, 'enable_dm') === 'true';
     if (hasAdvanced) {
       body.style.display = 'block';
@@ -60,19 +51,7 @@ export async function initWelcome() {
     document.getElementById('dm-group').style.display = e.target.checked ? 'block' : 'none';
   });
 
-  // ── Variables cliquables ────────────────────────────────
-  document.querySelectorAll('.var-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const textarea = document.getElementById(btn.dataset.target);
-      if (!textarea) return;
-      const pos = textarea.selectionStart ?? textarea.value.length;
-      const ins = btn.dataset.var;
-      textarea.value = textarea.value.slice(0, pos) + ins + textarea.value.slice(pos);
-      textarea.focus();
-      textarea.setSelectionRange(pos + ins.length, pos + ins.length);
-      updatePreviews();
-    });
-  });
+  // ── Variables : gérées globalement par components/varDropdown.js ──
 
   // ── Switch preview bienvenue / départ ────────────────────
   const previewTabs = document.querySelectorAll('.panel-tabs .tab-btn[data-preview]');
@@ -100,7 +79,6 @@ export async function initWelcome() {
       saveConfig('leave_channel',   document.getElementById('leave-channel').value),
       saveConfig('welcome_message', document.getElementById('welcome-message').value),
       saveConfig('leave_message',   document.getElementById('leave-message').value),
-      saveConfig('autorole',        document.getElementById('autorole').value),
       saveConfig('enable_dm',       String(document.getElementById('enable-dm').checked)),
       saveConfig('dm_message',      document.getElementById('dm-message').value),
     ]);

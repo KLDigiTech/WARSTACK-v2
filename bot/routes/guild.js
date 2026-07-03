@@ -176,7 +176,7 @@ router.get('/roles', auth, rl.standard, async (req, res) => {
     const guild = resolveGuild(req);
     if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
     const roles = guild.roles.cache
-      .filter(r => r.name !== '@everyone')
+      .filter(r => r.name !== '@everyone' && !r.managed)
       .sort((a, b) => b.position - a.position)
       .map(r => ({ id: r.id, name: r.name, color: r.hexColor }));
     res.json({ roles });

@@ -168,9 +168,10 @@ document.addEventListener('click', () => {
 
 userDropdown?.addEventListener('click', (e) => e.stopPropagation());
 
-document.querySelector('[data-action="mon-profil"]')?.addEventListener('click', async () => {
-  const { data: players } = await supabase.from('players').select('discord_id').eq('discord_id', discordId).single();
-  if (players?.discord_id) window.open(`/profil.html?id=${players.discord_id}&guild=${guildId}`, '_blank');
+document.querySelector('[data-action="mon-profil"]')?.addEventListener('click', () => {
+  userDropdown.classList.remove('open');
+  window.location.hash = 'profil';
+  document.querySelector('[data-section="profil"]')?.click();
 });
 
 document.querySelector('[data-action="parametres"]')?.addEventListener('click', () => {

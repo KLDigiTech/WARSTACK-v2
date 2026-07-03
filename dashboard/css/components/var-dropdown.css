@@ -1,0 +1,79 @@
+/* ═══════════════════════════════════════
+   VAR DROPDOWN — Insertion de variables
+   Remplace les anciennes "variables-bar"
+═══════════════════════════════════════ */
+
+.var-dropdown {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 0.5rem;
+}
+
+.var-dropdown-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 0.35rem 0.7rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.var-dropdown-toggle:hover,
+.var-dropdown.open .var-dropdown-toggle {
+  border-color: var(--border-hover);
+  color: var(--green);
+}
+.var-dropdown-toggle i {
+  font-size: 0.7rem;
+  transition: transform 0.15s;
+}
+.var-dropdown.open .var-dropdown-toggle i {
+  transform: rotate(180deg);
+}
+
+.var-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  z-index: 30;
+  min-width: 200px;
+  max-height: 260px;
+  overflow-y: auto;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.4rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,.45);
+}
+.var-dropdown.open .var-dropdown-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.var-dropdown-menu .var-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text);
+  padding: 0.4rem 0.55rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-family: 'Courier New', monospace;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.var-dropdown-menu .var-btn:hover {
+  background: var(--primary-glow);
+  border-color: var(--border-hover);
+  color: var(--green-bright);
+}

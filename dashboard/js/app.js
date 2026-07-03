@@ -6,8 +6,10 @@ import { loadEmojis, attachEmojiPicker } from './components/emojiPicker.js';
 import { initTooltips } from './components/tooltip.js';
 import { initNotifications } from './components/notifications.js';
 import { loadConfigs, getConfig } from './services/configService.js';
+import { initVarDropdowns } from './components/varDropdown.js';
 
 initUIModal();
+initVarDropdowns();
 
 async function preloadTheme() {
   try {

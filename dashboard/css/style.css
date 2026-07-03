@@ -12,6 +12,7 @@
 @import url('./components/modals.css');
 @import url('./components/tables.css');
 @import url('./components/toasts.css');
+@import url('./components/var-dropdown.css');
 
 @import url('./sections/tournament.css');
 @import url('./sections/access.css');

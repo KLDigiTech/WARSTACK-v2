@@ -11,6 +11,15 @@ import { initVarDropdowns } from './components/varDropdown.js';
 initUIModal();
 initVarDropdowns();
 
+// ── Liens inline vers une autre section (ex: "Configurer →", "Voir tout →") ──
+// Délégué globalement : marche sur toutes les pages, y compris le HTML injecté dynamiquement.
+document.addEventListener('click', (e) => {
+  const link = e.target.closest('.nav-item-inline[data-section]');
+  if (!link) return;
+  e.preventDefault();
+  document.querySelector(`[data-section="${link.dataset.section}"]`)?.click();
+});
+
 async function preloadTheme() {
   try {
     const configs = await loadConfigs();

@@ -52,6 +52,7 @@ export async function initWelcome() {
   });
 
   // ── Variables : gérées globalement par components/varDropdown.js ──
+  // ── Lien vers la page Rôles : géré globalement par app.js (.nav-item-inline) ──
 
   // ── Switch preview bienvenue / départ ────────────────────
   const previewTabs = document.querySelectorAll('.panel-tabs .tab-btn[data-preview]');

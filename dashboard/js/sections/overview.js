@@ -51,13 +51,7 @@ export async function initOverview() {
     });
   });
 
-  document.querySelectorAll('.nav-item-inline').forEach(link => {
-    link.addEventListener('click', e => {
-      e.preventDefault();
-      const section = link.dataset.section;
-      if (section) document.querySelector(`[data-section="${section}"]`)?.click();
-    });
-  });
+  // ── Liens "Voir tout →" etc : gérés globalement par app.js (.nav-item-inline) ──
 }
 
 // Helper local — lit dans le tableau configs chargé par loadServerStats

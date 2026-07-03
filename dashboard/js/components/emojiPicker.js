@@ -6,8 +6,8 @@ let activePicker = null;
 
 // ── INIT GLOBAL ───────────────────────────────────────────────────────────────
 
-export async function loadEmojis() {
-    if (loaded) return;
+export async function loadEmojis(force = false) {
+    if (loaded && !force) return;
     const data = await callBotAPI('emojis');
     emojis = data?.emojis || [];
     loaded = true;
@@ -65,6 +65,14 @@ function togglePicker(btn, ta) {
     setTimeout(() => {
         document.addEventListener('click', outsideClick);
     }, 10);
+
+    // Rafraîchir les emojis custom en arrière-plan (au cas où un emoji vient d'être
+    // ajouté sur Discord) ; on ré-affiche la grille si le picker est toujours ouvert.
+    loadEmojis(true).then(() => {
+        if (activePicker === picker && typeof picker._refreshGrid === 'function') {
+            picker._refreshGrid();
+        }
+    });
 }
 
 function closePicker() {
@@ -177,6 +185,7 @@ function buildPicker(ta) {
     search.addEventListener('input', () => renderGrid(search.value));
 
     renderGrid();
+    picker._refreshGrid = () => renderGrid(search.value);
     return picker;
 }
 

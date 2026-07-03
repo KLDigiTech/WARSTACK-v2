@@ -5,6 +5,7 @@ import { fetchSupabase }                       from '../api.js';
 import { getActiveGuildId }                    from '../services/guildService.js';
 import { showSkeleton }                        from '../ui/skeleton.js';
 import { showConfirm }                         from '../ui/confirm.js';
+import { enableRoleCreation }                  from '../components/roleCreator.js';
 
 let _teams     = [];
 let _games     = [];
@@ -44,7 +45,10 @@ export async function initOnboarding() {
   document.getElementById('ob-staff-channel').innerHTML  = chOpts;
   ['ob-role-unverified','ob-role-member','ob-pc-role','ob-psn-role','ob-xbox-role'].forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.innerHTML = roleOpts;
+    if (el) {
+      el.innerHTML = roleOpts;
+      enableRoleCreation(el, (newRole) => _roles.push(newRole));
+    }
   });
 
   document.getElementById('ob-channel').value              = getConfig(configs, 'ob_channel')          || '';
@@ -101,17 +105,7 @@ export async function initOnboarding() {
 
   document.getElementById('ob-rules-text').addEventListener('input', updatePreviews);
 
-  document.querySelectorAll('.var-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const textarea = document.getElementById(btn.dataset.target);
-      if (!textarea) return;
-      const pos = textarea.selectionStart ?? textarea.value.length;
-      const ins = btn.dataset.var;
-      textarea.value = textarea.value.slice(0, pos) + ins + textarea.value.slice(pos);
-      textarea.focus();
-      textarea.setSelectionRange(pos + ins.length, pos + ins.length);
-    });
-  });
+  // Variables : gérées globalement par components/varDropdown.js
 
   document.querySelectorAll('.ob-prev-nav-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -140,7 +134,9 @@ export async function initOnboarding() {
   document.getElementById('ob-add-team').addEventListener('click', () => {
     const form = document.getElementById('ob-team-add-form');
     form.style.display = form.style.display === 'none' ? 'block' : 'none';
-    document.getElementById('ob-new-team-role').innerHTML = roleOpts;
+    const roleEl = document.getElementById('ob-new-team-role');
+    roleEl.innerHTML = roleOpts;
+    enableRoleCreation(roleEl, (newRole) => _roles.push(newRole));
   });
 
   document.getElementById('ob-confirm-team').addEventListener('click', () => {
@@ -165,7 +161,9 @@ export async function initOnboarding() {
   document.getElementById('ob-add-game').addEventListener('click', () => {
     const form = document.getElementById('ob-game-add-form');
     form.style.display = form.style.display === 'none' ? 'block' : 'none';
-    document.getElementById('ob-new-game-role').innerHTML = roleOpts;
+    const roleEl = document.getElementById('ob-new-game-role');
+    roleEl.innerHTML = roleOpts;
+    enableRoleCreation(roleEl, (newRole) => _roles.push(newRole));
   });
 
   document.getElementById('ob-confirm-game').addEventListener('click', () => {
@@ -250,7 +248,6 @@ function renderTeams() {
     btn.addEventListener('click', () => { _teams.splice(parseInt(btn.dataset.index), 1); renderTeams(); updatePreviews(); });
   });
 }
-
 function renderGames() {
   const container = document.getElementById('ob-games-list');
   if (!_games.length) { container.innerHTML = '<div class="ob-empty">Aucun jeu configuré</div>'; return; }

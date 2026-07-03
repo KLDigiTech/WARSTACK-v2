@@ -1,6 +1,7 @@
 import { loadConfigs, saveConfig, getConfig } from '../services/configService.js';
 import { callBotAPI }                          from '../api.js';
 import { showToast }                           from '../ui/toast.js';
+import { enableRoleCreation }                  from '../components/roleCreator.js';
 
 let allRoles      = [];
 let selectedRoles = [];
@@ -92,6 +93,7 @@ export async function initRoles() {
     });
 
     document.getElementById('autoroles-list').appendChild(select);
+    enableRoleCreation(select, (newRole) => allRoles.push(newRole));
   });
 
   // ── Toggles ─────────────────────────────────────────────

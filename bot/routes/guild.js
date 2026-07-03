@@ -170,6 +170,27 @@ router.post('/channel/delete', auth, rl.strict, async (req, res) => {
   }
 });
 
+// CRÉER RÔLE
+router.post('/role/create', auth, rl.strict, async (req, res) => {
+  try {
+    const { name, color } = req.body;
+    if (!name || !name.trim()) return res.status(400).json({ error: 'name manquant' });
+
+    const guild = resolveGuild(req);
+    if (!guild) return res.status(404).json({ error: 'Guild introuvable' });
+
+    const role = await guild.roles.create({
+      name  : name.trim().slice(0, 100),
+      color : color || undefined,
+      reason: 'WARSTACK Dashboard — création de rôle',
+    });
+
+    res.json({ success: true, id: role.id, name: role.name, color: role.hexColor });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // LISTE RÔLES
 router.get('/roles', auth, rl.standard, async (req, res) => {
   try {

@@ -7,6 +7,14 @@ const supabase = createClient(
   process.env.SUPABASE_KEY
 );
 
+// Délai minimum entre deux scrapes d'un même joueur (en heures).
+// Légèrement en dessous de l'intervalle du cron (6h) pour laisser une marge,
+// mais assez large pour qu'un joueur fraîchement inscrit (scrapé immédiatement
+// à l'inscription) ne soit pas re-scrapé par le cron qui suit de peu.
+// C'est ce qui limite le nombre de requêtes envoyées à tracker.gg et réduit
+// le risque de ban de l'IP qui scrape.
+const MIN_HOURS_BETWEEN_SCRAPES = 5.5;
+
 async function sleep(ms) {
   return new Promise(r => setTimeout(r, ms));
 }
@@ -24,9 +32,29 @@ async function runScraper() {
     return;
   }
 
-  console.log(`👥 ${players.length} joueur(s) à scraper`);
+  console.log(`👥 ${players.length} joueur(s) éligible(s)`);
+
+  const cutoff = new Date(Date.now() - MIN_HOURS_BETWEEN_SCRAPES * 60 * 60 * 1000).toISOString();
+
+  let skipped = 0;
+  let scraped = 0;
 
   for (const player of players) {
+    // ── Cooldown : on ne re-scrape pas un joueur déjà scrapé récemment ──
+    const { data: lastSnap } = await supabase
+      .from('player_snapshots')
+      .select('snapshot_at')
+      .eq('tracker_id', player.tracker_id)
+      .order('snapshot_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (lastSnap && lastSnap.snapshot_at > cutoff) {
+      console.log(`⏭️  ${player.username || player.discord_id} déjà scrapé récemment (${lastSnap.snapshot_at}), on saute.`);
+      skipped++;
+      continue;
+    }
+
     console.log(`\n🎮 Scraping ${player.username || player.discord_id} (${player.tracker_id})`);
 
     const stats = await scrapeTrackerGG('psn', player.tracker_id);
@@ -68,12 +96,13 @@ async function runScraper() {
       console.error(`❌ Erreur snapshot pour ${player.tracker_id}:`, snapError);
     } else {
       console.log(`✅ Snapshot sauvegardé — K/D: ${stats.kd} | Kills: ${stats.kills}`);
+      scraped++;
     }
 
     await sleep(10000);
   }
 
-  console.log('\n✅ Scraper terminé !');
+  console.log(`\n✅ Scraper terminé ! ${scraped} scrapé(s), ${skipped} sauté(s) (cooldown).`);
 }
 
 runScraper().catch(console.error);
